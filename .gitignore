@@ -28,3 +28,5 @@ pnpm-debug.log*
 /repo-local
 /repo-shared
 .browserslistrc
+
+workspace.code-workspace
