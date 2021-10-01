@@ -30,3 +30,5 @@ pnpm-debug.log*
 .browserslistrc
 
 workspace.code-workspace
+
+package-lock.json
