@@ -1,0 +1,3 @@
+[submodule "src/abebox-core"]
+	path = src/abebox-core
+	url = https://github.com/netgroup/abebox-core.git
