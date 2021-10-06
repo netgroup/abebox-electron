@@ -4,6 +4,10 @@ import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
 
+const rabe = require("./abebox-core/rabejs/rabejs.node");
+const [pk, msk] = rabe.setup();
+console.log("PPL", pk);
+
 Vue.config.productionTip = false;
 
 new Vue({

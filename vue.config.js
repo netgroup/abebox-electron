@@ -1,12 +1,53 @@
+const path = require("path");
 module.exports = {
-  transpileDependencies: ["vuetify"],
+  /*  configureWebpack: {
+    target: 'electron-renderer',
+    node: {
+      __dirname: false,
+    },
+    module: {
+      rules: [
+        {
+          test: /\.node$/,
+          loader: 'node-loader',
+        },
+      ],
+    }, 
+  }, */
   configureWebpack: {
-    devtool: "source-map",
+    module: {
+      rules: [
+        {
+          test: /\.node$/,
+          loader: "native-ext-loader",
+          options: {
+            rewritePath: path.resolve(__dirname, "src/abebox-core/rabejs"),
+          },
+        },
+      ],
+    },
   },
+
+  /*
+  chainWebpack: config => {
+    config.module  
+	.rule('node')
+        .test(/\.node$/)
+        .use('node-loader')
+          .loader('node-loader')
+          .end()
+ }, */
   pluginOptions: {
     electronBuilder: {
-      // List native deps here if they don't work
-      externals: ["chokidar"],
+      nodeIntegration: true,
+      chainWebpackMainProcess: (config) => {
+        config.module
+          .rule("node")
+          .test(/\.node$/)
+          .use("node-loader")
+          .loader("node-loader")
+          .end();
+      },
     },
   },
 };

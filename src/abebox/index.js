@@ -4,19 +4,19 @@ import {
   get_files_list,
   set_policy,
   startServices as abeboxServices,
-} from "../abebox-core/new_index";
+} from "../abebox-core/index";
 
 // Application main window
 let window = undefined;
 let started = false;
 
 /*ABEBox API*/
-const listFilesAPI = async function (event, data) {
+const listFilesAPI = async function(event, data) {
   console.log("Called: list-files");
   return event.reply("list-files-resp", get_files_list());
 };
 
-const setPolicyAPI = async function (event, data) {
+const setPolicyAPI = async function(event, data) {
   console.log("Called: setPolicyAPI");
 };
 
