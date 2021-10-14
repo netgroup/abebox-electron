@@ -5,11 +5,11 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-import rabe from "./abebox-core/rabejs/rabejs.node";
+//import rabe from "./abebox-core/rabejs/rabejs.node";
+//console.log(rabe.setup());
 
-console.log(rabe.setup());
-
-//import abeboxIpc from "./abebox-core/ipc";
+import abeboxIpc from "./abebox-core/ipc";
+abeboxIpc.startIpcServices();
 
 let win = undefined; // referencce to the app main window
 
@@ -43,7 +43,7 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL("app://./index.html");
   }
-  //abeboxIpc.startIpcServices();
+  abeboxIpc.setWindow(win);
 }
 
 // Quit when all windows are closed.
