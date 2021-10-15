@@ -38,3 +38,4 @@ yarn.lock
 config.json
 src/default.json
 src/config/default.json
+src/rabejs/rabejs.node
