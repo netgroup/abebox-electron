@@ -34,3 +34,7 @@ workspace.code-workspace
 package-lock.json
 
 yarn.lock
+
+config.json
+src/default.json
+src/config/default.json
