@@ -1,41 +1,48 @@
-import { ipcMain } from "electron";
+const Store = require("electron-store");
 
-import {
-  get_files_list,
-  set_policy,
-  startServices as abeboxServices,
-} from "../abebox-core/index";
-
-// Application main window
-let window = undefined;
-let started = false;
-
-/*ABEBox API*/
-const listFilesAPI = async function(event, data) {
-  console.log("Called: list-files");
-  return event.reply("list-files-resp", get_files_list());
-};
-
-const setPolicyAPI = async function(event, data) {
-  console.log("Called: setPolicyAPI");
-};
-
-export default {
-  startServices(win) {
-    if (started) return; // already started
-    abeboxServices();
-    console.log("ABEBox Start Services");
-    ipcMain.on("list-files", (event, data) => {
-      listFilesAPI(event, data);
-    });
-    ipcMain.on("set-policy", (event, data) => {
-      setPolicyAPI(event, data);
-    });
-
-    if (win) window = win; // save the reference to the main window
-    console.log(fileList);
-    started = true;
+const schema = {
+  configured: {
+    type: "boolean",
+    default: false,
+  },
+  name: {
+    type: "string",
+  },
+  local_repo: {
+    type: "string",
+  },
+  remote_repo: {
+    type: "string",
   },
 };
 
-//getFileList();
+const local_store = new Store({ schema });
+
+const dev_init = function() {
+  local_store.set("name", "PPL");
+};
+
+local_store.clear();
+//dev_init();
+
+const start_services = function() {};
+const get_files_list = function() {};
+const set_policy = function() {};
+const get_config = async function() {
+  return { name: await local_store.get("name") };
+};
+
+const select_folder = async function() {
+  const { dialog } = require("electron");
+  const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
+  console.log();
+  return res;
+};
+
+module.exports = {
+  start_services,
+  get_files_list,
+  set_policy,
+  get_config,
+  select_folder,
+};

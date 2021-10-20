@@ -7,8 +7,9 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 
 //import rabe from "./abebox-core/rabejs/rabejs.node";
 //console.log(rabe.setup());
+//console.log(app.getPath("userData"));
 
-import abeboxIpc from "./abebox-core/ipc";
+import abeboxIpc from "./abebox/ipc";
 abeboxIpc.startIpcServices();
 
 let win = undefined; // referencce to the app main window

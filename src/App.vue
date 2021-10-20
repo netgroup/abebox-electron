@@ -7,17 +7,17 @@
       permanent
       mini-variant
     >
-      <v-list-item class="px-2">
+      <!--<v-list-item class="px-2">
         <v-list-item-avatar>
           <v-img :src="require('./assets/gb.jpg')"></v-img>
         </v-list-item-avatar>
 
-        <v-list-item-title>Giuseppe Bianchi</v-list-item-title>
+        <v-list-item-title>{{ configuration.name }}</v-list-item-title>
 
         <v-btn icon @click.stop="mini = !mini">
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>
-      </v-list-item>
+      </v-list-item>-->
 
       <v-divider></v-divider>
 
@@ -48,37 +48,33 @@
 </template>
 
 <script>
-const { ipcRenderer } = window.require("electron");
-
 export default {
   name: "App",
   data: () => ({
-    drawer: true,
+    drawer: false,
     items: [
       { title: "Home", icon: "mdi-home-city", route: "/" },
       { title: "Repository", icon: "mdi-folder-key", route: "/repository" },
-      { title: "Users", icon: "mdi-account-group-outline", route: "/users" },
+      { title: "  ", icon: "mdi-account-group-outline", route: "/users" },
     ],
     mini: false,
     configured: false,
+    configuration: {},
   }),
   created() {
-    console.log("APP: CREATED");
-    this.getConfiguration();
-  },
-  mounted() {
-    console.log("APP: MLOUNTED");
-  },
-  methods: {
-    async getConfiguration() {
-      console.log("App - get configuration");
-      const conf = await ipcRenderer.invoke("get-conf");
-      console.log("CONF:", conf);
-      if (Object.keys(conf).length === 0) {
-        this.$router.push({ path: "loginuser" });
+    this.$vueEventBus.$on("configured", (conf) => {
+      if (console.log(Object.keys(conf).length === 0)) {
+        this.configured = false;
+        this.configuration = {};
       } else {
+        this.configured = true;
+        this.configuration = conf;
       }
-    },
+    });
+  },
+
+  beforeDestroy() {
+    this.$vueEventBus.$off("configured");
   },
 };
 </script>
