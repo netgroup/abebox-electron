@@ -3,9 +3,7 @@ const chokidar = require("chokidar");
 const fs = require("fs");
 const { parse_metadata, split_file_path } = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
-const { dirname } = require("path");
-const { config } = require("process");
-const { get } = require("config");
+const Store = require("electron-store");
 
 const ignore_list = ["keys/"];
 const file_status = {
@@ -13,12 +11,24 @@ const file_status = {
   modified: 1,
 };
 
+const schema = {
+  configured: {
+    type: "boolean",
+    default: false,
+  },
+  data: {
+    type: "object",
+  },
+};
+
+const local_store = new Store();
+
 const files_list = [];
 
 const create_dirs = function() {
   dirs = ["settings", "repo-local", "repo-shared/keys", "repo-shared/repo"];
-  dirs.forEach(dir => {
-    if (!fs.existsSync(dir)){
+  dirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
   });
@@ -176,7 +186,6 @@ const handle_remote_remove = function(file_path) {
 
 module.exports = {
   startServices() {
-
     local_repo = __dirname + "/repo-local";
     remote_repo = __dirname + "/repo-shared";
 
@@ -269,7 +278,7 @@ module.exports = {
           console.log("The file was saved!");
         }
       });
-    };
+    }
   },
 };
 

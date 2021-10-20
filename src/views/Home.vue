@@ -1,17 +1,20 @@
 <template>
   <div>
-    <user-info v-if="state === 0" />
-    <login-user v-else-if="state === 1" />
+    <p>{{ configured }}</p>
+    <user-info v-bind:info="info" v-if="configured" />
+    <login-user v-on:submit="handleSubmit" v-else />
   </div>
 </template>
 
 <script>
 import LoginUser from "../components/LoginUser.vue";
+import UserInfo from "../components/UserInfo.vue";
 const { ipcRenderer } = window.require("electron");
 
 export default {
   data: () => ({
-    state: 1,
+    configured: false,
+    info: {},
   }),
   name: "Home",
   model: {
@@ -19,6 +22,7 @@ export default {
   },
   components: {
     LoginUser,
+    UserInfo,
   },
   created() {
     console.log("APP: CREATED");
@@ -31,11 +35,23 @@ export default {
     async getConfiguration() {
       console.log("App - get configuration");
       const conf = await ipcRenderer.invoke("get-conf");
+      this.handleConf(conf);
+    },
+    async handleSubmit(event) {
+      console.log(event);
+      const conf = ipcRenderer.invoke("set-conf", event);
+      this.handleConf(conf);
+    },
+    async handleConf(conf) {
       console.log("CONF:", conf);
-      if (Object.keys(conf).length === 0) {
-        this.$vueEventBus.$emit("configured", false);
-      } else {
+      this.configured = conf.configured;
+      console.log("CONFIGURED", this.configured);
+      if (this.configured) {
         this.$vueEventBus.$emit("configured", true);
+        this.info = conf.data;
+      } else {
+        this.$vueEventBus.$emit("configured", false);
+        this.info = {};
       }
     },
   },

@@ -9,7 +9,9 @@
           height="200"
         />
       </v-col>
-      <v-col cols="12"> </v-col>
+      <v-col cols="12">{{ info.name }}</v-col>
+      <v-col cols="12">{{ info.remote }}</v-col>
+      <v-col cols="12">{{ info.local }}</v-col>
     </v-row>
   </v-container>
 </template>
@@ -17,6 +19,7 @@
 <script>
 export default {
   name: "HelloWorld",
+  props: ["info"],
 
   data: () => ({
     //

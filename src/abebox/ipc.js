@@ -2,7 +2,7 @@ import { ipcMain } from "electron";
 
 import {
   get_files_list,
-  set_policy,
+  set_config,
   get_config,
   start_services,
 } from "./dummy";
@@ -39,6 +39,11 @@ export default {
     });
     ipcMain.on("set-policy", (event, data) => {
       setPolicyAPI(event, data);
+    });
+
+    ipcMain.handle("set-conf", async (event, new_conf) => {
+      const result = set_config(new_conf);
+      return result;
     });
 
     ipcMain.handle("get-conf", async (event, someArgument) => {
