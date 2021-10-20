@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build:rabe": "cd src/abebox-core/rabejs && cargo-cp-artifact -ac rabejs rabejs.node -- cargo build --message-format=json-render-diagnostics",
+    "build:rabe": "cd src/abebox/rabejs && cargo-cp-artifact -ac rabejs rabejs.node -- cargo build --message-format=json-render-diagnostics",
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "yarn build:rabe && electron-builder install-app-deps",
