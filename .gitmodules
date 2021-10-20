@@ -1,3 +1,3 @@
-[submodule "src/abebox-core"]
-	path = src/abebox-core
-	url = https://github.com/netgroup/abebox-core.git
+[submodule "src/abebox/rabejs"]
+	path = src/abebox/rabejs
+	url = git@github.com:netgroup/rabejs.git
