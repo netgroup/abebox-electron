@@ -5,8 +5,14 @@ import {
   set_policy,
   get_config,
   start_services,
-  select_folder,
-} from ".";
+} from "./dummy";
+
+const select_folder = async function() {
+  const { dialog } = require("electron");
+  const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
+  console.log();
+  return res;
+};
 
 // Application main window
 let window = undefined;
