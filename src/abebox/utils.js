@@ -1,58 +1,6 @@
 var path = require("path");
 const { v4: uuidv4 } = require("uuid");
 
-files = [
-  {
-    file_path: "/",
-    file_name: "prova.txt",
-    fid: "3c9d87e1-f815-4679-89a8-56031f417839",
-    policy: "",
-    status: 0,
-  },
-  {
-    file_path: "/",
-    file_name: "prova1.txt",
-    fid: "7fbd0b2b-2455-43be-9cc9-91f5078db434",
-    policy: "",
-    status: 0,
-  },
-  {
-    file_path: "/dir1/",
-    file_name: "prova2.txt",
-    fid: "4aafb9db-351a-494a-9c1c-00aed2d29e23",
-    policy: "",
-    status: 0,
-  },
-  {
-    file_path: "/dir1/",
-    file_name: "prova3.txt",
-    fid: "e26e0d9e-1737-49dd-b53f-48d4b5c284bc",
-    policy: "",
-    status: 0,
-  },
-  {
-    file_path: "/dir2/",
-    file_name: "prova5.txt",
-    fid: "e26e0d9e-1737-49dd-b53f-48d4b5c284bc",
-    policy: "",
-    status: 0,
-  },
-  {
-    file_path: "/dir2/",
-    file_name: "prova6.txt",
-    fid: "e26e0d9e-1737-49dd-b53f-48d4b5c284bc",
-    policy: "",
-    status: 0,
-  },
-  {
-    file_path: "/dir1/dir3/",
-    file_name: "prova9.txt",
-    fid: "e26e0d9e-1737-49dd-b53f-48d4b5c284bc",
-    policy: "",
-    status: 0,
-  },
-];
-
 function get_next_slug(tree_path, file_path) {
   const relative_path = file_path.replace(tree_path, "");
   const slugs = relative_path.split("/");
@@ -81,13 +29,35 @@ function add_file(tree_root, tree_path, file) {
   }
 }
 
-function get_tree(files) {
+const sort_tree = async function(folder) {
+  await Promise.all(
+    folder.sort(function compareFn(el1, el2) {
+      if (el1.name < el2.name) {
+        return -1;
+      }
+      if (el1.name > el2.name) {
+        return 1;
+      }
+      return 0;
+    })
+  );
+  for (el of folder) {
+    if (el.children) sort_tree(el.children);
+  }
+};
+
+module.exports.get_tree = function(files) {
   const tree = [];
 
   for (file of files) {
     add_file(tree, "/", file);
   }
-  return tree;
-}
 
-console.log(JSON.stringify(get_tree(files)));
+  console.log("PRE:", JSON.stringify(tree));
+  sort_tree(tree);
+  console.log("POST:", JSON.stringify(tree));
+
+  return tree;
+};
+
+//console.log(JSON.stringify(get_tree(files)));

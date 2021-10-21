@@ -22,8 +22,19 @@ const schema = {
 };
 
 const local_store = new Store();
-local_store.clear();
+//local_store.clear();
+
 const files_list = [];
+
+const init = function() {
+  if (local_store.get("configured")) {
+    console.log("LOADING ABEBOX CONFIGURATION");
+    const data = local_store.get("data");
+    start_services(data.local, data.remote);
+  } else {
+    console.log("ABEBOX NOT CONFIGURED");
+  }
+};
 
 const handle_local_add = function(file_path) {
   const fid = uuidv4();
@@ -175,114 +186,120 @@ const handle_remote_remove = function(file_path) {
   }
 };
 
-module.exports = {
-  startServices(local_repo, remote_repo) {
-    // local_repo = loc_repo;
-    // remote_repo = rem_repo;
+function start_services(local_repo, remote_repo) {
+  // local_repo = loc_repo;
+  // remote_repo = rem_repo;
 
-    //create_dirs();
+  abebox.init(local_repo, remote_repo, local_store);
 
-    abebox.init(local_repo, remote_repo, local_store);
+  watch_paths = [abebox.conf.local_repo_path, abebox.conf.remote_repo_path];
 
-    watch_paths = [abebox.conf.local_repo_path, abebox.conf.remote_repo_path];
+  console.log(`Starting watching on ${watch_paths}`);
 
-    console.log(`Starting watching on ${watch_paths}`);
+  let watcher = chokidar.watch(watch_paths, {
+    awaitWriteFinish: true,
+  });
 
-    let watcher = chokidar.watch(watch_paths, {
-      awaitWriteFinish: true,
+  console.log("Setting on change event...");
+
+  watcher
+    .on("add", (file_path) => {
+      console.log(`File ${file_path} has been added`);
+      if (file_path.includes(watch_paths[0])) {
+        // New local file
+        handle_local_add(file_path);
+      } else {
+        // New remote file
+        handle_remote_add(file_path);
+      }
+    })
+    .on("change", (file_path) => {
+      console.log(`File ${file_path} has been modified`);
+      if (path.includes(watch_paths[0])) {
+        // Change on local file
+        handle_local_change(file_path);
+      } else {
+        // Change on remote file
+        handle_remote_change(file_path);
+      }
+    })
+    .on("unlink", (file_path) => {
+      console.log(`File ${file_path} has been removed`);
+      if (file_path.includes(watch_paths[0])) {
+        // Remove local file
+        handle_local_remove(file_path);
+      } else {
+        // Remove remote file
+        handle_remote_remove(file_path);
+      }
     });
+}
 
-    console.log("Setting on change event...");
+/* Funzioni Esportate*/
+const get_files_list = function() {
+  console.log("FILE LIST", files_list);
+  return files_list;
+};
 
-    watcher
-      .on("add", (file_path) => {
-        console.log(`File ${file_path} has been added`);
-        if (file_path.includes(watch_paths[0])) {
-          // New local file
-          handle_local_add(file_path);
-        } else {
-          // New remote file
-          handle_remote_add(file_path);
-        }
-      })
-      .on("change", (file_path) => {
-        console.log(`File ${file_path} has been modified`);
-        if (path.includes(watch_paths[0])) {
-          // Change on local file
-          handle_local_change(file_path);
-        } else {
-          // Change on remote file
-          handle_remote_change(file_path);
-        }
-      })
-      .on("unlink", (file_path) => {
-        console.log(`File ${file_path} has been removed`);
-        if (file_path.includes(watch_paths[0])) {
-          // Remove local file
-          handle_local_remove(file_path);
-        } else {
-          // Remove remote file
-          handle_remote_remove(file_path);
-        }
-      });
-  },
+const get_config = async function() {
+  const conf = await local_store.get();
+  console.log("INDEX.JS get_config()", conf);
+  return conf;
 
-  get_files_list() {
-    console.log("FILE LIST", files_list);
-    return files_list;
-  },
+  const config_file_path = __dirname + "/default.json";
+  if (fs.existsSync(config_file_path)) {
+    return JSON.parse(fs.readFileSync(config_file_path).toString());
+  } else {
+    // create an empty file
+    fs.writeFileSync(config_file_path, "{}", function(err) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("The file was saved!");
+      }
+    });
+  }
+};
 
-  set_policy(fid, policy) {
-    const el = files_list.find((el) => el.fid === fid);
-    if (el !== undefined) {
-      el.policy = policy;
-    }
-  },
+const set_config = function(config_data) {
+  console.log("Saving configuration data", config_data);
+  local_store.set("data", config_data);
+  local_store.set("configured", true);
+  data = local_store.get("data");
+  start_services(data.local, data.remote);
+  return true;
 
-  async get_config() {
-    const conf = await local_store.get();
-    console.log("INDEX.JS get_config()", conf);
-    return conf;
+  const config_file_path = __dirname + "/default.json";
+  if (fs.existsSync(config_file_path)) {
+    const config = JSON.parse(fs.readFileSync(config_file_path).toString());
+    Object.assign(config, fields);
+    fs.writeFileSync(config_file_path, JSON.stringify(config));
+  } else {
+    // create an empty file
+    fs.writeFileSync(config_file_path, JSON.stringify(fields), function(err) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("The file was saved!");
+      }
+    });
+  }
+};
 
-    const config_file_path = __dirname + "/default.json";
-    if (fs.existsSync(config_file_path)) {
-      return JSON.parse(fs.readFileSync(config_file_path).toString());
-    } else {
-      // create an empty file
-      fs.writeFileSync(config_file_path, "{}", function(err) {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log("The file was saved!");
-        }
-      });
-    }
-  },
+const set_policy = function(fid, policy) {
+  const el = files_list.find((el) => el.fid === fid);
+  if (el !== undefined) {
+    el.policy = policy;
+  }
+};
 
-  set_config(config_data) {
-    console.log("Saving configuration data", config_data);
-    local_store.set("data", config_data);
-    local_store.set("configured", true);
-    data = local_store.get("data");
-    module.exports.startServices(data.local, data.remote);
-    return true;
-    
-    const config_file_path = __dirname + "/default.json";
-    if (fs.existsSync(config_file_path)) {
-      const config = JSON.parse(fs.readFileSync(config_file_path).toString());
-      Object.assign(config, fields);
-      fs.writeFileSync(config_file_path, JSON.stringify(config));
-    } else {
-      // create an empty file
-      fs.writeFileSync(config_file_path, JSON.stringify(fields), function(err) {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log("The file was saved!");
-        }
-      });
-    }
-  },
+init();
+
+module.exports = {
+  get_files_list,
+  set_policy,
+  get_config,
+  set_config,
 };
 
 //const conf = module.exports.get_config();

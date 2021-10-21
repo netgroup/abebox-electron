@@ -11,11 +11,11 @@
           dense
         >
           <template v-slot:prepend="{ item, open }">
-            <v-icon v-if="!item.file">
+            <v-icon v-if="item.hasOwnProperty('children')">
               {{ open ? "mdi-folder-open" : "mdi-folder" }}
             </v-icon>
             <v-icon v-else>
-              {{ files[item.file] }}
+              {{ "mdi-file-document-outline" }}
             </v-icon>
           </template>
         </v-treeview>
@@ -59,6 +59,7 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
+const { get_tree } = require("../abebox/utils");
 
 export default {
   data: () => ({
@@ -88,7 +89,6 @@ export default {
       this.attached = true;
     }
     if (this.items.length === 0) {
-      this.items = [{ name: "@Local Repo", children: [], fid: 1 }];
       this.getFileList();
     }
   },
@@ -115,22 +115,9 @@ export default {
       ipcRenderer.send("list-files", "reponame");
     },
     async handleFileList(event, data) {
-      console.log("DATA: ", data);
-      const newList = await Promise.all(
-        data.map((el) => {
-          //console.log("EL:", el);
-          const ret = {
-            name: el.name,
-            id: el.fid,
-            file: "txt", // TODO Farla più robusta
-          };
-          return ret;
-        })
-      );
-      this.fileItems = data;
-      console.log("NEW DATA: ", newList);
-
-      if (data) this.items[0].children = newList;
+      console.log("FILE-LIST-DATA:", data);
+      this.fileItems = get_tree(data);
+      this.items = get_tree(data);
     },
   },
   watch: {

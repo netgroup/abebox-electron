@@ -26,10 +26,12 @@ const init = function(lp, rp, local_store) {
   console.log("INIT() CONF", conf);
 
   create_dirs();
-  create_keys(local_store);
-
+  if (!local_store.get("keys")) {
+    create_keys(local_store);
+  }
   conf.rsa_pub_key = local_store.get("keys").rsa_pub_key; //rsa.getPubKey();
   conf.rsa_priv_key = local_store.get("keys").rsa_priv_key; //rsa.getPrivKey();
+
   if (!fs.existsSync(conf.abe_pub_path_remote)) {
     create_abe_keys();
   }

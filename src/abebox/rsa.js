@@ -2,9 +2,9 @@ const fs = require("fs");
 
 const crypto = require("crypto");
 
-const rsa_priv_key_path = __dirname + "/settings/rsa.pem";
+/*const rsa_priv_key_path = __dirname + "/settings/rsa.pem";
 const rsa_pub_key_path = __dirname + "/settings/rsa_pub.pem";
-
+*/
 /**
  * Create RSA public/private key pair and return the public key.
  * @returns public key
