@@ -10,7 +10,7 @@ const rsa_pub_key_path = __dirname + "/settings/rsa_pub.pem";
  * @returns public key
  */
 
-exports.createAndSaveKeys = function() {
+exports.create_keys = function() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {
@@ -27,8 +27,8 @@ exports.createAndSaveKeys = function() {
     },
   });
 
-  fs.writeFileSync(rsa_pub_key_path, publicKey);
-  fs.writeFileSync(rsa_priv_key_path, privateKey);
+  //fs.writeFileSync(rsa_pub_key_path, publicKey);
+  //fs.writeFileSync(rsa_priv_key_path, privateKey);
   return {
     publicKey,
     privateKey,

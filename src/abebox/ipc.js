@@ -5,7 +5,7 @@ import {
   set_config,
   get_config,
   start_services,
-} from "./dummy";
+} from ".";
 
 const select_folder = async function() {
   const { dialog } = require("electron");
@@ -32,7 +32,7 @@ const setPolicyAPI = async function(event, data) {
 export default {
   startIpcServices() {
     if (started) return; // already started
-    start_services();
+    //start_services();
     console.log("ABEBox Start Services");
     ipcMain.on("list-files", (event, data) => {
       listFilesAPI(event, data);

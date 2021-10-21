@@ -22,17 +22,8 @@ const schema = {
 };
 
 const local_store = new Store();
-
+local_store.clear();
 const files_list = [];
-
-const create_dirs = function() {
-  dirs = ["settings", "repo-local", "repo-shared/keys", "repo-shared/repo"];
-  dirs.forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
-};
 
 const handle_local_add = function(file_path) {
   const fid = uuidv4();
@@ -185,13 +176,13 @@ const handle_remote_remove = function(file_path) {
 };
 
 module.exports = {
-  startServices() {
-    local_repo = __dirname + "/repo-local";
-    remote_repo = __dirname + "/repo-shared";
+  startServices(local_repo, remote_repo) {
+    // local_repo = loc_repo;
+    // remote_repo = rem_repo;
 
-    create_dirs();
+    //create_dirs();
 
-    abebox.init(local_repo, remote_repo);
+    abebox.init(local_repo, remote_repo, local_store);
 
     watch_paths = [abebox.conf.local_repo_path, abebox.conf.remote_repo_path];
 
@@ -237,6 +228,7 @@ module.exports = {
   },
 
   get_files_list() {
+    console.log("FILE LIST", files_list);
     return files_list;
   },
 
@@ -247,7 +239,11 @@ module.exports = {
     }
   },
 
-  get_config() {
+  async get_config() {
+    const conf = await local_store.get();
+    console.log("INDEX.JS get_config()", conf);
+    return conf;
+
     const config_file_path = __dirname + "/default.json";
     if (fs.existsSync(config_file_path)) {
       return JSON.parse(fs.readFileSync(config_file_path).toString());
@@ -263,7 +259,14 @@ module.exports = {
     }
   },
 
-  set_config(fields) {
+  set_config(config_data) {
+    console.log("Saving configuration data", config_data);
+    local_store.set("data", config_data);
+    local_store.set("configured", true);
+    data = local_store.get("data");
+    module.exports.startServices(data.local, data.remote);
+    return true;
+    
     const config_file_path = __dirname + "/default.json";
     if (fs.existsSync(config_file_path)) {
       const config = JSON.parse(fs.readFileSync(config_file_path).toString());
