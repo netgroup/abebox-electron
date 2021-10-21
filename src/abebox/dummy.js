@@ -1,4 +1,5 @@
 const Store = require("electron-store");
+const { v4: uuidv4 } = require("uuid");
 
 const schema = {
   configured: {
@@ -10,6 +11,40 @@ const schema = {
   },
 };
 
+const files = [];
+
+files.push({
+  file_path: "/",
+  file_name: "prova.txt",
+  fid: uuidv4(),
+  policy: "",
+  status: 0,
+});
+
+files.push({
+  file_path: "/",
+  file_name: "prova1.txt",
+  fid: uuidv4(),
+  policy: "",
+  status: 0,
+});
+
+files.push({
+  file_path: "/dir1",
+  file_name: "prova2.txt",
+  fid: uuidv4(),
+  policy: "",
+  status: 0,
+});
+
+files.push({
+  file_path: "/dir1",
+  file_name: "prova3.txt",
+  fid: uuidv4(),
+  policy: "",
+  status: 0,
+});
+
 const local_store = new Store();
 
 const dev_init = function() {
@@ -20,7 +55,9 @@ const dev_init = function() {
 //dev_init();
 
 const start_services = function() {};
-const get_files_list = function() {};
+const get_files_list = function() {
+  return files;
+};
 const set_policy = function() {};
 
 const set_config = function(conf) {
