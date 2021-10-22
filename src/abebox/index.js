@@ -2,15 +2,12 @@ const abebox = require("./core");
 const chokidar = require("chokidar");
 const fs = require("fs");
 const { parse_metadata, split_file_path } = require("./file_utils");
-const { v4: uuidv4 } = require("uuid");
+const rabe = require("./rabejs/rabejs.node");
+const rsa = require("./rsa");
 const Store = require("electron-store");
+const { v4: uuidv4 } = require("uuid");
 
-const ignore_list = ["keys/"];
-const file_status = {
-  ok: 0,
-  modified: 1,
-};
-
+////////// LOCAL STORE
 const schema = {
   configured: {
     type: "boolean",
@@ -19,33 +16,107 @@ const schema = {
   data: {
     type: "object",
   },
+  keys: {
+    type: "object",
+  },
 };
 
 const local_store = new Store();
 //local_store.clear();
 
+/////////// CONFIGURATION
+
+const conf = {};
+
+/////////// FILES LIST
+const dir_ignore_list = ["keys/"];
+const start_filename_ignore_list = ["."];
+const file_status = {
+  ok: 0,
+  modified: 1,
+};
 const files_list = [];
+
+
+
+/////////////// FUNCTIONS
 
 const init = function() {
   if (local_store.get("configured")) {
-    console.log("LOADING ABEBOX CONFIGURATION");
-    const data = local_store.get("data");
-    start_services(data.local, data.remote);
+    load_config();
+    start_services(conf.local, conf.remote);
   } else {
     console.log("ABEBOX NOT CONFIGURED");
   }
+};
+
+const load_config = function() {
+  console.log("LOADING ABEBOX CONFIGURATION...");
+  const data = local_store.get("data");
+  conf.local_repo_path = data.local;
+  conf.remote_repo_path = data.remote;
+  conf.abe_pub_path_remote = conf.remote_repo_path + "/keys/abe.pub";
+  conf.abe_sec_path_remote = conf.remote_repo_path + "/keys/abe.sk";
+
+  create_dirs();
+  if (!local_store.get("keys")) {
+    create_keys(local_store);
+  }
+  const keys = local_store.get("keys");
+  conf.rsa_pub_key = keys.rsa_pub_key; //rsa.getPubKey();
+  conf.rsa_priv_key = keys.rsa_priv_key; //rsa.getPrivKey();
+
+  if (!fs.existsSync(conf.abe_pub_path_remote)) {
+    create_abe_keys();
+  }
+  conf.abe_pub_key = fs.readFileSync(conf.abe_pub_path_remote).toString();
+  conf.abe_secret_key = rsa
+    .decrypt(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
+    .toString();
+};
+
+const create_dirs = function() {
+  dirs = ["keys", "repo"];
+  console.log("CREATING DIRS", dirs);
+  dirs.forEach((dir) => {
+    absolute_dir = conf.remote_repo_path + "/" + dir;
+    console.log("Checking dir", absolute_dir);
+    if (!fs.existsSync(absolute_dir)) {
+      fs.mkdirSync(absolute_dir, { recursive: true });
+    }
+  });
+};
+
+const create_keys = function(local_store) {
+  console.log("CREATING KEYS");
+  const { publicKey, privateKey } = rsa.create_keys();
+  const [msk] = rabe.setup();
+  keys = {};
+  keys.rsa_pub_key = publicKey;
+  keys.rsa_priv_key = privateKey;
+  // keys.abe_pub_key = pk;
+  keys.abe_msk_key = msk;
+  local_store.set("keys", keys);
+};
+
+const create_abe_keys = function() {
+  const [pk, msk] = rabe.setup();
+  //fs.writeFileSync(conf.abe_pub_path, pk);
+  //fs.writeFileSync(conf.abe_msk_path, msk);
+  const sk = rabe.keygen(pk, msk, JSON.stringify(["A", "B", "C"]));
+  fs.writeFileSync(conf.abe_pub_path_remote, pk);
+  fs.writeFileSync(
+    conf.abe_sec_path_remote,
+    rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key)
+  );
 };
 
 const handle_local_add = function(file_path) {
   const fid = uuidv4();
   const { original_file_name, relative_path } = split_file_path(
     file_path,
-    abebox.conf.local_repo_path
+    conf.local_repo_path
   );
-  /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, fid, original_file_name);
-  const path = file_path.replace(original_file_name, "");
-  const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -62,22 +133,18 @@ const handle_local_add = function(file_path) {
 };
 
 const handle_remote_add = function(file_path) {
-  if (ignore_list.some((el) => file_path.includes(el))) {
+  if (dir_ignore_list.some((el) => file_path.includes(el))) {
     return;
   }
   const { original_file_name, relative_path } = split_file_path(
     file_path,
-    abebox.conf.remote_repo_path
+    conf.remote_repo_path
   );
-  /*const fid = file_path.replace(/^.*[\\\/]/, "");
-  console.log(`${fid} ${fid_no_ext}`);
-  const path = file_path.replace(fid, "");
-  const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   const fid_no_ext = original_file_name.split(".")[0];
   try {
     // Read raw metadata
     const raw_metadata = fs.readFileSync(
-      abebox.conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
+      conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
     );
     const { enc_metadata } = JSON.parse(raw_metadata);
     //console.log("ENC META = ", enc_metadata);
@@ -89,10 +156,7 @@ const handle_remote_add = function(file_path) {
     console.log(_policy[0]);
 
     // Parse metadata
-    const { file_path } = parse_metadata(
-      raw_metadata,
-      abebox.conf.abe_secret_key
-    );
+    const { file_path } = parse_metadata(raw_metadata, conf.abe_secret_key);
     const el = files_list.find(
       (el) =>
         el.file_path === relative_path &&
@@ -117,12 +181,8 @@ const handle_remote_add = function(file_path) {
 const handle_local_change = function(file_path) {
   const { original_file_name, relative_path } = split_file_path(
     file_path,
-    abebox.conf.local_repo_path
+    conf.local_repo_path
   );
-  /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, original_file_name);
-  const path = file_path.replace(original_file_name, "");
-  const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -135,13 +195,9 @@ const handle_local_change = function(file_path) {
 const handle_remote_change = function(file_path) {
   const { original_file_name, relative_path } = split_file_path(
     file_path,
-    abebox.conf.remote_repo_path
+    conf.remote_repo_path
   );
   const fid_no_ext = original_file_name.split(".")[0];
-  /*const fid = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, fid);
-  const path = file_path.replace(fid, "");
-  const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   const el = files_list.find(
     (el) => el.file_path === relative_path && el.file_id === fid_no_ext
   );
@@ -153,12 +209,8 @@ const handle_remote_change = function(file_path) {
 const handle_local_remove = function(file_path) {
   const { original_file_name, relative_path } = split_file_path(
     file_path,
-    abebox.conf.local_repo_path
+    conf.local_repo_path
   );
-  /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, original_file_name);
-  const path = file_path.replace(original_file_name, "");
-  const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -171,13 +223,9 @@ const handle_local_remove = function(file_path) {
 const handle_remote_remove = function(file_path) {
   const { original_file_name, relative_path } = split_file_path(
     file_path,
-    abebox.conf.remote_repo_path
+    conf.remote_repo_path
   );
   const fid_no_ext = original_file_name.split(".")[0];
-  /*const fid = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, fid);
-  const path = file_path.replace(fid, "");
-  const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   const el = files_list.find(
     (el) => el.file_path === relative_path && el.fid === fid_no_ext
   );
@@ -186,21 +234,14 @@ const handle_remote_remove = function(file_path) {
   }
 };
 
-function start_services(local_repo, remote_repo) {
-  // local_repo = loc_repo;
-  // remote_repo = rem_repo;
-
-  abebox.init(local_repo, remote_repo, local_store);
-
-  watch_paths = [abebox.conf.local_repo_path, abebox.conf.remote_repo_path];
-
+const start_watcher = function(watch_paths) {
   console.log(`Starting watching on ${watch_paths}`);
 
   let watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
   });
 
-  console.log("Setting on change event...");
+  console.log("Setting on event listening...");
 
   watcher
     .on("add", (file_path) => {
@@ -233,7 +274,14 @@ function start_services(local_repo, remote_repo) {
         handle_remote_remove(file_path);
       }
     });
-}
+};
+
+const start_services = function(local_repo, remote_repo) {
+  // local_repo = loc_repo;
+  // remote_repo = rem_repo;
+  //abebox.init(local_repo, remote_repo, local_store);
+  start_watcher([conf.local_repo_path, conf.remote_repo_path]);
+};
 
 /* Funzioni Esportate*/
 const get_files_list = function() {
@@ -265,8 +313,7 @@ const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
   local_store.set("data", config_data);
   local_store.set("configured", true);
-  data = local_store.get("data");
-  start_services(data.local, data.remote);
+  init();
   return true;
 
   const config_file_path = __dirname + "/default.json";
@@ -301,6 +348,3 @@ module.exports = {
   get_config,
   set_config,
 };
-
-//const conf = module.exports.get_config();
-//console.log(conf);

@@ -1,19 +1,13 @@
 const fs = require("fs");
-const {
-  get_random_filename,
-  encrypt_content,
-  create_metadata,
-  decrypt_content,
-  parse_metadata,
-} = require("./file_utils");
-const rabe = require("./rabejs/rabejs.node");
-const rsa = require("./rsa");
+const file_utils = require("./file_utils");
+//const rabe = require("./rabejs/rabejs.node");
+//const rsa = require("./rsa");
 
-const conf = {
-  /* abe_pub_path_remote: "./repo-shared/keys/abe.pub",
+/*const conf = {
+  abe_pub_path_remote: "./repo-shared/keys/abe.pub",
   abe_sec_path_remote: "./repo-shared/keys/abe.sk",
   abe_msk_path: "./settings/abe.msk",
-  abe_pub_path: "./settings/abe.pub", */
+  abe_pub_path: "./settings/abe.pub",
 };
 
 //const conf = {};
@@ -37,7 +31,7 @@ const init = function(lp, rp, local_store) {
   }
   conf.abe_pub_key = fs.readFileSync(conf.abe_pub_path_remote).toString();
   conf.abe_secret_key = rsa
-    .decryptRSA(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
+    .decrypt(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
     .toString();
 };
 
@@ -74,35 +68,35 @@ const create_abe_keys = function() {
   fs.writeFileSync(conf.abe_pub_path_remote, pk);
   fs.writeFileSync(
     conf.abe_sec_path_remote,
-    rsa.encryptRSA(Buffer.from(sk), conf.rsa_pub_key)
+    rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key)
   );
-};
+};*/
 
-const file_encrypt = function(input_file_path, policy) {
+const file_encrypt = function(input_file_name, policy, encryption_key, input_file_path, output_file_path) {
   console.log(
-    `[Encryption] Encrypting ${input_file_path} with policy ${policy}`
+    `[Encryption] Encrypting ${input_filename} with policy ${policy}`
   );
 
   // Get random file ID
-  const encrypted_filename = get_random_filename();
+  const encrypted_filename = file_utils.get_random_filename();
 
   // Encrypt file content with sym key
   const input_file = fs.createReadStream(
-    conf.local_repo_path + "/" + input_file_path
+    input_file_path + "/" + input_file_name
   );
   const output_file = fs.createWriteStream(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".0"
+    output_file_path + "/repo/" + encrypted_filename + ".0"
   );
 
   // Perform symmetric encryption
-  const { sym_key, iv } = encrypt_content(input_file, output_file);
+  const { sym_key, iv } = file_utils.encrypt_content(input_file, output_file);
 
   // Create metadata
-  const metadata = create_metadata(
-    input_file_path,
+  const metadata = file_utils.create_metadata(
+    input_file_name,
     sym_key,
     iv,
-    conf.abe_pub_key,
+    encryption_key,
     policy
   );
 
@@ -116,31 +110,31 @@ const file_encrypt = function(input_file_path, policy) {
   return encrypted_filename;
 };
 
-const file_decrypt = function(encrypted_filename) {
+const file_decrypt = function(encrypted_filename, decryption_key, input_file_path, output_file_path) {
   console.log("[Decryption] Decrypting file " + encrypted_filename);
 
   // Read raw metadata
   const raw_metadata = fs.readFileSync(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".abebox"
+    input_file_path + "/repo/" + encrypted_filename + ".abebox"
   );
 
   // Parse metadata
-  const { sym_key, iv, file_path } = parse_metadata(
+  const { sym_key, iv, file_name } = file_utils.parse_metadata(
     raw_metadata,
-    conf.abe_secret_key
+    decryption_key
   );
 
   // Decrypt the encrypted content with sym key
   const input_file = fs.createReadStream(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".0"
+    input_file_path + "/repo/" + encrypted_filename + ".0"
   );
 
   const output_file = fs.createWriteStream(
-    conf.local_repo_path + "/" + file_path
+    output_file_path + "/" + file_name
   );
 
   // Perform symmetric decryption
-  decrypt_content(input_file, output_file, sym_key, iv);
+  file_utils.decrypt_content(input_file, output_file, sym_key, iv);
 };
 
 const file_reencrypt = function(encrypted_filename, policy) {
@@ -149,8 +143,8 @@ const file_reencrypt = function(encrypted_filename, policy) {
 };
 
 module.exports = {
-  conf,
-  init,
+  //conf,
+  //init,
   file_encrypt,
   file_decrypt,
   file_reencrypt,

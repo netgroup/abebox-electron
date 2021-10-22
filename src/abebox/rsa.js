@@ -5,12 +5,12 @@ const crypto = require("crypto");
 /*const rsa_priv_key_path = __dirname + "/settings/rsa.pem";
 const rsa_pub_key_path = __dirname + "/settings/rsa_pub.pem";
 */
+
 /**
  * Create RSA public/private key pair and return the public key.
  * @returns public key
  */
-
-exports.create_keys = function() {
+const create_keys = function() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {
@@ -35,20 +35,20 @@ exports.create_keys = function() {
   };
 };
 
-exports.getPubKey = function() {
+const get_pub_key = function() {
   return fs.existsSync(rsa_pub_key_path)
     ? fs.readFileSync(rsa_pub_key_path)
-    : exports.createAndSaveKeys().publicKey;
+    : exports.create_keys().publicKey;
 };
 
 /**
  * Create RSA public/private key pair and return the private key.
  * @returns private key
  */
-exports.getPrivKey = function() {
+const get_priv_key = function() {
   return fs.existsSync(rsa_priv_key_path)
     ? fs.readFileSync(rsa_priv_key_path)
-    : exports.createAndSaveKeys().privateKey;
+    : exports.create_keys().privateKey;
 };
 
 /**
@@ -57,7 +57,7 @@ exports.getPrivKey = function() {
  * @param {} publicKey RSA public key
  * @returns encrypted data
  */
-exports.encryptRSA = function(data_buffer, publicKey) {
+const encrypt = function(data_buffer, publicKey) {
   // Perform encryption
   // 1. generate random sym key
   const sym_key = crypto.randomBytes(32);
@@ -95,7 +95,7 @@ exports.encryptRSA = function(data_buffer, publicKey) {
  * @param {} privateKey RSA private key
  * @returns decrypted data
  */
-exports.decryptRSA = function(enc_data_buffer, privateKey) {
+const decrypt = function(enc_data_buffer, privateKey) {
   // Perform encryption
 
   // 1. extract sym key
@@ -126,4 +126,13 @@ exports.decryptRSA = function(enc_data_buffer, privateKey) {
   ]);
 
   return payload;
+};
+
+
+module.exports = {
+  create_keys,
+  get_pub_key,
+  get_priv_key,
+  encrypt,
+  decrypt
 };
