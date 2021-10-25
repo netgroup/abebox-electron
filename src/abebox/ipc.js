@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 
-import { get_files_list, set_config, get_config, start_services } from ".";
+import { get_files_list, set_config, get_config, start_services, set_policy } from ".";
 
 const select_folder = async function() {
   const { dialog } = require("electron");
@@ -22,6 +22,7 @@ const listFilesAPI = async function(event, data) {
 /*ABEBox IPC API*/
 const setPolicyAPI = async function(event, data) {
   console.log("Called: setPolicyAPI");
+  set_policy(data);
 };
 
 export default {
