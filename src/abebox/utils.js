@@ -8,11 +8,15 @@ function get_next_slug(tree_path, file_path) {
 }
 
 function add_file(tree_root, tree_path, file) {
-  //console.log("add_file", tree_path, file.file_name, file.file_path);
   if (file.file_path === tree_path) {
     // loa ggiungo alla direcory corrente
-    //console.log(`File ${file.file_name} added to ${tree_path}`);
-    tree_root.push(Object.assign(file, { id: file.fid, name: file.file_name }));
+    tree_root.push(
+      Object.assign(file, {
+        id: file.file_id,
+        name: file.file_name,
+        color: "red",
+      })
+    );
   } else {
     // è in una sotto cartella vedo se esiste se no la creo
     const dir_name = get_next_slug(tree_path, file.file_path);
@@ -22,7 +26,12 @@ function add_file(tree_root, tree_path, file) {
     if (!sub_tree_root) {
       // create folder
       //console.log("Creating folder: " + dir_name);
-      sub_tree_root = { id: uuidv4(), name: dir_name, children: [] };
+      sub_tree_root = {
+        id: uuidv4(),
+        name: dir_name,
+        children: [],
+        color: "green",
+      };
       tree_root.push(sub_tree_root);
     }
     add_file(sub_tree_root.children, new_tree_path, file);
@@ -32,6 +41,14 @@ function add_file(tree_root, tree_path, file) {
 const sort_tree = async function(folder) {
   await Promise.all(
     folder.sort(function compareFn(el1, el2) {
+      if (el1.hasOwnProperty("children") & !el2.hasOwnProperty("children")) {
+        return -1;
+      }
+
+      if (!el1.hasOwnProperty("children") & el2.hasOwnProperty("children")) {
+        return 1;
+      }
+
       if (el1.name < el2.name) {
         return -1;
       }
@@ -53,11 +70,7 @@ module.exports.get_tree = function(files) {
     add_file(tree, "/", file);
   }
 
-  console.log("PRE:", JSON.stringify(tree));
   sort_tree(tree);
-  console.log("POST:", JSON.stringify(tree));
 
   return tree;
 };
-
-//console.log(JSON.stringify(get_tree(files)));

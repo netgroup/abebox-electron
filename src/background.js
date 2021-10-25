@@ -13,6 +13,7 @@ import abeboxIpc from "./abebox/ipc";
 abeboxIpc.startIpcServices();
 
 let win = undefined; // referencce to the app main window
+let tray = null;
 
 console.log(process.env.WEBPACK_DEV_SERVER_URL);
 // Scheme must be registered before the app is ready
