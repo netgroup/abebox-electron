@@ -120,7 +120,10 @@ export default {
     async submitPolicy(event) {
       console.log(this.activeItem.policy);
       //TODO testare
-      ipcRenderer.send("set-policy", this.activeItem);
+      ipcRenderer.send("set-policy", {
+        file_id: this.activeItem.file_id,
+        policy: this.activeItem.policy,
+      });
       //this.getFileList();
     },
   },
