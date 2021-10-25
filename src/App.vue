@@ -55,7 +55,12 @@ export default {
     items: [
       { title: "Home", icon: "mdi-home-city", route: "/" },
       { title: "Repository", icon: "mdi-folder-key", route: "/repository" },
-      { title: "  ", icon: "mdi-account-group-outline", route: "/users" },
+      { title: "Users", icon: "mdi-account-group-outline", route: "/users" },
+      {
+        title: "Attributes",
+        icon: "mdi-cards-variant",
+        route: "/attrs",
+      },
     ],
     mini: false,
     configured: false,

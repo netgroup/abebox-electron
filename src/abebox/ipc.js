@@ -1,11 +1,6 @@
 import { ipcMain } from "electron";
 
-import {
-  get_files_list,
-  set_config,
-  get_config,
-  start_services,
-} from ".";
+import { get_files_list, set_config, get_config, start_services } from ".";
 
 const select_folder = async function() {
   const { dialog } = require("electron");
@@ -30,15 +25,18 @@ const setPolicyAPI = async function(event, data) {
 };
 
 export default {
-  startIpcServices() {
+  async startIpcServices() {
     if (started) return; // already started
     //start_services();
     console.log("ABEBox Start Services");
     ipcMain.on("list-files", (event, data) => {
       listFilesAPI(event, data);
     });
-    ipcMain.on("set-policy", (event, data) => {
-      setPolicyAPI(event, data);
+    ipcMain.on("set-policy", async (event, data) => {
+      await setPolicyAPI(event, data);
+      if (window) {
+        window.webContents.send("update-list", "Prova");
+      }
     });
 
     ipcMain.handle("set-conf", async (event, new_conf) => {
@@ -61,7 +59,10 @@ export default {
     started = true;
   },
   setWindow(win) {
-    if (win) window = win; // save the reference to the main window
+    if (win) {
+      window = win; // save the reference to the main window
+      console.log("Saved window");
+    }
   },
 };
 
