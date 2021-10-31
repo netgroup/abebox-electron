@@ -179,7 +179,7 @@ const handle_remote_remove = function(file_path) {
   const path = file_path.replace(fid, "");
   const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   const el = files_list.find(
-    (el) => el.file_path === relative_path && el.fid === fid_no_ext
+    (el) => el.file_path === relative_path && el.file_id === fid_no_ext
   );
   if (el !== undefined) {
     files_list.pop(el);
@@ -286,10 +286,11 @@ const set_config = function(config_data) {
   }
 };
 
-const set_policy = function(fid, policy) {
-  const el = files_list.find((el) => el.fid === fid);
+const set_policy = function(data) {
+  console.log("SET POLICY", data.file_id, data.policy)
+  const el = files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
-    el.policy = policy;
+    el.policy = data.policy;
   }
 };
 

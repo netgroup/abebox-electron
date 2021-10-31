@@ -37,6 +37,7 @@ const listFilesAPI = async function(event, data) {
 const setPolicyAPI = async function(event, data) {
   // TODO implementare
   console.log("Called: setPolicyAPI");
+  set_policy(data);
 };
 
 export default {
