@@ -26,7 +26,7 @@ async function createWindow() {
   win = new BrowserWindow({
     width: 800,
     height: 600,
-    icon: __dirname + "/asset/logo.png",
+    icon: __dirname + "/assets/abebox.icns",
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
