@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 
-import { get_files_list, set_config, get_config } from ".";
+import { get_files_list, set_config, get_config, set_policy } from ".";
 
 import {
   get_attrs,
