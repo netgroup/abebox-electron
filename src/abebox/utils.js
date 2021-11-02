@@ -63,14 +63,14 @@ const sort_tree = async function(folder) {
   }
 };
 
-module.exports.get_tree = function(files) {
+module.exports.get_tree = async function(files) {
   const tree = [];
 
   for (file of files) {
     add_file(tree, "/", file);
   }
 
-  sort_tree(tree);
+  await sort_tree(tree);
 
   return tree;
 };

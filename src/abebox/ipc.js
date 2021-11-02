@@ -26,35 +26,18 @@ const select_folder = async function() {
 let window = undefined; // Abebox window
 let started = false; // Abebox alredy started
 
-/* FILE INTERFACE */
-
-const listFilesAPI = async function(event, data) {
-  //TODO fare con handle
-  console.log("Called: list-files");
-  return event.reply("list-files-resp", get_files_list());
-};
-
-const setPolicyAPI = async function(event, data) {
-  // TODO implementare
-  console.log("Called: setPolicyAPI");
-  set_policy(data);
-};
-
 export default {
   async startIpcServices() {
     if (started) return; // already started
 
     console.log("ABEBox Starting IPC API");
     /*  FILE API */
-    ipcMain.on("list-files", (event, data) => {
-      listFilesAPI(event, data);
+    ipcMain.handle("list-files", async (event, data) => {
+      return await get_files_list(); // return file list
     });
 
-    ipcMain.on("set-policy", async (event, data) => {
-      await setPolicyAPI(event, data);
-      if (window) {
-        window.webContents.send("update-list", "Prova");
-      }
+    ipcMain.handle("set-policy", async (event, data) => {
+      return await set_policy(data); // return file list
     });
 
     /* CONF API */
