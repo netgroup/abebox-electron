@@ -24,7 +24,7 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
+    width: 900,
     height: 600,
     icon: __dirname + "/assets/abebox.icns",
     webPreferences: {

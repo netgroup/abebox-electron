@@ -55,7 +55,7 @@ const handle_local_add = function(file_path) {
       file_path: relative_path,
       file_name: original_file_name,
       file_id: fid,
-      policy: "",
+      policy: [],
       status: file_status.ok,
     });
   }
@@ -286,12 +286,13 @@ const set_config = function(config_data) {
   }
 };
 
-const set_policy = function(data) {
-  console.log("SET POLICY", data.file_id, data.policy)
-  const el = files_list.find((el) => el.file_id === data.file_id);
+const set_policy = async function(data) {
+  console.log("SET POLICY", data.file_id, data.policy);
+  const el = await files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
     el.policy = data.policy;
   }
+  return files_list;
 };
 
 init();

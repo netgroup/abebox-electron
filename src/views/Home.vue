@@ -1,9 +1,8 @@
 <template>
-  <div>
-    <p>{{ configured }}</p>
+  <v-card>
     <user-info v-bind:info="info" v-if="configured" />
     <login-user v-on:submit="handleSubmit" v-else />
-  </div>
+  </v-card>
 </template>
 
 <script>
