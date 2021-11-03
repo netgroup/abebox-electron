@@ -115,7 +115,6 @@
 <script>
 const { ipcRenderer } = window.require("electron");
 const { get_tree } = require("../abebox/utils");
-const cloneDeep = require("lodash/cloneDeep");
 
 export default {
   name: "Repository",
@@ -157,8 +156,7 @@ export default {
     },
   },
   mounted() {
-    console.log("Items:", this.items);
-    if (!this.attr || this.attr.length === 0) {
+    if (!this.attrs || this.attrs.length === 0) {
       this.getAttrsList();
     }
 
