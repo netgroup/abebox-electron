@@ -62,6 +62,10 @@ const get_files = function() {
 };
 const set_policy = function() {};
 
+const share_files = function() {
+  return files;
+};
+
 const set_config = function(conf) {
   console.log("Saving data", conf);
   local_store.set("data", conf);
@@ -194,6 +198,7 @@ module.exports = {
   start_services,
   get_files,
   set_policy,
+  share_files,
   get_config,
   set_config,
   get_attrs,

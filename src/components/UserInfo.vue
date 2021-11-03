@@ -1,8 +1,13 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="12">
+      <v-col cols="12" sm="8">
         <p>{{ info.name }}</p>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-btn color="blue darken-1" text @click="shareFiles">
+          Share
+        </v-btn>
       </v-col>
     </v-row>
     <v-row v-if="fileItems">
@@ -102,15 +107,8 @@ export default {
       );
       console.log("getAttrsList:", this.attrs);
     },
-    async submitPolicy(new_pol) {
-      const data = {
-        file_id: this.editedItem.file_id,
-        policy: new_pol,
-      };
-      this.fileItems = await ipcRenderer.invoke("set-policy", data);
-      console.log("SUB:", data);
-      console.log(this.fileItems);
-      this.items = await get_tree(this.fileItems);
+    async shareFiles() {
+      this.fileItems = await ipcRenderer.invoke("share-files", "");
     },
     addValutazione() {
       this.editedAttrs.push({ and_list: [] });

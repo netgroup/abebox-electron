@@ -11,6 +11,7 @@ import {
   new_user,
   set_user,
   del_user,
+  share_files,
 } from "./dummy";
 
 /* HELPER FUNCTIONS */
@@ -38,6 +39,10 @@ export default {
 
     ipcMain.handle("set-policy", async (event, data) => {
       return await set_policy(data); // return file list
+    });
+
+    ipcMain.handle("share-files", async (event, data) => {
+      return await share_files(data); // return file list
     });
 
     /* CONF API */
