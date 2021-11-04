@@ -5,7 +5,7 @@ const { parse_metadata, split_file_path } = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 
-const ignore_list = ["keys/"];
+//const ignore_list = ["keys/", "attributes/"];
 const file_status = {
   ok: 0,
   modified: 1,
@@ -19,6 +19,13 @@ const schema = {
   data: {
     type: "object",
   },
+  keys: {
+    type: "object",
+  },
+  users: {
+    type: "array",
+    default: []
+  }
 };
 
 const local_store = new Store();
@@ -62,9 +69,9 @@ const handle_local_add = function(file_path) {
 };
 
 const handle_remote_add = function(file_path) {
-  if (ignore_list.some((el) => file_path.includes(el))) {
+  /*if (ignore_list.some((el) => file_path.includes(el))) {
     return;
-  }
+  }*/
   const { original_file_name, relative_path } = split_file_path(
     file_path,
     abebox.conf.remote_repo_path
@@ -192,12 +199,16 @@ function start_services(local_repo, remote_repo) {
 
   abebox.init(local_repo, remote_repo, local_store);
 
-  watch_paths = [abebox.conf.local_repo_path, abebox.conf.remote_repo_path];
+  create_test_attributes();
+  create_test_users();
+
+  watch_paths = [local_repo, remote_repo];
 
   console.log(`Starting watching on ${watch_paths}`);
 
   let watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
+    ignored: [remote_repo + "/keys/*", remote_repo + "/attributes/*", remote_repo + "/repo/.*", remote_repo + "/repo/*/.*"],
   });
 
   console.log("Setting on change event...");
@@ -235,17 +246,71 @@ function start_services(local_repo, remote_repo) {
     });
 }
 
-/* Funzioni Esportate*/
+/************************ TEST FUNCTIONS ************************/
+const create_test_attributes = function() {
+  const attributes = [
+    {
+      id: "1",
+      univ: "university",
+      attr: "professore",
+      vers: "1",
+    },
+    {
+      id: "2",
+      univ: "university",
+      attr: "studente",
+      vers: "1",
+    },
+    {
+      id: "3",
+      univ: "university",
+      attr: "triennale",
+      vers: "1",
+    },
+  ];
+  const data = local_store.get("data");
+  fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attributes));
+};
+
+const create_test_users = function() {
+  const users = [
+    { mail: "ppl0@ppl.it", rsa_pub_key: "", attrs: ["1", "2", "3"] },
+    { mail: "ppl1@ppl.it", rsa_pub_key: "", attrs: ["2", "3"] },
+    { mail: "ppl2@ppl.it", rsa_pub_key: "", attrs: ["1", "2"] },
+    { mail: "ppl3@ppl.it", rsa_pub_key: "", attrs: ["1"] },
+    { mail: "ppl4@ppl.it", rsa_pub_key: "", attrs: ["2"] },
+  ];
+  local_store.set("users", users);
+};
+
+/******************************** EXPORTED FUNCTIONS ********************************/
+
+/**************** FILES *****************/
 const get_files_list = function() {
   console.log("FILE LIST", files_list);
   return files_list;
 };
 
+const set_policy = async function(data) {
+  console.log("SET POLICY", data.file_id, data.policy);
+  const el = await files_list.find((el) => el.file_id === data.file_id);
+  if (el !== undefined) {
+    el.policy = data.policy;
+  }
+  return files_list;
+};
+
+const share_files = function() {
+  
+  return files; // TODO
+};
+
+/**************** CONFIGURATION *****************/
 const get_config = async function() {
   const conf = await local_store.get();
   console.log("INDEX.JS get_config()", conf);
   return conf;
-
+  /*
   const config_file_path = __dirname + "/default.json";
   if (fs.existsSync(config_file_path)) {
     return JSON.parse(fs.readFileSync(config_file_path).toString());
@@ -258,7 +323,7 @@ const get_config = async function() {
         console.log("The file was saved!");
       }
     });
-  }
+  }*/
 };
 
 const set_config = function(config_data) {
@@ -268,7 +333,7 @@ const set_config = function(config_data) {
   data = local_store.get("data");
   start_services(data.local, data.remote);
   return true;
-
+  /*
   const config_file_path = __dirname + "/default.json";
   if (fs.existsSync(config_file_path)) {
     const config = JSON.parse(fs.readFileSync(config_file_path).toString());
@@ -283,16 +348,110 @@ const set_config = function(config_data) {
         console.log("The file was saved!");
       }
     });
+  }*/
+};
+
+/**************** ATTRIBUTES *****************/
+const get_attrs = async function() {
+  const data = await local_store.get("data");
+  return JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+};
+
+const new_attr = async function(new_obj) {
+  const data = await local_store.get("data");
+  const attrs = JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  // Check if already exists
+  const index = attrs.findIndex((item) => item.id == new_obj.id);
+  if (index >= 0) {
+    throw Error("ID is already present");
+  } else { // Add new
+    new_obj.id = attrs.length;
+    attrs.push(new_obj);
+    fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attrs));
+    console.log("Adding:", new_obj, attrs);
+    return attrs;
   }
 };
 
-const set_policy = async function(data) {
-  console.log("SET POLICY", data.file_id, data.policy);
-  const el = await files_list.find((el) => el.file_id === data.file_id);
-  if (el !== undefined) {
-    el.policy = data.policy;
+const set_attr = async function(new_obj) {
+  const data = await local_store.get("data");
+  const attrs = JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  // Check if already exists
+  const index = attrs.findIndex((item) => item.id == new_obj.id);
+  if (index < 0) {
+    throw Error("ID not present");
+  } else { // Replace
+    const rem = attrs.splice(index, 1);
+    console.log("Removing:", rem, attrs);
+    attrs.push(new_obj);
+    fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attrs));
+    console.log("Adding:", new_obj, attrs);
+    return attrs;
   }
-  return files_list;
+};
+
+const del_attr = async function(id) {
+  const data = await local_store.get("data");
+  const attrs = JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  // Check if already exists
+  const index = attrs.findIndex((item) => item.id == id);
+  if (index < 0) {
+    throw Error("ID not present");
+  } else { // Remove
+    const rem = attrs.splice(index, 1);
+    fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attrs));
+    console.log("Removing:", rem, attrs);
+    return attrs;
+  }
+};
+
+/**************** USERS *****************/
+const get_users = async function() {
+  return await local_store.get("users");
+};
+
+const new_user = async function(new_obj) {
+  const users = await local_store.get("users");
+  // Check if already exists
+  const index = users.findIndex((item) => item.mail == new_obj.mail);
+  if (index >= 0) {
+    throw Error("Mail already exists");
+  } else { // Add new
+    users.push(new_obj);
+    local_store.set("users", users);
+    console.log("Adding:", new_obj, users);
+    return users;
+  }
+};
+
+const set_user = async function(new_obj) {
+  const users = await local_store.get("users");
+  // Check if already exists
+  const index = users.findIndex((item) => item.mail == new_obj.mail);
+  if (index < 0) {
+    throw Error("Mail not present");
+  } else { // Replace
+    const rem = users.splice(index, 1);
+    console.log("Removing:", rem, users);
+    users.push(new_obj);
+    local_store.set("users", users);
+    console.log("Adding:", new_obj, users);
+    return users;
+  }
+};
+
+const del_user = async function(mail) {
+  const users = await local_store.get("users");
+  const index = users.findIndex((item) => item.mail == mail);
+  // Check if already exists
+  if (index < 0) {
+    throw Error("Mail not present");
+  } else { // Remove
+    const rem = users.splice(index, 1);
+    local_store.set("users", users);
+    console.log("Removing:", rem, users);
+    return users;
+  }
 };
 
 init();
@@ -300,9 +459,15 @@ init();
 module.exports = {
   get_files_list,
   set_policy,
+  share_files,
   get_config,
   set_config,
+  get_attrs,
+  new_attr,
+  set_attr,
+  del_attr,
+  get_users,
+  new_user,
+  set_user,
+  del_user,
 };
-
-//const conf = module.exports.get_config();
-//console.log(conf);

@@ -1,8 +1,13 @@
 import { ipcMain } from "electron";
 
-import { get_files_list, set_config, get_config, set_policy } from ".";
+//import { get_files_list, set_config, get_config, set_policy } from ".";
 
 import {
+  get_files_list,
+  set_policy,
+  share_files,
+  get_config,
+  set_config,
   get_attrs,
   new_attr,
   set_attr,
@@ -11,8 +16,7 @@ import {
   new_user,
   set_user,
   del_user,
-  share_files,
-} from "./dummy";
+} from "."; //"./dummy";
 
 /* HELPER FUNCTIONS */
 

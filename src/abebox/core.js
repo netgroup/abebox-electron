@@ -39,11 +39,13 @@ const init = function(lp, rp, local_store) {
   conf.abe_secret_key = rsa
     .decryptRSA(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
     .toString();
+
+  
 };
 
 const create_dirs = function() {
   //dirs = ["settings", "repo-local", "repo-shared/keys", "repo-shared/repo"];
-  dirs = ["keys", "repo"];
+  dirs = ["attributes", "keys", "repo"];
   console.log("CREATING DIRS", dirs);
   dirs.forEach((dir) => {
     absolute_dir = conf.remote_repo_path + "/" + dir;
