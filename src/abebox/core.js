@@ -80,20 +80,20 @@ const create_abe_keys = function() {
   );
 };
 
-const file_encrypt = function(input_file_path, policy) {
+const file_encrypt = function(input_file_path, policy, output_file_path) {
   console.log(
     `[Encryption] Encrypting ${input_file_path} with policy ${policy}`
   );
 
   // Get random file ID
-  const encrypted_filename = get_random_filename();
+  //const encrypted_filename = get_random_filename();
 
   // Encrypt file content with sym key
   const input_file = fs.createReadStream(
-    conf.local_repo_path + "/" + input_file_path
+    conf.local_repo_path + input_file_path
   );
   const output_file = fs.createWriteStream(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".0"
+    conf.remote_repo_path + "/repo/" + output_file_path + ".0"
   );
 
   // Perform symmetric encryption
@@ -110,12 +110,12 @@ const file_encrypt = function(input_file_path, policy) {
 
   // Write metadata on file
   fs.writeFileSync(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".abebox",
+    conf.remote_repo_path + "/repo/" + output_file_path + ".abebox",
     JSON.stringify(metadata)
   );
 
   // Return the random file ID
-  return encrypted_filename;
+  //return output_file_path;
 };
 
 const file_decrypt = function(encrypted_filename) {

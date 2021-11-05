@@ -1,7 +1,7 @@
 const abebox = require("./core");
 const chokidar = require("chokidar");
 const fs = require("fs");
-const { parse_metadata, split_file_path } = require("./file_utils");
+const { parse_metadata, split_file_path, policy_as_string } = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 
@@ -24,19 +24,24 @@ const schema = {
   },
   users: {
     type: "array",
-    default: []
-  }
+    default: [],
+  },
+  files: {
+    type: "array",
+    default: [],
+  },
 };
 
-const local_store = new Store();
+const local_store = new Store({schema});
 //local_store.clear();
 
-const files_list = [];
+let files_list = [];
 
 const init = function() {
   if (local_store.get("configured")) {
     console.log("LOADING ABEBOX CONFIGURATION");
     const data = local_store.get("data");
+    files_list = local_store.get("files", []);
     start_services(data.local, data.remote);
   } else {
     console.log("ABEBOX NOT CONFIGURED");
@@ -65,6 +70,7 @@ const handle_local_add = function(file_path) {
       policy: [],
       status: file_status.ok,
     });
+    local_store.set("files", files_list);
   }
 };
 
@@ -114,6 +120,7 @@ const handle_remote_add = function(file_path) {
         policy: _policy[0],
         status: file_status.ok,
       });
+      local_store.set("files", files_list);
     }
   } catch (error) {
     console.log("Decryption failed: " + error);
@@ -172,6 +179,7 @@ const handle_local_remove = function(file_path) {
   );
   if (el !== undefined) {
     files_list.pop(el);
+    local_store.set("files", files_list);
   }
 };
 
@@ -190,6 +198,7 @@ const handle_remote_remove = function(file_path) {
   );
   if (el !== undefined) {
     files_list.pop(el);
+    local_store.set("files", files_list);
   }
 };
 
@@ -208,7 +217,12 @@ function start_services(local_repo, remote_repo) {
 
   let watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
-    ignored: [remote_repo + "/keys/*", remote_repo + "/attributes/*", remote_repo + "/repo/.*", remote_repo + "/repo/*/.*"],
+    ignored: [
+      remote_repo + "/keys/*",
+      remote_repo + "/attributes/*",
+      remote_repo + "/repo/.*",
+      remote_repo + "/repo/*/.*",
+    ],
   });
 
   console.log("Setting on change event...");
@@ -269,7 +283,10 @@ const create_test_attributes = function() {
     },
   ];
   const data = local_store.get("data");
-  fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attributes));
+  fs.writeFileSync(
+    data.remote + "/attributes/attributes_list.json",
+    JSON.stringify(attributes)
+  );
 };
 
 const create_test_users = function() {
@@ -287,6 +304,7 @@ const create_test_users = function() {
 
 /**************** FILES *****************/
 const get_files_list = function() {
+  files_list = local_store.get("files", []);
   console.log("FILE LIST", files_list);
   return files_list;
 };
@@ -297,12 +315,21 @@ const set_policy = async function(data) {
   if (el !== undefined) {
     el.policy = data.policy;
   }
+  local_store.set("files", files_list);
   return files_list;
 };
 
 const share_files = function() {
-  
-  return files; // TODO
+  files_list.forEach((file) => {
+    if (file.policy.length != 0) {
+      abebox.file_encrypt(
+        file.file_path + file.file_name,
+        policy_as_string(file.policy),
+        file.file_id
+      );
+    }
+  });
+  return files_list;
 };
 
 /**************** CONFIGURATION *****************/
@@ -354,20 +381,28 @@ const set_config = function(config_data) {
 /**************** ATTRIBUTES *****************/
 const get_attrs = async function() {
   const data = await local_store.get("data");
-  return JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  return JSON.parse(
+    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
+  );
 };
 
 const new_attr = async function(new_obj) {
   const data = await local_store.get("data");
-  const attrs = JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  const attrs = JSON.parse(
+    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
+  );
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
   if (index >= 0) {
     throw Error("ID is already present");
-  } else { // Add new
+  } else {
+    // Add new
     new_obj.id = attrs.length;
     attrs.push(new_obj);
-    fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attrs));
+    fs.writeFileSync(
+      data.remote + "/attributes/attributes_list.json",
+      JSON.stringify(attrs)
+    );
     console.log("Adding:", new_obj, attrs);
     return attrs;
   }
@@ -375,16 +410,22 @@ const new_attr = async function(new_obj) {
 
 const set_attr = async function(new_obj) {
   const data = await local_store.get("data");
-  const attrs = JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  const attrs = JSON.parse(
+    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
+  );
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
   if (index < 0) {
     throw Error("ID not present");
-  } else { // Replace
+  } else {
+    // Replace
     const rem = attrs.splice(index, 1);
     console.log("Removing:", rem, attrs);
     attrs.push(new_obj);
-    fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attrs));
+    fs.writeFileSync(
+      data.remote + "/attributes/attributes_list.json",
+      JSON.stringify(attrs)
+    );
     console.log("Adding:", new_obj, attrs);
     return attrs;
   }
@@ -392,14 +433,20 @@ const set_attr = async function(new_obj) {
 
 const del_attr = async function(id) {
   const data = await local_store.get("data");
-  const attrs = JSON.parse(fs.readFileSync(data.remote + '/attributes/attributes_list.json'));
+  const attrs = JSON.parse(
+    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
+  );
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == id);
   if (index < 0) {
     throw Error("ID not present");
-  } else { // Remove
+  } else {
+    // Remove
     const rem = attrs.splice(index, 1);
-    fs.writeFileSync(data.remote + "/attributes/attributes_list.json", JSON.stringify(attrs));
+    fs.writeFileSync(
+      data.remote + "/attributes/attributes_list.json",
+      JSON.stringify(attrs)
+    );
     console.log("Removing:", rem, attrs);
     return attrs;
   }
@@ -416,7 +463,8 @@ const new_user = async function(new_obj) {
   const index = users.findIndex((item) => item.mail == new_obj.mail);
   if (index >= 0) {
     throw Error("Mail already exists");
-  } else { // Add new
+  } else {
+    // Add new
     users.push(new_obj);
     local_store.set("users", users);
     console.log("Adding:", new_obj, users);
@@ -430,7 +478,8 @@ const set_user = async function(new_obj) {
   const index = users.findIndex((item) => item.mail == new_obj.mail);
   if (index < 0) {
     throw Error("Mail not present");
-  } else { // Replace
+  } else {
+    // Replace
     const rem = users.splice(index, 1);
     console.log("Removing:", rem, users);
     users.push(new_obj);
@@ -446,7 +495,8 @@ const del_user = async function(mail) {
   // Check if already exists
   if (index < 0) {
     throw Error("Mail not present");
-  } else { // Remove
+  } else {
+    // Remove
     const rem = users.splice(index, 1);
     local_store.set("users", users);
     console.log("Removing:", rem, users);

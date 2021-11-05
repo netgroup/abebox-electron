@@ -6,7 +6,7 @@ const rabe = require("./rabejs/rabejs.node");
  * Generate a unique random UUID to use as file name.
  * @returns unique random file name
  */
-exports.get_random_filename = function() {
+const get_random_filename = function() {
   const { v4: uuidv4 } = require("uuid");
   return uuidv4(); // ⇨ '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'
 };
@@ -17,7 +17,7 @@ exports.get_random_filename = function() {
  * @param {Stream} output_stream Stream where data will be written
  * @returns Used symmetric key and IV
  */
-exports.encrypt_content = function(
+const encrypt_content = function(
   input_stream,
   output_stream,
   sym_key = null,
@@ -54,13 +54,7 @@ exports.encrypt_content = function(
  * @param {String} policy ABE policy
  * @returns Created metadata
  */
-exports.create_metadata = function(
-  file_path,
-  sym_key,
-  iv,
-  abe_pub_key,
-  policy
-) {
+const create_metadata = function(file_path, sym_key, iv, abe_pub_key, policy) {
   // Group parameters to encrypt
   const metadata_to_enc = {
     sym_key: sym_key.toString("hex"),
@@ -88,7 +82,7 @@ exports.create_metadata = function(
  * @param {String} sym_key Symmetric key
  * @param {String} iv Initialisation vector
  */
-exports.decrypt_content = function(input_stream, output_stream, sym_key, iv) {
+const decrypt_content = function(input_stream, output_stream, sym_key, iv) {
   // Create symmetric decipher
   const algorithm = "aes-256-cbc";
   const decipher = crypto.createDecipheriv(
@@ -107,7 +101,7 @@ exports.decrypt_content = function(input_stream, output_stream, sym_key, iv) {
  * @param {Object} abe_secret_key ABE secret key
  * @returns Extracted parameters
  */
-exports.parse_metadata = function(raw_metadata, abe_secret_key) {
+const parse_metadata = function(raw_metadata, abe_secret_key) {
   // Read metadata
   const metadata = JSON.parse(raw_metadata);
   const { enc_metadata, iv } = metadata;
@@ -124,7 +118,7 @@ exports.parse_metadata = function(raw_metadata, abe_secret_key) {
   };
 };
 
-exports.split_file_path = function(file_path, repo_path) {
+const split_file_path = function(file_path, repo_path) {
   const filename = file_path.replace(/^.*[\\\/]/, "");
   const abs_path = file_path.replace(filename, "");
   const rel_path = abs_path.replace(repo_path, "");
@@ -148,3 +142,36 @@ exports.split_file_path = function(file_path, repo_path) {
     return null;
   }
 }*/
+
+const policy_as_string = function(policy_array) {
+  let policy_string = "";
+  policy_array.forEach(function(outer_el, outer_el_index, outer_array){
+    if (outer_el.length === 1) {
+      policy_string = policy_string + "\"" + outer_el + "\"";
+    } else {
+      policy_string = policy_string + "(";
+      outer_el.forEach(function(inner_el, inner_el_index, inner_array){
+        policy_string = policy_string + "\"" + inner_el + "\"";
+        if (inner_el_index != inner_array.length - 1){
+          policy_string = policy_string + " OR ";
+        }
+      });
+      policy_string = policy_string + ")";
+    }
+    if (outer_el_index != outer_array.length - 1){
+      policy_string = policy_string + " AND ";
+    }
+  });
+  console.log("POLICY AS STRING = ", policy_string);
+  return policy_string;
+};
+
+module.exports = {
+  get_random_filename,
+  encrypt_content,
+  create_metadata,
+  decrypt_content,
+  parse_metadata,
+  split_file_path,
+  policy_as_string,
+};
