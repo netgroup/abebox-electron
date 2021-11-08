@@ -1,7 +1,11 @@
 const abebox = require("./core");
 const chokidar = require("chokidar");
 const fs = require("fs");
-const { parse_metadata, split_file_path, policy_as_string } = require("./file_utils");
+const {
+  parse_metadata,
+  split_file_path,
+  policy_as_string,
+} = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 
@@ -32,7 +36,7 @@ const schema = {
   },
 };
 
-const local_store = new Store({schema});
+const local_store = new Store({ schema });
 //local_store.clear();
 
 let files_list = [];
@@ -283,10 +287,13 @@ const create_test_attributes = function() {
     },
   ];
   const data = local_store.get("data");
-  fs.writeFileSync(
-    data.remote + "/attributes/attributes_list.json",
-    JSON.stringify(attributes)
-  );
+  attr_list_file = data.remote + "/attributes/attributes_list.json";
+  if (!fs.existsSync(attr_list_file)) {
+    fs.writeFileSync(
+      data.remote + "/attributes/attributes_list.json",
+      JSON.stringify(attributes)
+    );
+  }
 };
 
 const create_test_users = function() {
@@ -297,7 +304,8 @@ const create_test_users = function() {
     { mail: "ppl3@ppl.it", rsa_pub_key: "", attrs: ["1"] },
     { mail: "ppl4@ppl.it", rsa_pub_key: "", attrs: ["2"] },
   ];
-  local_store.set("users", users);
+  if (local_store.get("users", []).length == 0)
+    local_store.set("users", users);
 };
 
 /******************************** EXPORTED FUNCTIONS ********************************/
