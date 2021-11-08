@@ -222,10 +222,15 @@ function start_services(local_repo, remote_repo) {
   let watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
     ignored: [
+      // Local
+      local_repo + "/.*",
+      local_repo + "/*/.*",
+      // Remote
       remote_repo + "/keys/*",
       remote_repo + "/attributes/*",
       remote_repo + "/repo/.*",
       remote_repo + "/repo/*/.*",
+      
     ],
   });
 
