@@ -10,7 +10,7 @@ const rsa_pub_key_path = __dirname + "/settings/rsa_pub.pem";
  * @returns public key
  */
 
-exports.create_keys = function() {
+const create_keys = function() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {
@@ -35,7 +35,7 @@ exports.create_keys = function() {
   };
 };
 
-exports.getPubKey = function() {
+const getPubKey = function() {
   return fs.existsSync(rsa_pub_key_path)
     ? fs.readFileSync(rsa_pub_key_path)
     : exports.createAndSaveKeys().publicKey;
@@ -45,7 +45,7 @@ exports.getPubKey = function() {
  * Create RSA public/private key pair and return the private key.
  * @returns private key
  */
-exports.getPrivKey = function() {
+const getPrivKey = function() {
   return fs.existsSync(rsa_priv_key_path)
     ? fs.readFileSync(rsa_priv_key_path)
     : exports.createAndSaveKeys().privateKey;
@@ -57,7 +57,7 @@ exports.getPrivKey = function() {
  * @param {} publicKey RSA public key
  * @returns encrypted data
  */
-exports.encryptRSA = function(data_buffer, publicKey) {
+const encrypt = function(data_buffer, publicKey) {
   // Perform encryption
   // 1. generate random sym key
   const sym_key = crypto.randomBytes(32);
@@ -95,7 +95,7 @@ exports.encryptRSA = function(data_buffer, publicKey) {
  * @param {} privateKey RSA private key
  * @returns decrypted data
  */
-exports.decryptRSA = function(enc_data_buffer, privateKey) {
+const decrypt = function(enc_data_buffer, privateKey) {
   // Perform encryption
 
   // 1. extract sym key
@@ -126,4 +126,31 @@ exports.decryptRSA = function(enc_data_buffer, privateKey) {
   ]);
 
   return payload;
+};
+
+/*const sign = function(data, privateKey) {
+  return crypto.sign("sha256", Buffer.from(data), {
+    key: privateKey,
+    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+  });
+};
+
+const verify = function(data, signature, publicKey) {
+  return crypto.verify(
+    "sha256",
+    Buffer.from(data),
+    {
+      key: publicKey,
+      padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+    },
+    signature
+  );
+};*/
+
+module.exports = {
+  create_keys,
+  encrypt,
+  decrypt,
+  //sign,
+  //verify,
 };

@@ -5,6 +5,7 @@ const {
   create_metadata,
   decrypt_content,
   parse_metadata,
+  get_hash,
 } = require("./file_utils");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
@@ -19,10 +20,11 @@ const conf = {
 //const conf = {};
 
 const init = function(lp, rp, local_store) {
+  const abe_provider_name = get_hash(local_store.get("data").name);
   conf.local_repo_path = lp;
   conf.remote_repo_path = rp;
-  conf.abe_pub_path_remote = conf.remote_repo_path + "/keys/abe.pub";
-  conf.abe_sec_path_remote = conf.remote_repo_path + "/keys/abe.sk";
+  conf.abe_pub_path_remote = conf.remote_repo_path + "/keys/" + abe_provider_name + ".pub";
+  conf.abe_sec_path_remote = conf.remote_repo_path + "/keys/" + abe_provider_name + ".sk";
   console.log("INIT() CONF", conf);
 
   create_dirs();
@@ -37,7 +39,7 @@ const init = function(lp, rp, local_store) {
   }
   conf.abe_pub_key = fs.readFileSync(conf.abe_pub_path_remote).toString();
   conf.abe_secret_key = rsa
-    .decryptRSA(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
+    .decrypt(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
     .toString();
 
   
@@ -76,7 +78,15 @@ const create_abe_keys = function() {
   fs.writeFileSync(conf.abe_pub_path_remote, pk);
   fs.writeFileSync(
     conf.abe_sec_path_remote,
-    rsa.encryptRSA(Buffer.from(sk), conf.rsa_pub_key)
+    rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key)
+  );
+};
+
+const create_abe_secret_key = function(attr_list, rsa_pub_key, file_name) {
+  const sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
+  fs.writeFileSync(
+    conf.remote_repo_path + "/keys/" + file_name + ".sk",
+    rsa.encrypt(Buffer.from(sk), rsa_pub_key)
   );
 };
 

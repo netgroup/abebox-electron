@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+//const jwt = require('jsonwebtoken');
 const { Stream } = require("stream");
 const rabe = require("./rabejs/rabejs.node");
 
@@ -10,6 +11,10 @@ const get_random_filename = function() {
   const { v4: uuidv4 } = require("uuid");
   return uuidv4(); // ⇨ '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'
 };
+
+const get_random = function(size) {
+  return crypto.randomBytes(size);
+}
 
 /**
  * Read data from the input stream, encrypt it using AES with randomly-generated symmetric key and IV, and write the resulting ciphertext on the output stream.
@@ -166,12 +171,23 @@ const policy_as_string = function(policy_array) {
   return policy_string;
 };
 
+const get_hash = function(message) {
+  return crypto.createHash("sha256").update(message).digest();
+};
+
+const get_hmac = function(key, message) {
+  return crypto.createHmac("sha256", key).update(message).digest();
+}
+
 module.exports = {
   get_random_filename,
+  get_random,
   encrypt_content,
   create_metadata,
   decrypt_content,
   parse_metadata,
   split_file_path,
   policy_as_string,
+  get_hash,
+  get_hmac,
 };

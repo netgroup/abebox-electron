@@ -5,14 +5,20 @@ const {
   parse_metadata,
   split_file_path,
   policy_as_string,
+  get_random,
+  get_hash,
+  get_hmac,
 } = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
+const mailer = require("./mailer");
+const http = require("./http");
 
 //const ignore_list = ["keys/", "attributes/"];
 const file_status = {
-  ok: 0,
-  modified: 1,
+  sync: 0,
+  local_change: 1,
+  remote_change: 2,
 };
 
 const schema = {
@@ -37,7 +43,7 @@ const schema = {
 };
 
 const local_store = new Store({ schema });
-//local_store.clear();
+local_store.clear();
 
 let files_list = [];
 
@@ -72,7 +78,7 @@ const handle_local_add = function(file_path) {
       file_name: original_file_name,
       file_id: fid,
       policy: [],
-      status: file_status.ok,
+      status: file_status.local_change,
     });
     local_store.set("files", files_list);
   }
@@ -122,7 +128,7 @@ const handle_remote_add = function(file_path) {
         file_name: file_path,
         file_id: fid_no_ext,
         policy: _policy[0],
-        status: file_status.ok,
+        status: file_status.remote_change,
       });
       local_store.set("files", files_list);
     }
@@ -146,7 +152,7 @@ const handle_local_change = function(file_path) {
       el.file_path === relative_path && el.file_name === original_file_name
   );
   if (el !== undefined) {
-    el.status = file_status.modified;
+    el.status = file_status.local_change;
   }
 };
 
@@ -164,7 +170,7 @@ const handle_remote_change = function(file_path) {
     (el) => el.file_path === relative_path && el.file_id === fid_no_ext
   );
   if (el !== undefined) {
-    el.status = file_status.modified;
+    el.status = file_status.remote_change;
   }
 };
 
@@ -215,6 +221,8 @@ function start_services(local_repo, remote_repo) {
   create_test_attributes();
   create_test_users();
 
+  send_token();
+
   watch_paths = [local_repo, remote_repo];
 
   console.log(`Starting watching on ${watch_paths}`);
@@ -249,7 +257,7 @@ function start_services(local_repo, remote_repo) {
     })
     .on("change", (file_path) => {
       console.log(`File ${file_path} has been modified`);
-      if (path.includes(watch_paths[0])) {
+      if (file_path.includes(watch_paths[0])) {
         // Change on local file
         handle_local_change(file_path);
       } else {
@@ -267,6 +275,55 @@ function start_services(local_repo, remote_repo) {
         handle_remote_remove(file_path);
       }
     });
+};
+
+const send_invite = function(recv) {
+  const data = local_store.get("data");
+  const sender = {
+    mail: data.name,
+    password: data.mail_password,
+  };
+  const receiver = {
+    mail: recv.mail,
+    token: recv.rsa_pub_key,
+  };
+  mailer.send_mail(sender, receiver, data.server_url);
+};
+
+const send_token = async function() {
+  const data = await local_store.get("data", []);
+  if (data.length != 0) {
+    const token = data.token;
+    if (token != undefined) {
+      const token_hash = get_hash(token);
+      const rsa_pk = await local_store.get("keys").rsa_pub_key;
+      const signature = get_hmac(token, rsa_pub_key + data.name);
+      const res = http.send_token({ token: token_hash.toString('base64'), rsa_pub_key: rsa_pk.toString('base64'), sign: signature.toString('base64') });
+    }
+  }
+};
+
+const get_token = async function(user) {
+  const data = await local_store.get("data", []);
+  const token_hash = get_hash(user.rsa_pub_key).toString('base64');
+  const res = http.get_token(token_hash);
+  const rsa_pk = res.rsa_pub_key;
+  const sign = res.sign;
+  if (sign === get_hmac(token, rsa_pk + data.name)) {
+    user.rsa_pub_key = rsa_pk;
+    const users = await local_store.get("users", []);
+    // Check if already exists
+    const index = users.findIndex((item) => item.mail == user.mail);
+    if (index >= 0) {
+      // Remove old
+      const rem = users.splice(index, 1);
+      console.log("Removing:", rem, users);
+    }
+    users.push(user);
+    local_store.set("users", users);
+    console.log("Adding:", user, users);
+  }
+
 }
 
 /************************ TEST FUNCTIONS ************************/
@@ -334,12 +391,26 @@ const set_policy = async function(data) {
 
 const share_files = function() {
   files_list.forEach((file) => {
-    if (file.policy.length != 0) {
-      abebox.file_encrypt(
-        file.file_path + file.file_name,
+    if ((file.status == file_status.local_change) && (file.policy.length != 0)) {
+      const file_name = file.file_path + file.file_name;
+      const res = abebox.file_encrypt(
+        file_name,
         policy_as_string(file.policy),
         file.file_id
       );
+      if (res)
+        file.status = file_status.sync;
+      else
+        console.log("[ERROR] ENCRYPTING LOCAL FILE " + file_name);
+    }
+    if ((file.status == file_status.remote_change)) {
+      let enc_file_name = file.file_path + file.file_id;
+      enc_file_name = enc_file_name.substring(0, enc_file_name.lastIndexOf("."));
+      const res = abebox.file_decrypt(enc_file_name);
+      if (res)
+        file.status = file_status.sync;
+      else
+        console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
     }
   });
   return files_list;
@@ -368,6 +439,7 @@ const get_config = async function() {
 
 const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
+  config_data.token = "1";
   local_store.set("data", config_data);
   local_store.set("configured", true);
   data = local_store.get("data");
@@ -502,6 +574,27 @@ const set_user = async function(new_obj) {
   }
 };
 
+const invite_user = async function(user) {
+  const users = await local_store.get("users");
+  // Check if already exists
+  const index = users.findIndex((el) => el.mail == user.mail);
+  if (index < 0) {
+    throw Error("Mail not present");
+  } else {
+    const token = get_random(32);
+    const rem = users.splice(index, 1);
+    console.log("Removing:", rem, users);
+    rem.rsa_pub_key = token;
+    users.push(rem);
+    local_store.set("users", users);
+    console.log("Adding:", rem, users);
+    // TODO SEND EMAIL
+    send_invite(rem);
+    console.log("Sending email to", rem.mail);
+    return users;
+  }
+};
+
 const del_user = async function(mail) {
   const users = await local_store.get("users");
   const index = users.findIndex((item) => item.mail == mail);
@@ -532,5 +625,6 @@ module.exports = {
   get_users,
   new_user,
   set_user,
+  invite_user,
   del_user,
 };
