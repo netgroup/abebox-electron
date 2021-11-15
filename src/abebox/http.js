@@ -1,53 +1,31 @@
-const https = require("https");
+const axios = require("axios");
 
 const send_token = function(token_data) {
-  const data = new TextEncoder().encode(JSON.stringify(token_data));
-
-  const options = {
-    hostname: "localhost",
-    port: 3000,
-    path: "/users",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": data.length,
-    },
-  };
-
-  const req = https.request(options, (res) => {
-    console.log(`statusCode: ${res.statusCode}`);
-    res.on("data", (d) => {
-      console.log(d);
-      process.stdout.write(d);
+  console.log("TOKEN DATA =", token_data);
+  axios
+    .post("http://localhost:3000/users", token_data)
+    .then((res) => {
+      console.log(`statusCode: ${res.status}`);
+      console.log(res.data);
+      return res.data;
+    })
+    .catch((error) => {
+      console.error(error);
     });
-  });
-  req.on("error", (error) => {
-    console.error(error);
-  });
-  req.write(data);
-  req.end();
 };
 
 const get_token = function(token_hash) {
-  
-    const options = {
-    hostname: "localhost",
-    port: 3000,
-    path: `/users/${token_hash}`,
-    method: "GET",
-  };
-
-  const req = https.request(options, (res) => {
-    console.log(`statusCode: ${res.statusCode}`);
-    res.on("data", (d) => {
-      process.stdout.write(d);
+  console.log("TOKEN HASH =", token_hash);
+  axios
+    .get(`http://localhost:3000/users/${token_hash.toString("hex")}`)
+    .then((res) => {
+      console.log(`statusCode: ${res.status}`);
+      console.log(res.data);
+      return res.data; // VERIFICARE SE NULL, RIMUOVERE HEX CON .toString("utf8") E VERIFICARE SIGN
+    })
+    .catch((error) => {
+      console.error(error);
     });
-  });
-  req.on("error", (error) => {
-    console.error(error);
-  });
-  req.end();
-
 };
 
 module.exports = {

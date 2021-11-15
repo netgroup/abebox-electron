@@ -238,7 +238,6 @@ function start_services(local_repo, remote_repo) {
       remote_repo + "/attributes/*",
       remote_repo + "/repo/.*",
       remote_repo + "/repo/*/.*",
-      
     ],
   });
 
@@ -275,7 +274,7 @@ function start_services(local_repo, remote_repo) {
         handle_remote_remove(file_path);
       }
     });
-};
+}
 
 const send_invite = function(recv) {
   const data = local_store.get("data");
@@ -290,40 +289,53 @@ const send_invite = function(recv) {
   mailer.send_mail(sender, receiver, data.server_url);
 };
 
-const send_token = async function() {
-  const data = await local_store.get("data", []);
+const send_token = function() {
+  const data = local_store.get("data", []);
   if (data.length != 0) {
     const token = data.token;
     if (token != undefined) {
       const token_hash = get_hash(token);
-      const rsa_pk = await local_store.get("keys").rsa_pub_key;
-      const signature = get_hmac(token, rsa_pub_key + data.name);
-      const res = http.send_token({ token: token_hash.toString('base64'), rsa_pub_key: rsa_pk.toString('base64'), sign: signature.toString('base64') });
+      const rsa_pk = local_store.get("keys").rsa_pub_key;
+      const signature = get_hmac(token, rsa_pk + data.name);
+      const res = http.send_token({
+        token: token_hash.toString("hex"),
+        rsa_pub_key: rsa_pk.toString("hex"),
+        sign: signature.toString("hex"),
+      });
     }
   }
 };
 
-const get_token = async function(user) {
-  const data = await local_store.get("data", []);
-  const token_hash = get_hash(user.rsa_pub_key).toString('base64');
+const get_token = function(user) {
+  const data = local_store.get("data", []);
+  const token_hash = get_hash(user.rsa_pub_key);
   const res = http.get_token(token_hash);
-  const rsa_pk = res.rsa_pub_key;
-  const sign = res.sign;
-  if (sign === get_hmac(token, rsa_pk + data.name)) {
-    user.rsa_pub_key = rsa_pk;
-    const users = await local_store.get("users", []);
-    // Check if already exists
-    const index = users.findIndex((item) => item.mail == user.mail);
-    if (index >= 0) {
-      // Remove old
-      const rem = users.splice(index, 1);
-      console.log("Removing:", rem, users);
+  if (res != null && res.token.toString("utf8") === token_hash) {
+    const rsa_pk = res.rsa_pub_key.toString("utf8");
+    const sign = res.sign.toString("utf8");
+    if (sign === get_hmac(token, rsa_pk + data.name)) {
+      user.rsa_pub_key = rsa_pk;
+      const users = local_store.get("users", []);
+      // Check if already exists
+      const index = users.findIndex((item) => item.mail == user.mail);
+      if (index >= 0) {
+        // Remove old
+        const rem = users.splice(index, 1);
+        console.log("Removing:", rem, users);
+      }
+      users.push(user);
+      local_store.set("users", users);
+      console.log("Adding:", user, users);
     }
-    users.push(user);
-    local_store.set("users", users);
-    console.log("Adding:", user, users);
   }
+};
 
+const generate_jwt = function(data, priv_key) {
+  return jwt.sign(data, priv_key, { algorithm: 'RS256' });
+}
+
+const verify_jwt = function(token, pub_key) {
+  return jwt.verify(token, pub_key)
 }
 
 /************************ TEST FUNCTIONS ************************/
@@ -366,8 +378,7 @@ const create_test_users = function() {
     { mail: "ppl3@ppl.it", rsa_pub_key: "", attrs: ["1"] },
     { mail: "ppl4@ppl.it", rsa_pub_key: "", attrs: ["2"] },
   ];
-  if (local_store.get("users", []).length == 0)
-    local_store.set("users", users);
+  if (local_store.get("users", []).length == 0) local_store.set("users", users);
 };
 
 /******************************** EXPORTED FUNCTIONS ********************************/
@@ -391,26 +402,25 @@ const set_policy = async function(data) {
 
 const share_files = function() {
   files_list.forEach((file) => {
-    if ((file.status == file_status.local_change) && (file.policy.length != 0)) {
+    if (file.status == file_status.local_change && file.policy.length != 0) {
       const file_name = file.file_path + file.file_name;
       const res = abebox.file_encrypt(
         file_name,
         policy_as_string(file.policy),
         file.file_id
       );
-      if (res)
-        file.status = file_status.sync;
-      else
-        console.log("[ERROR] ENCRYPTING LOCAL FILE " + file_name);
+      if (res) file.status = file_status.sync;
+      else console.log("[ERROR] ENCRYPTING LOCAL FILE " + file_name);
     }
-    if ((file.status == file_status.remote_change)) {
+    if (file.status == file_status.remote_change) {
       let enc_file_name = file.file_path + file.file_id;
-      enc_file_name = enc_file_name.substring(0, enc_file_name.lastIndexOf("."));
+      enc_file_name = enc_file_name.substring(
+        0,
+        enc_file_name.lastIndexOf(".")
+      );
       const res = abebox.file_decrypt(enc_file_name);
-      if (res)
-        file.status = file_status.sync;
-      else
-        console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
+      if (res) file.status = file_status.sync;
+      else console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
     }
   });
   return files_list;
@@ -439,7 +449,7 @@ const get_config = async function() {
 
 const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
-  config_data.token = "1";
+  //config_data.token = "1";
   local_store.set("data", config_data);
   local_store.set("configured", true);
   data = local_store.get("data");

@@ -20,7 +20,7 @@ const conf = {
 //const conf = {};
 
 const init = function(lp, rp, local_store) {
-  const abe_provider_name = get_hash(local_store.get("data").name);
+  const abe_provider_name = get_hash(local_store.get("data").name).toString('hex');
   conf.local_repo_path = lp;
   conf.remote_repo_path = rp;
   conf.abe_pub_path_remote = conf.remote_repo_path + "/keys/" + abe_provider_name + ".pub";
@@ -41,8 +41,6 @@ const init = function(lp, rp, local_store) {
   conf.abe_secret_key = rsa
     .decrypt(fs.readFileSync(conf.abe_sec_path_remote), conf.rsa_priv_key)
     .toString();
-
-  
 };
 
 const create_dirs = function() {
@@ -58,7 +56,7 @@ const create_dirs = function() {
   });
 };
 
-const create_keys = function(local_store) {
+const create_keys =  function(local_store) {
   console.log("CREATING KEYS");
   const { publicKey, privateKey } = rsa.create_keys();
   const [msk] = rabe.setup();

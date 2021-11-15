@@ -12,6 +12,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "axios": "^0.24.0",
     "chokidar": "^3.5.2",
     "config": "^3.3.6",
     "crypto": "^1.0.1",

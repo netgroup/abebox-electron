@@ -177,7 +177,7 @@ const get_hash = function(message) {
 
 const get_hmac = function(key, message) {
   return crypto.createHmac("sha256", key).update(message).digest();
-}
+};
 
 module.exports = {
   get_random_filename,
