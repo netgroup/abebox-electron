@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-//const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const { Stream } = require("stream");
 const rabe = require("./rabejs/rabejs.node");
 
@@ -179,6 +179,14 @@ const get_hmac = function(key, message) {
   return crypto.createHmac("sha256", key).update(message).digest();
 };
 
+const generate_jwt = function(data, priv_key) {
+  return jwt.sign(data, priv_key, { algorithm: 'RS256' });
+}
+
+const verify_jwt = function(token, pub_key) {
+  return jwt.verify(token, pub_key)
+}
+
 module.exports = {
   get_random_filename,
   get_random,
@@ -190,4 +198,6 @@ module.exports = {
   policy_as_string,
   get_hash,
   get_hmac,
+  generate_jwt,
+  verify_jwt,
 };

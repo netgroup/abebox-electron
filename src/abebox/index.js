@@ -330,14 +330,6 @@ const get_token = function(user) {
   }
 };
 
-const generate_jwt = function(data, priv_key) {
-  return jwt.sign(data, priv_key, { algorithm: 'RS256' });
-}
-
-const verify_jwt = function(token, pub_key) {
-  return jwt.verify(token, pub_key)
-}
-
 /************************ TEST FUNCTIONS ************************/
 const create_test_attributes = function() {
   const attributes = [
