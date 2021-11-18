@@ -8,6 +8,8 @@ const {
   get_random,
   get_hash,
   get_hmac,
+  generate_jwt,
+  verify_jwt,
 } = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
@@ -43,7 +45,7 @@ const schema = {
 };
 
 const local_store = new Store({ schema });
-local_store.clear();
+//local_store.clear();
 
 let files_list = [];
 
@@ -332,7 +334,7 @@ const get_token = function(user) {
 
 /************************ TEST FUNCTIONS ************************/
 const create_test_attributes = function() {
-  const attributes = [
+  const attrs = [
     {
       id: "1",
       univ: "university",
@@ -353,11 +355,15 @@ const create_test_attributes = function() {
     },
   ];
   const data = local_store.get("data");
-  attr_list_file = data.remote + "/attributes/attributes_list.json";
+  const attr_list_file = data.remote + "/attributes/attributes_list.json";
   if (!fs.existsSync(attr_list_file)) {
+    const attrs_obj = {
+      attributes: attrs
+    };
+    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
     fs.writeFileSync(
-      data.remote + "/attributes/attributes_list.json",
-      JSON.stringify(attributes)
+      attr_list_file,
+      attrs_jwt //JSON.stringify(attributes)
     );
   }
 };
@@ -468,27 +474,30 @@ const set_config = function(config_data) {
 /**************** ATTRIBUTES *****************/
 const get_attrs = async function() {
   const data = await local_store.get("data");
-  return JSON.parse(
-    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );
+  const attrs_obj = verify_jwt(fs.readFileSync(data.remote + "/attributes/attributes_list.json").toString(), abebox.conf.rsa_pub_key);
+  return attrs_obj.attributes;
 };
 
 const new_attr = async function(new_obj) {
-  const data = await local_store.get("data");
-  const attrs = JSON.parse(
+  //const data = await local_store.get("data");
+  const attrs = await get_attrs(); /*JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );
+  );*/
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
   if (index >= 0) {
     throw Error("ID is already present");
   } else {
     // Add new
-    new_obj.id = attrs.length;
+    new_obj.id = attrs.length + 1;
     attrs.push(new_obj);
+    const attrs_obj = {
+      attributes: attrs,
+    };
+    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
     fs.writeFileSync(
       data.remote + "/attributes/attributes_list.json",
-      JSON.stringify(attrs)
+      attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Adding:", new_obj, attrs);
     return attrs;
@@ -496,10 +505,11 @@ const new_attr = async function(new_obj) {
 };
 
 const set_attr = async function(new_obj) {
-  const data = await local_store.get("data");
+  /*const data = await local_store.get("data");
   const attrs = JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );
+  );*/
+  const attrs = await get_attrs();
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
   if (index < 0) {
@@ -509,9 +519,14 @@ const set_attr = async function(new_obj) {
     const rem = attrs.splice(index, 1);
     console.log("Removing:", rem, attrs);
     attrs.push(new_obj);
+    const attrs_obj = {
+      attributes: attrs,
+    };
+    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
+    //const attrs_jwt = generate_jwt(attrs, abebox.conf.rsa_priv_key);
     fs.writeFileSync(
       data.remote + "/attributes/attributes_list.json",
-      JSON.stringify(attrs)
+      attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Adding:", new_obj, attrs);
     return attrs;
@@ -519,10 +534,11 @@ const set_attr = async function(new_obj) {
 };
 
 const del_attr = async function(id) {
-  const data = await local_store.get("data");
+  /*const data = await local_store.get("data");
   const attrs = JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );
+  );*/
+  const attrs = await get_attrs();
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == id);
   if (index < 0) {
@@ -530,9 +546,14 @@ const del_attr = async function(id) {
   } else {
     // Remove
     const rem = attrs.splice(index, 1);
+    const attrs_obj = {
+      attributes: attrs,
+    };
+    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
+    //const attrs_jwt = generate_jwt(attrs, abebox.conf.rsa_priv_key);
     fs.writeFileSync(
       data.remote + "/attributes/attributes_list.json",
-      JSON.stringify(attrs)
+      attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Removing:", rem, attrs);
     return attrs;
