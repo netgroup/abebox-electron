@@ -14,7 +14,7 @@ const {
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 const mailer = require("./mailer");
-const http = require("./http");
+const http = require("./http_utils");
 
 //const ignore_list = ["keys/", "attributes/"];
 const file_status = {
@@ -278,7 +278,7 @@ function start_services(local_repo, remote_repo) {
     });
 }
 
-const send_invite = function(recv) {
+const send_invite = function(recv) { //////////////////////// MODIFY
   const data = local_store.get("data");
   const sender = {
     mail: data.name,
@@ -309,25 +309,29 @@ const send_token = function() {
 };
 
 const get_token = function(user) {
-  const data = local_store.get("data", []);
-  const token_hash = get_hash(user.rsa_pub_key);
-  const res = http.get_token(token_hash);
-  if (res != null && res.token.toString("utf8") === token_hash) {
-    const rsa_pk = res.rsa_pub_key.toString("utf8");
-    const sign = res.sign.toString("utf8");
-    if (sign === get_hmac(token, rsa_pk + data.name)) {
-      user.rsa_pub_key = rsa_pk;
-      const users = local_store.get("users", []);
-      // Check if already exists
-      const index = users.findIndex((item) => item.mail == user.mail);
-      if (index >= 0) {
-        // Remove old
-        const rem = users.splice(index, 1);
-        console.log("Removing:", rem, users);
+  //const data = local_store.get("data", []);
+  const token = user.token;
+  if (token != undefined) {
+    const token_hash = get_hash(token);
+    const res = http.get_token(token_hash);
+    const res_token_hash = res.token;
+    if (res != null && res_token_hash.toString("utf8") === token_hash) {
+      const rsa_pk = res.rsa_pub_key.toString("utf8");
+      const sign = res.sign.toString("utf8");
+      if (sign === get_hmac(res_token_hash, rsa_pk + user.mail)) {
+        user.rsa_pub_key = rsa_pk;
+        const users = local_store.get("users", []);
+        // Check if already exists
+        const index = users.findIndex((item) => item.mail == user.mail);
+        if (index >= 0) {
+          // Remove old
+          const rem = users.splice(index, 1);
+          console.log("Removing:", rem, users);
+        }
+        users.push(user);
+        local_store.set("users", users);
+        console.log("Adding:", user, users);
       }
-      users.push(user);
-      local_store.set("users", users);
-      console.log("Adding:", user, users);
     }
   }
 };
@@ -358,7 +362,7 @@ const create_test_attributes = function() {
   const attr_list_file = data.remote + "/attributes/attributes_list.json";
   if (!fs.existsSync(attr_list_file)) {
     const attrs_obj = {
-      attributes: attrs
+      attributes: attrs,
     };
     const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
     fs.writeFileSync(
@@ -474,7 +478,12 @@ const set_config = function(config_data) {
 /**************** ATTRIBUTES *****************/
 const get_attrs = async function() {
   const data = await local_store.get("data");
-  const attrs_obj = verify_jwt(fs.readFileSync(data.remote + "/attributes/attributes_list.json").toString(), abebox.conf.rsa_pub_key);
+  const attrs_obj = verify_jwt(
+    fs
+      .readFileSync(data.remote + "/attributes/attributes_list.json")
+      .toString(),
+    abebox.conf.rsa_pub_key
+  );
   return attrs_obj.attributes;
 };
 
@@ -607,7 +616,7 @@ const invite_user = async function(user) {
     const token = get_random(32);
     const rem = users.splice(index, 1);
     console.log("Removing:", rem, users);
-    rem.rsa_pub_key = token;
+    rem.token = token;
     users.push(rem);
     local_store.set("users", users);
     console.log("Adding:", rem, users);
