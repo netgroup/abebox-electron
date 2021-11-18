@@ -15,6 +15,7 @@ const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 const mailer = require("./mailer");
 const http = require("./http_utils");
+const openurl = require("openurl");
 
 //const ignore_list = ["keys/", "attributes/"];
 const file_status = {
@@ -278,9 +279,15 @@ function start_services(local_repo, remote_repo) {
     });
 }
 
-const send_invite = function(recv) { //////////////////////// MODIFY
+const send_invite = function(recv) {
+  //////////////////////// MODIFY
   const data = local_store.get("data");
-  const sender = {
+  return openurl.mailto(recv.mail, {
+    subject: "ABEBox invitation!",
+    body: `${data.name} has invited you to download ABEBox!\nYou can dowload it from this link [LINK].\n
+          Here is your invitation token [TOKEN]\n`,
+  });
+  /*const sender = {
     mail: data.name,
     password: data.mail_password,
   };
@@ -288,7 +295,7 @@ const send_invite = function(recv) { //////////////////////// MODIFY
     mail: recv.mail,
     token: recv.rsa_pub_key,
   };
-  mailer.send_mail(sender, receiver, data.server_url);
+  mailer.send_mail(sender, receiver, data.server_url);*/
 };
 
 const send_token = function() {
@@ -621,9 +628,9 @@ const invite_user = async function(user) {
     local_store.set("users", users);
     console.log("Adding:", rem, users);
     // TODO SEND EMAIL
-    send_invite(rem);
-    console.log("Sending email to", rem.mail);
-    return users;
+    return send_invite(rem);
+    //console.log("Sending email to", rem.mail);
+    //return users;
   }
 };
 
