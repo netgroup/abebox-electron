@@ -45,7 +45,7 @@ const schema = {
 };
 
 const local_store = new Store({ schema });
-//local_store.clear();
+local_store.clear();
 
 let files_list = [];
 
@@ -457,7 +457,7 @@ const get_config = async function() {
 
 const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
-  //config_data.token = "1";
+  config_data.token = "1";
   local_store.set("data", config_data);
   local_store.set("configured", true);
   data = local_store.get("data");

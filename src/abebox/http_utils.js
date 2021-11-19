@@ -1,9 +1,11 @@
 const axios = require("axios");
+//const abebox_webserver = "http://localhost:3000/users";
+const abebox_webserver = "http://160.80.221.149:3000/users";
 
 const send_token = function(token_data) {
   console.log("TOKEN DATA =", token_data);
   axios
-    .post("http://localhost:3000/users", token_data)
+    .post(abebox_webserver, token_data)
     .then((res) => {
       console.log(`statusCode: ${res.status}`);
       console.log(res.data);
@@ -17,7 +19,7 @@ const send_token = function(token_data) {
 const get_token = function(token_hash) {
   console.log("TOKEN HASH =", token_hash);
   axios
-    .get(`http://localhost:3000/users/${token_hash.toString("hex")}`)
+    .get(`${abebox_webserver}/${token_hash.toString("hex")}`)
     .then((res) => {
       console.log(`statusCode: ${res.status}`);
       console.log(res.data);
