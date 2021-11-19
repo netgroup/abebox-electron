@@ -220,8 +220,8 @@ function start_services(local_repo, remote_repo) {
 
   abebox.init(local_repo, remote_repo, local_store);
 
-  create_test_attributes();
-  create_test_users();
+  //create_test_attributes();
+  //create_test_users();
 
   send_token();
 

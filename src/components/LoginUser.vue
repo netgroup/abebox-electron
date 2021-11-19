@@ -23,6 +23,9 @@
       ><v-col cols="8">
         <span v-if="local_repo"> PATH Local: {{ local_repo }}</span>
       </v-col>
+      <v-col cols="12"
+        ><v-text-field v-model="token" label="Token" required></v-text-field
+      ></v-col>
       <v-col cols="2">
         <v-btn @click="submitConf()" color="success">Submit</v-btn>
       </v-col>
@@ -39,6 +42,7 @@ export default {
   data: () => ({
     valid: true,
     email: "",
+    token: "",
     emailRules: [
       (v) => !!v || "E-mail is required",
       (v) => /.+@.+/.test(v) || "E-mail must be valid",
@@ -59,10 +63,17 @@ export default {
       this.local_repo = folder.filePaths[0];
     },
     async submitConf() {
+      const isAdmin = false;
+      if (this.token === "") {
+        const isAdmin = true;
+      }
+
       this.$emit("submit", {
         name: this.email,
         remote: this.remote_repo,
         local: this.local_repo,
+        token: this.token,
+        isAdmin: isAdmin,
       });
       //const folder = await ipcRenderer.invoke("select-folder");
       //this.local_repo = folder.filePaths[0];
