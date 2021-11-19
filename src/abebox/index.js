@@ -13,7 +13,6 @@ const {
 } = require("./file_utils");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
-const mailer = require("./mailer");
 const http = require("./http_utils");
 const openurl = require("openurl");
 
