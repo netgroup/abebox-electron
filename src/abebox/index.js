@@ -281,10 +281,12 @@ function start_services(local_repo, remote_repo) {
 const send_invite = function(recv) {
   //////////////////////// MODIFY
   const data = local_store.get("data");
-  return openurl.mailto(recv.mail, {
+  //const body = `${data.name} has invited you to download ABEBox!\nYou can dowload it from this link [LINK].\n
+  //Here is your invitation token ${recv.token}\n`;
+  return openurl.mailto([recv.mail], {
     subject: "ABEBox invitation!",
     body: `${data.name} has invited you to download ABEBox!\nYou can dowload it from this link [LINK].\n
-          Here is your invitation token [TOKEN]\n`,
+    Here is your invitation token ${recv.token}\n`,
   });
   /*const sender = {
     mail: data.name,
@@ -620,14 +622,15 @@ const invite_user = async function(user) {
   if (index < 0) {
     throw Error("Mail not present");
   } else {
-    const token = get_random(32);
-    const rem = users.splice(index, 1);
+    const token = get_random(32).toString("hex");
+    const rem = users.splice(index, 1)[0];
     console.log("Removing:", rem, users);
     rem.token = token;
     users.push(rem);
     local_store.set("users", users);
     console.log("Adding:", rem, users);
     // TODO SEND EMAIL
+    console.log(send_invite(rem));
     return rem;
     //console.log("Sending email to", rem.mail);
     //return users;
