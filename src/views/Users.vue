@@ -98,6 +98,9 @@
       <v-icon small @click="deleteItem(item)">
         mdi-delete
       </v-icon>
+      <v-icon small @click="share(item)">
+        mdi-share
+      </v-icon>
     </template>
   </v-data-table>
 </template>
@@ -176,6 +179,12 @@ export default {
       this.editedIndex = this.users.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialogDelete = true;
+    },
+    async share(item) {
+      const user_mail = item.mail;
+      console.log(user_mail);
+      const ret = await ipcRenderer.invoke("invite-user", { mail: user_mail });
+      console.log(ret);
     },
 
     deleteItemConfirm() {

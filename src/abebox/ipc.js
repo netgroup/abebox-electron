@@ -16,6 +16,7 @@ import {
   new_user,
   set_user,
   del_user,
+  invite_user,
 } from "."; //"./dummy";
 
 /* HELPER FUNCTIONS */
@@ -85,6 +86,9 @@ export default {
     });
     ipcMain.handle("del-user", async (event, id_user) => {
       return await del_user(id_user);
+    });
+    ipcMain.handle("invite-user", async (event, user_mail) => {
+      return await invite_user(user_mail);
     });
 
     /* UTILITY API */

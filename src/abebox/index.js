@@ -45,7 +45,7 @@ const schema = {
 };
 
 const local_store = new Store({ schema });
-local_store.clear();
+//local_store.clear();
 
 let files_list = [];
 
@@ -613,6 +613,7 @@ const set_user = async function(new_obj) {
 };
 
 const invite_user = async function(user) {
+  console.log(user);
   const users = await local_store.get("users");
   // Check if already exists
   const index = users.findIndex((el) => el.mail == user.mail);
@@ -627,7 +628,7 @@ const invite_user = async function(user) {
     local_store.set("users", users);
     console.log("Adding:", rem, users);
     // TODO SEND EMAIL
-    return send_invite(rem);
+    return rem;
     //console.log("Sending email to", rem.mail);
     //return users;
   }
