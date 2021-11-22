@@ -52,23 +52,14 @@ export default {
   name: "App",
   data: () => ({
     drawer: false,
-    items: [
-      { title: "Home", icon: "mdi-home-city", route: "/" },
-      { title: "Repository", icon: "mdi-folder-key", route: "/repository" },
-      { title: "Users", icon: "mdi-account-group-outline", route: "/users" },
-      {
-        title: "Attributes",
-        icon: "mdi-cards-variant",
-        route: "/attrs",
-      },
-    ],
+    items: [],
     mini: false,
     configured: false,
     configuration: {},
   }),
   created() {
     this.$vueEventBus.$on("configured", (conf) => {
-      if (console.log(Object.keys(conf).length === 0)) {
+      if (!conf.configured) {
         this.configured = false;
         this.configuration = {};
       } else {
@@ -80,6 +71,32 @@ export default {
 
   beforeDestroy() {
     this.$vueEventBus.$off("configured");
+  },
+  watch: {
+    configured: function(val) {
+      console.log("configured: ", val);
+      if (this.configured) {
+        this.items.push({ title: "Home", icon: "mdi-home-city", route: "/" });
+        this.items.push({
+          title: "Repository",
+          icon: "mdi-folder-key",
+          route: "/repository",
+        });
+
+        if (this.configuration["isAdmin"]) {
+          this.items.push({
+            title: "Users",
+            icon: "mdi-account-group-outline",
+            route: "/users",
+          });
+          this.items.push({
+            title: "Attributes",
+            icon: "mdi-cards-variant",
+            route: "/attrs",
+          });
+        }
+      }
+    },
   },
 };
 </script>

@@ -24,10 +24,6 @@ const file_status = {
 };
 
 const schema = {
-  configured: {
-    type: "boolean",
-    default: false,
-  },
   data: {
     type: "object",
   },
@@ -437,62 +433,43 @@ const share_files = function() {
 };
 
 /**************** CONFIGURATION *****************/
-const get_config = async function() {
-  const conf = await local_store.get();
-  console.log("INDEX.JS get_config()", conf);
+
+const del_config = async function() {
+  const conf = await local_store.clear();
   return conf;
-  /*
-  const config_file_path = __dirname + "/default.json";
-  if (fs.existsSync(config_file_path)) {
-    return JSON.parse(fs.readFileSync(config_file_path).toString());
-  } else {
-    // create an empty file
-    fs.writeFileSync(config_file_path, "{}", function(err) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log("The file was saved!");
-      }
-    });
-  }*/
+};
+
+const get_config = async function() {
+  const conf = await local_store.get("data", {});
+  return conf;
+};
+
+const reset_config = async function() {
+  // TODO clear Repo Folder
+  local_store.clear();
+  return True;
 };
 
 const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
-  config_data.token = "1";
   local_store.set("data", config_data);
-  local_store.set("configured", true);
-  data = local_store.get("data");
-  start_services(data.local, data.remote);
-  return true;
-  /*
-  const config_file_path = __dirname + "/default.json";
-  if (fs.existsSync(config_file_path)) {
-    const config = JSON.parse(fs.readFileSync(config_file_path).toString());
-    Object.assign(config, fields);
-    fs.writeFileSync(config_file_path, JSON.stringify(config));
-  } else {
-    // create an empty file
-    fs.writeFileSync(config_file_path, JSON.stringify(fields), function(err) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log("The file was saved!");
-      }
-    });
-  }*/
+  start_services(config_data.local, config_data.remote);
+  return config_data;
 };
 
 /**************** ATTRIBUTES *****************/
 const get_attrs = async function() {
   const data = await local_store.get("data");
-  const attrs_obj = verify_jwt(
-    fs
-      .readFileSync(data.remote + "/attributes/attributes_list.json")
-      .toString(),
-    abebox.conf.rsa_pub_key
-  );
-  return attrs_obj.attributes;
+  const attr_list_file = data.remote + "/attributes/attributes_list.json";
+  if (!fs.existsSync(attr_list_file)) {
+    return [];
+  } else {
+    const attrs_obj = verify_jwt(
+      fs.readFileSync().toString(),
+      abebox.conf.rsa_pub_key
+    );
+    return attrs_obj.attributes;
+  }
 };
 
 const new_attr = async function(new_obj) {
@@ -660,6 +637,7 @@ module.exports = {
   share_files,
   get_config,
   set_config,
+  reset_config,
   get_attrs,
   new_attr,
   set_attr,

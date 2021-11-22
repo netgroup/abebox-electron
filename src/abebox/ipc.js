@@ -8,6 +8,7 @@ import {
   share_files,
   get_config,
   set_config,
+  reset_config,
   get_attrs,
   new_attr,
   set_attr,
@@ -23,7 +24,9 @@ import {
 
 const select_folder = async function() {
   const { dialog } = require("electron");
-  const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
+  const res = await dialog.showOpenDialog({
+    properties: ["openDirectory", "createDirectory", "promptToCreate"],
+  });
   console.log();
   return res;
 };
@@ -52,12 +55,15 @@ export default {
 
     /* CONF API */
     ipcMain.handle("get-conf", async (event) => {
-      return get_config(); // TODO await
+      return await get_config();
+    });
+
+    ipcMain.handle("reset-conf", async (event) => {
+      return await reset_conf();
     });
 
     ipcMain.handle("set-conf", async (event, conf) => {
-      const result = set_config(conf);
-      return result;
+      return await set_config(conf);
     });
 
     /*  ATTRIBUTES API */
