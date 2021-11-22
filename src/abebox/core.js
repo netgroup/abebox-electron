@@ -48,15 +48,30 @@ const init = function(lp, rp, local_store) {
     local_store.get("keys", {}).abe_msk_key === undefined
   ) {
     create_abe_keys(local_store);
-  } 
-  conf.abe_pub_key = JSON.stringify(verify_jwt(fs.readFileSync(conf.abe_pub_path_remote).toString(), conf.rsa_pub_key));
+  }
+  conf.abe_pub_key = JSON.stringify(
+    verify_jwt(
+      fs.readFileSync(conf.abe_pub_path_remote).toString(),
+      conf.rsa_pub_key
+    )
+  );
   console.log("ABE PK = ", conf.abe_pub_key);
   if (!fs.existsSync(conf.abe_sec_path_remote)) {
     const msk = local_store.get("keys", {}).abe_msk_key;
     console.log("ABE MSK = ", msk);
-    create_abe_secret_key(conf.abe_pub_key, msk, ["A", "B", "C"], abe_provider_name);
+    create_abe_secret_key(
+      conf.abe_pub_key,
+      msk,
+      ["A", "B", "C"],
+      abe_provider_name
+    );
   }
-  const jwt_enc_payload = JSON.stringify(verify_jwt(fs.readFileSync(conf.abe_sec_path_remote).toString(), conf.rsa_pub_key));
+  const jwt_enc_payload = JSON.stringify(
+    verify_jwt(
+      fs.readFileSync(conf.abe_sec_path_remote).toString(),
+      conf.rsa_pub_key
+    )
+  );
   conf.abe_secret_key = rsa
     .decrypt(jwt_enc_payload, conf.rsa_priv_key)
     .toString();
@@ -64,7 +79,7 @@ const init = function(lp, rp, local_store) {
 
 const create_dirs = function() {
   //dirs = ["settings", "repo-local", "repo-shared/keys", "repo-shared/repo"];
-  dirs = ["attributes", "keys", "repo"];
+  dirs = ["attributes", "keys", "repo", "pub_keys"];
   console.log("CREATING DIRS", dirs);
   dirs.forEach((dir) => {
     absolute_dir = conf.remote_repo_path + "/" + dir;
