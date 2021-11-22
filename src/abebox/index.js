@@ -211,15 +211,7 @@ const handle_remote_remove = function(file_path) {
 };
 
 function start_services(local_repo, remote_repo) {
-  // local_repo = loc_repo;
-  // remote_repo = rem_repo;
-
   abebox.init(local_repo, remote_repo, local_store);
-
-  //create_test_attributes();
-  //create_test_users();
-
-  send_token();
 
   watch_paths = [local_repo, remote_repo];
 
@@ -295,21 +287,22 @@ const send_invite = function(recv) {
   mailer.send_mail(sender, receiver, data.server_url);*/
 };
 
-const send_token = function() {
-  const data = local_store.get("data", []);
-  if (data.length != 0) {
-    const token = data.token;
-    if (token != undefined) {
-      const token_hash = get_hash(token);
-      const rsa_pk = local_store.get("keys").rsa_pub_key;
-      const signature = get_hmac(token, rsa_pk + data.name);
-      const res = http.send_token({
-        token: token_hash.toString("hex"),
-        rsa_pub_key: rsa_pk.toString("hex"),
-        sign: signature.toString("hex"),
-      });
-    }
-  }
+const send_token = function(conf) {
+  //const data = local_store.get("data", []);
+  const token_hash = get_hash(conf.token);
+  const rsa_pk = local_store.get("keys").rsa_pub_key;
+
+  // Scrivere il file con nome token_hash e path repo
+
+  const signature = get_hmac(conf.token, rsa_pk + conf.name);
+  const data = {
+    rsa_pub_key: rsa_pk.toString("hex"),
+    sign: signature.toString("hex"),
+  };
+  fs.writeFileSync(
+    `${conf.remote}/pub_keys/${token_hash}`,
+    JSON.stringify(data)
+  );
 };
 
 const get_token = function(user) {
@@ -454,6 +447,10 @@ const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
   local_store.set("data", config_data);
   start_services(config_data.local, config_data.remote);
+  if (!config_data.isAdmin) {
+    send_token(config_data);
+  }
+
   return config_data;
 };
 
