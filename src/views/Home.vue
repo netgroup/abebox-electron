@@ -42,16 +42,9 @@ export default {
       this.handleConf(conf);
     },
     async handleConf(conf) {
-      console.log("CONF:", conf);
-      this.configured = conf.configured;
-      console.log("CONFIGURED", this.configured);
-      if (this.configured) {
-        this.$vueEventBus.$emit("configured", true);
-        this.info = conf.data;
-      } else {
-        this.$vueEventBus.$emit("configured", false);
-        this.info = {};
-      }
+      this.configured = conf.configured; // Salvare nello store
+      console.log("HOME - handleConf", conf);
+      this.$vueEventBus.$emit("configured", conf);
     },
   },
 };

@@ -63,6 +63,11 @@ export default {
       this.local_repo = folder.filePaths[0];
     },
     async submitConf() {
+      if (this.local_repo == undefined || this.remote_repo == undefined) {
+        // Mostra errore
+        return;
+      }
+
       const isAdmin = false;
       if (this.token === "") {
         const isAdmin = true;
@@ -74,9 +79,8 @@ export default {
         local: this.local_repo,
         token: this.token,
         isAdmin: isAdmin,
+        configured: true,
       });
-      //const folder = await ipcRenderer.invoke("select-folder");
-      //this.local_repo = folder.filePaths[0];
     },
   },
 };
