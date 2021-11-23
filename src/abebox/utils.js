@@ -7,16 +7,24 @@ function get_next_slug(tree_path, file_path) {
   return slugs[0];
 }
 
+function generate_list_entry(file) {
+  const new_item = Object.assign(file, {
+    id: file.file_id,
+    name: file.file_name,
+  });
+
+  if (file.policy.length == 0) {
+    new_item["color"] = "red";
+  } else {
+    new_item["color"] = "green";
+  }
+  return new_item;
+}
+
 function add_file(tree_root, tree_path, file) {
   if (file.file_path === tree_path) {
     // loa ggiungo alla direcory corrente
-    tree_root.push(
-      Object.assign(file, {
-        id: file.file_id,
-        name: file.file_name,
-        color: "red",
-      })
-    );
+    tree_root.push(generate_list_entry(file));
   } else {
     // è in una sotto cartella vedo se esiste se no la creo
     const dir_name = get_next_slug(tree_path, file.file_path);
@@ -30,7 +38,7 @@ function add_file(tree_root, tree_path, file) {
         id: uuidv4(),
         name: dir_name,
         children: [],
-        color: "green",
+        color: "black",
       };
       tree_root.push(sub_tree_root);
     }

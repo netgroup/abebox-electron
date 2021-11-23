@@ -38,7 +38,7 @@ export default {
     },
     async handleSubmit(event) {
       console.log(event);
-      const conf = ipcRenderer.invoke("set-conf", event);
+      const conf = await ipcRenderer.invoke("set-conf", event);
       this.handleConf(conf);
     },
     async handleConf(conf) {
