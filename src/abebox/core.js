@@ -56,7 +56,7 @@ const init = function(lp, rp, local_store) {
     )
   );
   console.log("ABE PK = ", conf.abe_pub_key);
-  if (!fs.existsSync(conf.abe_sec_path_remote)) {
+  /*if (!fs.existsSync(conf.abe_sec_path_remote)) {
     const msk = local_store.get("keys", {}).abe_msk_key;
     console.log("ABE MSK = ", msk);
     create_abe_secret_key(
@@ -74,7 +74,7 @@ const init = function(lp, rp, local_store) {
   );
   conf.abe_secret_key = rsa
     .decrypt(jwt_enc_payload, conf.rsa_priv_key)
-    .toString();
+    .toString();*/
 };
 
 const create_dirs = function() {
@@ -129,6 +129,7 @@ const create_abe_secret_key = function(pk, msk, attr_list, file_name) {
     conf.remote_repo_path + "/keys/" + file_name + ".sk",
     abe_enc_sk_jwt
   );
+  return sk;
 };
 
 const file_encrypt = function(input_file_path, policy, output_file_path) {
@@ -165,13 +166,18 @@ const file_encrypt = function(input_file_path, policy, output_file_path) {
     JSON.stringify(metadata)
   );
 
-  // Return the random file ID
-  //return output_file_path;
+  return true;
 };
 
 const file_decrypt = function(encrypted_filename) {
   console.log("[Decryption] Decrypting file " + encrypted_filename);
 
+  if (
+    !fs.existsSync(conf.abe_sec_path_remote) ||
+    conf.abe_secret_key === undefined
+  )
+    return false;
+    
   // Read raw metadata
   const raw_metadata = fs.readFileSync(
     conf.remote_repo_path + "/repo/" + encrypted_filename + ".abebox"
@@ -194,6 +200,8 @@ const file_decrypt = function(encrypted_filename) {
 
   // Perform symmetric decryption
   decrypt_content(input_file, output_file, sym_key, iv);
+
+  return true;
 };
 
 const file_reencrypt = function(encrypted_filename, policy) {
@@ -204,6 +212,7 @@ const file_reencrypt = function(encrypted_filename, policy) {
 module.exports = {
   conf,
   init,
+  create_abe_secret_key,
   file_encrypt,
   file_decrypt,
   file_reencrypt,
