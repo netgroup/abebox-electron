@@ -68,19 +68,21 @@ export default {
         return;
       }
 
-      const isAdmin = false;
-      if (this.token === "") {
-        const isAdmin = true;
+      let isAdmin = false;
+      if (this.token == "") {
+        isAdmin = true;
       }
 
-      this.$emit("submit", {
+      const conf = {
         name: this.email,
         remote: this.remote_repo,
         local: this.local_repo,
         token: this.token,
         isAdmin: isAdmin,
         configured: true,
-      });
+      };
+
+      this.$emit("submit", conf);
     },
   },
 };

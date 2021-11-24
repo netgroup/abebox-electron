@@ -28,6 +28,10 @@ const file_status = {
 };
 
 const schema = {
+  configured: {
+    type: "boolean",
+    default: false,
+  },
   data: {
     type: "object",
   },
@@ -523,6 +527,8 @@ const reset_config = async function() {
 const set_config = function(config_data) {
   console.log("Saving configuration data", config_data);
   local_store.set("data", config_data);
+  local_store.set("configured", true);
+
   start_services(config_data.local, config_data.remote);
   if (!config_data.isAdmin) {
     send_token(config_data);
@@ -546,7 +552,7 @@ const get_attrs = async function() {
 };
 
 const new_attr = async function(new_obj) {
-  //const data = await local_store.get("data");
+  const data = await local_store.get("data");
   const attrs = await get_attrs(); /*JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
   );*/
@@ -573,10 +579,8 @@ const new_attr = async function(new_obj) {
 };
 
 const set_attr = async function(new_obj) {
-  /*const data = await local_store.get("data");
-  const attrs = JSON.parse(
-    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );*/
+  const data = await local_store.get("data");
+
   const attrs = await get_attrs();
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
@@ -603,8 +607,8 @@ const set_attr = async function(new_obj) {
 };
 
 const del_attr = async function(id) {
-  /*const data = await local_store.get("data");
-  const attrs = JSON.parse(
+  const data = await local_store.get("data");
+  /*const attrs = JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
   );*/
   const attrs = await get_attrs();
