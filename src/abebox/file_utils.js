@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const { Stream } = require("stream");
 const rabe = require("./rabejs/rabejs.node");
 
@@ -14,7 +14,7 @@ const get_random_filename = function() {
 
 const get_random = function(size) {
   return crypto.randomBytes(size);
-}
+};
 
 /**
  * Read data from the input stream, encrypt it using AES with randomly-generated symmetric key and IV, and write the resulting ciphertext on the output stream.
@@ -111,9 +111,17 @@ const parse_metadata = function(raw_metadata, abe_secret_key) {
   const metadata = JSON.parse(raw_metadata);
   const { enc_metadata, iv } = metadata;
 
-  // Decrypt the encrypted ones
-  let dec_metadata = rabe.decrypt(abe_secret_key, enc_metadata);
-
+  try {
+    // Decrypt the encrypted ones
+    let dec_metadata = rabe.decrypt(abe_secret_key, enc_metadata);
+  } catch(error) {
+    console.log(`Decryption failed: ${error}`);
+    return {
+      sym_key: null,
+      file_path: null,
+      iv: null,
+    };
+  }
   // Extract and return parameters
   const { sym_key, file_path } = JSON.parse(dec_metadata);
   return {
@@ -150,20 +158,20 @@ const split_file_path = function(file_path, repo_path) {
 
 const policy_as_string = function(policy_array) {
   let policy_string = "";
-  policy_array.forEach(function(outer_el, outer_el_index, outer_array){
+  policy_array.forEach(function(outer_el, outer_el_index, outer_array) {
     if (outer_el.length === 1) {
-      policy_string = policy_string + "\"" + outer_el + "\"";
+      policy_string = policy_string + '"' + outer_el + '"';
     } else {
       policy_string = policy_string + "(";
-      outer_el.forEach(function(inner_el, inner_el_index, inner_array){
-        policy_string = policy_string + "\"" + inner_el + "\"";
-        if (inner_el_index != inner_array.length - 1){
+      outer_el.forEach(function(inner_el, inner_el_index, inner_array) {
+        policy_string = policy_string + '"' + inner_el + '"';
+        if (inner_el_index != inner_array.length - 1) {
           policy_string = policy_string + " OR ";
         }
       });
       policy_string = policy_string + ")";
     }
-    if (outer_el_index != outer_array.length - 1){
+    if (outer_el_index != outer_array.length - 1) {
       policy_string = policy_string + " AND ";
     }
   });
@@ -172,20 +180,26 @@ const policy_as_string = function(policy_array) {
 };
 
 const get_hash = function(message) {
-  return crypto.createHash("sha256").update(message).digest();
+  return crypto
+    .createHash("sha256")
+    .update(message)
+    .digest();
 };
 
 const get_hmac = function(key, message) {
-  return crypto.createHmac("sha256", key).update(message).digest();
+  return crypto
+    .createHmac("sha256", key)
+    .update(message)
+    .digest();
 };
 
 const generate_jwt = function(data, priv_key) {
-  return jwt.sign(data, priv_key, { algorithm: 'RS256' });
-}
+  return jwt.sign(data, priv_key, { algorithm: "RS256" });
+};
 
 const verify_jwt = function(token, pub_key) {
-  return jwt.verify(token, pub_key)
-}
+  return jwt.verify(token, pub_key);
+};
 
 module.exports = {
   get_random_filename,

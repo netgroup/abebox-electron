@@ -95,13 +95,13 @@ const handle_remote_add = function(file_path) {
   if (relative_path.includes(pub_keys_rel_path)) {
     if (data.isAdmin) {
       retrieve_pub_key(file_path, original_file_name);
-      return;
+      return files_list;
     }
   }
   if (relative_path.includes(pub_keys_rel_path)) {
     if (!data.isAdmin) {
       retrieve_abe_secret_key(file_path);
-      return;
+      return files_list;
     }
   }
   const fid_no_ext = original_file_name.split(".")[0];
@@ -124,6 +124,12 @@ const handle_remote_add = function(file_path) {
       raw_metadata,
       abebox.conf.abe_secret_key
     );
+
+    if (file_path === null) { // DECRYPTION ERROR
+      console.log("Decryption failed: " + error);
+      return undefined;
+    }
+
     const el = files_list.find(
       (el) =>
         el.file_path === relative_path &&
@@ -139,10 +145,11 @@ const handle_remote_add = function(file_path) {
         status: file_status.remote_change,
       });
       local_store.set("files", files_list);
+      return files_list;
     }
   } catch (error) {
     console.log("Decryption failed: " + error);
-    return false;
+    return undefined;
   }
 };
 

@@ -189,6 +189,11 @@ const file_decrypt = function(encrypted_filename) {
     conf.abe_secret_key
   );
 
+  if (file_path === null) {
+    // DECRYPTION ERROR
+    return false;
+  }
+
   // Decrypt the encrypted content with sym key
   const input_file = fs.createReadStream(
     conf.remote_repo_path + "/repo/" + encrypted_filename + ".0"
