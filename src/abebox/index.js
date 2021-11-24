@@ -20,6 +20,7 @@ const { get } = require("config");
 
 const attrs_rel_path = "/attributes/attributes_list.json";
 const pub_keys_rel_path = "/pub_keys/";
+const keys_rel_path = "/keys/";
 
 const file_status = {
   sync: 0,
@@ -90,71 +91,72 @@ const handle_local_add = function(file_path) {
   }
 };
 
-const handle_remote_add = function(file_path) {
+const handle_remote_add = function(full_file_path) {
   const { original_file_name, relative_path } = split_file_path(
-    file_path,
+    full_file_path,
     abebox.conf.remote_repo_path
   );
   const data = local_store.get("data", {});
   if (relative_path.includes(pub_keys_rel_path)) {
     if (data.isAdmin) {
-      retrieve_pub_key(file_path, original_file_name);
-      return files_list;
+      retrieve_pub_key(full_file_path, original_file_name);
     }
+    return files_list;
   }
-  if (relative_path.includes(pub_keys_rel_path)) {
+  if (relative_path.includes(keys_rel_path)) {
     if (!data.isAdmin) {
-      retrieve_abe_secret_key(file_path);
-      return files_list;
+      retrieve_abe_secret_key(full_file_path);
     }
+    return files_list;
   }
   const fid_no_ext = original_file_name.split(".")[0];
-  try {
-    // Read raw metadata
-    const raw_metadata = fs.readFileSync(
-      abebox.conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
-    );
-    const { enc_metadata } = JSON.parse(raw_metadata);
-    //console.log("ENC META = ", enc_metadata);
+  //try {
+  // Read raw metadata
+  const raw_metadata = fs.readFileSync(
+    abebox.conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
+  );
+  const { enc_metadata } = JSON.parse(raw_metadata);
+  //console.log("ENC META = ", enc_metadata);
 
-    const parsed_enc_metadata = JSON.parse(enc_metadata);
-    //console.log("PARSED ENC META = ", parsed_enc_metadata);
+  const parsed_enc_metadata = JSON.parse(enc_metadata);
+  //console.log("PARSED ENC META = ", parsed_enc_metadata);
 
-    const { _policy } = parsed_enc_metadata;
-    console.log(_policy[0]);
+  const { _policy } = parsed_enc_metadata;
+  console.log(_policy[0]);
 
-    // Parse metadata
-    const { file_path } = parse_metadata(
-      raw_metadata,
-      abebox.conf.abe_secret_key
-    );
+  // Parse metadata
+  const { file_path } = parse_metadata(
+    raw_metadata,
+    abebox.conf.abe_secret_key
+  );
 
-    if (file_path === null) { // DECRYPTION ERROR
-      console.log("Decryption failed: " + error);
-      return undefined;
-    }
-
-    const el = files_list.find(
-      (el) =>
-        el.file_path === relative_path &&
-        el.file_name === file_path &&
-        el.file_id === fid_no_ext
-    );
-    if (el === undefined) {
-      files_list.push({
-        file_path: relative_path,
-        file_name: file_path,
-        file_id: fid_no_ext,
-        policy: _policy[0],
-        status: file_status.remote_change,
-      });
-      local_store.set("files", files_list);
-      return files_list;
-    }
-  } catch (error) {
+  if (file_path === null) {
+    // DECRYPTION ERROR
     console.log("Decryption failed: " + error);
     return undefined;
   }
+
+  const el = files_list.find(
+    (el) =>
+      el.file_path === relative_path &&
+      el.file_name === file_path &&
+      el.file_id === fid_no_ext
+  );
+  if (el === undefined) {
+    files_list.push({
+      file_path: relative_path,
+      file_name: file_path,
+      file_id: fid_no_ext,
+      policy: _policy[0],
+      status: file_status.remote_change,
+    });
+    local_store.set("files", files_list);
+    return files_list;
+  }
+  //} catch (error) {
+  //  console.log("Decryption failed: " + error);
+  //  return undefined;
+  //}
 };
 
 const handle_local_change = function(file_path) {
@@ -184,14 +186,14 @@ const handle_remote_change = function(file_path) {
   if (relative_path.includes(pub_keys_rel_path)) {
     if (data.isAdmin) {
       retrieve_pub_key(file_path, original_file_name);
-      return;
     }
+    return files_list;
   }
-  if (relative_path.includes(pub_keys_rel_path)) {
+  if (relative_path.includes(keys_rel_path)) {
     if (!data.isAdmin) {
       retrieve_abe_secret_key(file_path);
-      return;
     }
+    return files_list;
   }
   const fid_no_ext = original_file_name.split(".")[0];
   /*const fid = file_path.replace(/^.*[\\\/]/, "");
@@ -357,7 +359,7 @@ const get_token = function(user) {
   }
 };
 
-const retrieve_pub_key = function(full_file_name, file_name) {
+const retrieve_pub_key = async function(full_file_name, file_name) {
   const users = local_store.get("users", []);
   const index = users.findIndex(
     (item) => get_hash(item.token).toString("hex") === file_name
@@ -378,7 +380,7 @@ const retrieve_pub_key = function(full_file_name, file_name) {
       console.log("Adding:", rem, users);
       // Create user secret key
       const keys = local_store.get("keys", {});
-      abebox.create_abe_secret_key(
+      await abebox.create_abe_secret_key(
         abebox.conf.abe_pub_key,
         keys.abe_msk_key,
         rem.attrs,
@@ -400,18 +402,20 @@ const retrieve_abe_secret_key = function(full_file_name) {
   console.log("USER ABE SK =", abebox.conf.abe_secret_key);
 };
 
-const create_admin_abe_sk = function() {
+const create_admin_abe_sk = async function() {
   const data = local_store.get("data", {});
-  const attrs = get_attrs();
+  const attrs = await get_attrs();
   if (data.isAdmin && attrs.length > 0) {
     const keys = local_store.get("keys", {});
-    abebox.conf.abe_secret_key = abebox.create_abe_secret_key(
+    const attrs_list = attrs.map(attr => attr.id.toString());
+    abebox.conf.abe_secret_key = await abebox.create_abe_secret_key(
       abebox.conf.abe_pub_key,
       keys.abe_msk_key,
-      attrs,
+      attrs_list,
       get_hash(data.name)
     );
-  }
+    console.log("ADMIN ABE SK CREATED");
+  } else console.log("ADMIN ABE SK NOT CREATED");
 };
 
 /************************ TEST FUNCTIONS ************************/
@@ -465,12 +469,14 @@ const create_test_users = function() {
 
 /**************** FILES *****************/
 const get_files_list = function() {
+  console.log(`GET_FILES_LIST`);
   files_list = local_store.get("files", []);
   console.log("FILE LIST", files_list);
   return files_list;
 };
 
 const set_policy = async function(data) {
+  console.log(`SET_POLICY ${data.toString()}`);
   console.log("SET POLICY", data.file_id, data.policy);
   const el = await files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
@@ -481,6 +487,7 @@ const set_policy = async function(data) {
 };
 
 const share_files = function() {
+  console.log(`SHARE_FILES`);
   files_list.forEach((file) => {
     if (file.status == file_status.local_change && file.policy.length != 0) {
       const file_name = file.file_path + file.file_name;
@@ -509,22 +516,26 @@ const share_files = function() {
 /**************** CONFIGURATION *****************/
 
 const del_config = async function() {
+  console.log(`DEL_CONFIG`);
   const conf = await local_store.clear();
   return conf;
 };
 
 const get_config = async function() {
+  console.log(`GET_CONFIG`);
   const conf = await local_store.get("data", {});
   return conf;
 };
 
 const reset_config = async function() {
+  console.log(`RESET_CONFIG`);
   // TODO clear Repo Folder
   local_store.clear();
   return True;
 };
 
 const set_config = function(config_data) {
+  console.log(`SET_CONFIG ${config_data.toString()}`);
   console.log("Saving configuration data", config_data);
   local_store.set("data", config_data);
   local_store.set("configured", true);
@@ -538,6 +549,7 @@ const set_config = function(config_data) {
 
 /**************** ATTRIBUTES *****************/
 const get_attrs = async function() {
+  console.log(`GET_ATTRS`);
   const data = await local_store.get("data");
   const attr_list_file = data.remote + attrs_rel_path;
   if (!fs.existsSync(attr_list_file)) {
@@ -552,6 +564,7 @@ const get_attrs = async function() {
 };
 
 const new_attr = async function(new_obj) {
+  console.log(`NEW_ATTR ${new_obj.toString()}`);
   const data = await local_store.get("data");
   const attrs = await get_attrs(); /*JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
@@ -574,11 +587,12 @@ const new_attr = async function(new_obj) {
     );
     console.log("Adding:", new_obj, attrs);
     create_admin_abe_sk();
-    return attrs;
   }
+  return attrs;
 };
 
 const set_attr = async function(new_obj) {
+  console.log(`SET_ATTR ${new_obj.toString()}`);
   const data = await local_store.get("data");
 
   const attrs = await get_attrs();
@@ -602,11 +616,12 @@ const set_attr = async function(new_obj) {
     );
     console.log("Adding:", new_obj, attrs);
     create_admin_abe_sk();
-    return attrs;
   }
+  return attrs;
 };
 
 const del_attr = async function(id) {
+  console.log(`DEL_ATTR ${id.toString()}`);
   const data = await local_store.get("data");
   /*const attrs = JSON.parse(
     fs.readFileSync(data.remote + "/attributes/attributes_list.json")
@@ -630,16 +645,18 @@ const del_attr = async function(id) {
     );
     console.log("Removing:", rem, attrs);
     create_admin_abe_sk();
-    return attrs;
   }
+  return attrs;
 };
 
 /**************** USERS *****************/
 const get_users = async function() {
+  console.log(`GET_USERS`);
   return await local_store.get("users");
 };
 
 const new_user = async function(new_obj) {
+  console.log(`NEW_USER ${new_obj.toString()}`);
   const users = await local_store.get("users");
   // Check if already exists
   const index = users.findIndex((item) => item.mail == new_obj.mail);
@@ -650,11 +667,12 @@ const new_user = async function(new_obj) {
     users.push(new_obj);
     local_store.set("users", users);
     console.log("Adding:", new_obj, users);
-    return users;
   }
+  return users;
 };
 
 const set_user = async function(new_obj) {
+  console.log(`SET_USER ${new_obj.toString()}`);
   const users = await local_store.get("users");
   // Check if already exists
   const index = users.findIndex((item) => item.mail == new_obj.mail);
@@ -667,11 +685,12 @@ const set_user = async function(new_obj) {
     users.push(new_obj);
     local_store.set("users", users);
     console.log("Adding:", new_obj, users);
-    return users;
   }
+  return users;
 };
 
 const invite_user = async function(user) {
+  console.log(`INVITE_USER ${user.toString()}`);
   console.log(user);
   const users = await local_store.get("users");
   // Check if already exists
@@ -687,7 +706,7 @@ const invite_user = async function(user) {
     local_store.set("users", users);
     console.log("Adding:", rem, users);
     // TODO SEND EMAIL
-    console.log(send_invite(rem));
+    console.log(`SEND INVITE RES = ${send_invite(rem)}`);
     return rem;
     //console.log("Sending email to", rem.mail);
     //return users;
@@ -695,6 +714,7 @@ const invite_user = async function(user) {
 };
 
 const del_user = async function(mail) {
+  console.log(`DEL_USER ${mail.toString()}`);
   const users = await local_store.get("users");
   const index = users.findIndex((item) => item.mail == mail);
   // Check if already exists
@@ -705,8 +725,8 @@ const del_user = async function(mail) {
     const rem = users.splice(index, 1);
     local_store.set("users", users);
     console.log("Removing:", rem, users);
-    return users;
   }
+  return users;
 };
 
 init();

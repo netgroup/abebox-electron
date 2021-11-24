@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { contextIsolated } = require("process");
 const {
   encrypt_content,
   create_metadata,
@@ -119,7 +120,8 @@ const create_abe_keys = function(local_store) {
 };
 
 const create_abe_secret_key = function(pk, msk, attr_list, file_name) {
-  console.log("CREATING NEW ABE SK...");
+  console.log(`CREATING NEW ABE SK...`);
+  console.log("ATTR LIST =", attr_list);
   const sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
   const abe_enc_sk_jwt = generate_jwt(
     rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key),
