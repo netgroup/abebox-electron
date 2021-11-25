@@ -56,8 +56,8 @@ let files_list = [];
 
 const init = function() {
   if (local_store.get("configured")) {
-    console.log("LOADING ABEBOX CONFIGURATION");
     const data = local_store.get("data");
+    console.log("LOADING ABEBOX CONFIGURATION: ", data);
     files_list = local_store.get("files", []);
     start_services(data.local, data.remote);
   } else {
@@ -271,7 +271,7 @@ function start_services(local_repo, remote_repo) {
     ],
   });
 
-  console.log("Setting on change event...");
+  //console.log("Setting on change event...");
 
   watcher
     .on("add", (file_path) => {
@@ -407,17 +407,22 @@ const retrieve_abe_secret_key = function(full_file_name) {
 const create_admin_abe_sk = async function() {
   const data = local_store.get("data", {});
   const attrs = await get_attrs();
+
   if (data.isAdmin && attrs.length > 0) {
     const keys = local_store.get("keys", {});
-    const attrs_list = attrs.map(attr => attr.id.toString());
+    const attrs_list = attrs.map((attr) => attr.id.toString());
+
+    console.log(keys.abe_msk_key);
     abebox.conf.abe_secret_key = await abebox.create_abe_secret_key(
       abebox.conf.abe_pub_key,
       keys.abe_msk_key,
       attrs_list,
       get_hash(data.name).toString("hex")
     );
-    console.log("ADMIN ABE SK CREATED: ", abebox.conf.abe_secret_key);
-  } else console.log("ADMIN ABE SK NOT CREATED");
+    //console.log("ADMIN ABE SK CREATED: ", abebox.conf.abe_secret_key);
+  } else {
+    //console.log("ADMIN ABE SK NOT CREATED");
+  }
 };
 
 /************************ TEST FUNCTIONS ************************/
@@ -471,15 +476,15 @@ const create_test_users = function() {
 
 /**************** FILES *****************/
 const get_files_list = function() {
-  console.log(`GET_FILES_LIST`);
+  //console.log(`GET_FILES_LIST`);
   files_list = local_store.get("files", []);
-  console.log("FILE LIST", files_list);
+  //console.log("FILE LIST", files_list);
   return files_list;
 };
 
 const set_policy = async function(data) {
-  console.log(`SET_POLICY ${data.toString()}`);
-  console.log("SET POLICY", data.file_id, data.policy);
+  //console.log(`SET_POLICY ${data.toString()}`);
+  //console.log("SET POLICY", data.file_id, data.policy);
   const el = await files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
     el.policy = data.policy;
@@ -537,21 +542,25 @@ const reset_config = async function() {
 };
 
 const set_config = function(config_data) {
-  console.log(`SET_CONFIG ${config_data.toString()}`);
-  console.log("Saving configuration data", config_data);
-  local_store.set("data", config_data);
-  local_store.set("configured", true);
+  if (local_store.get("configured", false)) {
+    console.log("ERRORE configurazione già presente");
+    return "ERRORE"; // No config change
+  } else {
+    console.log("Saving configuration data", config_data);
+    local_store.set("data", config_data);
+    local_store.set("configured", true);
 
-  start_services(config_data.local, config_data.remote);
-  if (!config_data.isAdmin) {
-    send_token(config_data);
+    start_services(config_data.local, config_data.remote);
+    if (!config_data.isAdmin) {
+      send_token(config_data);
+    }
+    return config_data;
   }
-  return config_data;
 };
 
 /**************** ATTRIBUTES *****************/
 const get_attrs = async function() {
-  console.log(`GET_ATTRS`);
+  //console.log(`GET_ATTRS`);
   const data = await local_store.get("data");
   const attr_list_file = data.remote + attrs_rel_path;
   if (!fs.existsSync(attr_list_file)) {
@@ -566,11 +575,10 @@ const get_attrs = async function() {
 };
 
 const new_attr = async function(new_obj) {
-  console.log(`NEW_ATTR ${new_obj.toString()}`);
+  //console.log(`NEW_ATTR ${new_obj.toString()}`);
   const data = await local_store.get("data");
-  const attrs = await get_attrs(); /*JSON.parse(
-    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );*/
+  const attrs = await get_attrs();
+
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
   if (index >= 0) {
@@ -583,11 +591,8 @@ const new_attr = async function(new_obj) {
       attributes: attrs,
     };
     const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
-    fs.writeFileSync(
-      data.remote + attrs_rel_path,
-      attrs_jwt //JSON.stringify(attrs)
-    );
-    console.log("Adding:", new_obj, attrs);
+    fs.writeFileSync(data.remote + attrs_rel_path, attrs_jwt);
+    //console.log("Adding:", new_obj, attrs);
     create_admin_abe_sk();
   }
   return attrs;

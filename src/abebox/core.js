@@ -31,7 +31,7 @@ const init = function(lp, rp, local_store) {
     conf.remote_repo_path + "/keys/" + abe_provider_name + ".pub";
   conf.abe_sec_path_remote =
     conf.remote_repo_path + "/keys/" + abe_provider_name + ".sk";
-  console.log("INIT() CONF", conf);
+  //console.log("INIT() CONF", conf);
 
   create_dirs();
   if (
@@ -56,7 +56,7 @@ const init = function(lp, rp, local_store) {
       conf.rsa_pub_key
     )
   );
-  console.log("ABE PK = ", conf.abe_pub_key);
+  //console.log("ABE PK = ", conf.abe_pub_key);
   /*if (!fs.existsSync(conf.abe_sec_path_remote)) {
     const msk = local_store.get("keys", {}).abe_msk_key;
     console.log("ABE MSK = ", msk);
@@ -81,10 +81,10 @@ const init = function(lp, rp, local_store) {
 const create_dirs = function() {
   //dirs = ["settings", "repo-local", "repo-shared/keys", "repo-shared/repo"];
   dirs = ["attributes", "keys", "repo", "pub_keys"];
-  console.log("CREATING DIRS", dirs);
+  //console.log("CREATING DIRS", dirs);
   dirs.forEach((dir) => {
     absolute_dir = conf.remote_repo_path + "/" + dir;
-    console.log("Checking dir", absolute_dir);
+    //console.log("Checking dir", absolute_dir);
     if (!fs.existsSync(absolute_dir)) {
       fs.mkdirSync(absolute_dir, { recursive: true });
     }
@@ -92,7 +92,7 @@ const create_dirs = function() {
 };
 
 const create_rsa_keys = function(local_store) {
-  console.log("CREATING RSA KEYS...");
+  //console.log("CREATING RSA KEYS...");
   const { publicKey, privateKey } = rsa.create_keys();
   // const [msk] = rabe.setup();
   keys = {};
@@ -104,29 +104,23 @@ const create_rsa_keys = function(local_store) {
 };
 
 const create_abe_keys = function(local_store) {
-  console.log("CREATING NEW ABE PK AND MSK...");
+  //console.log("CREATING NEW ABE PK AND MSK...");
   const [pk, msk] = rabe.setup();
-  console.log("ABE PAIR = ", pk, msk);
+  //console.log("ABE PAIR = ", pk, msk);
   const keys = local_store.get("keys", {});
   keys.abe_msk_key = msk;
   local_store.set("keys", keys);
   //const sk = rabe.keygen(pk, msk, JSON.stringify(["A", "B", "C"]));
   const abe_pk_jwt = generate_jwt(pk, keys.rsa_priv_key);
   fs.writeFileSync(conf.abe_pub_path_remote, abe_pk_jwt);
-  /*fs.writeFileSync(
-    conf.abe_sec_path_remote,
-    rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key)
-  );*/
 };
 
 const create_abe_secret_key = function(pk, msk, attr_list, file_name) {
-  console.log(`CREATING NEW ABE SK...`);
-  console.log("ATTR LIST =", attr_list);
+  //console.log(`CREATING NEW ABE SK...`);
+  //console.log("ATTR LIST =", attr_list);
   const sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
-  const abe_enc_sk_jwt = generate_jwt(
-    rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key),
-    conf.rsa_priv_key
-  );
+  const enc_sk = rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key);
+  const abe_enc_sk_jwt = generate_jwt(enc_sk, conf.rsa_priv_key);
   fs.writeFileSync(
     conf.remote_repo_path + "/keys/" + file_name + ".sk",
     abe_enc_sk_jwt
@@ -161,8 +155,8 @@ const file_encrypt = function(input_file_path, policy, output_file_path) {
     conf.abe_pub_key,
     policy
   );
-  
-  console.log("POLICY =", typeof(policy));
+
+  console.log("POLICY =", typeof policy);
   console.log("FILE ENC, ENC METADATA =", metadata.enc_metadata);
 
   // Write metadata on file
@@ -182,7 +176,7 @@ const file_decrypt = function(encrypted_filename) {
     conf.abe_secret_key === undefined
   )
     return false;
-    
+
   // Read raw metadata
   const raw_metadata = fs.readFileSync(
     conf.remote_repo_path + "/repo/" + encrypted_filename + ".abebox"

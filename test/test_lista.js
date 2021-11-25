@@ -1,4 +1,4 @@
-const { get_tree } = require("./utils");
+const { get_tree } = require("../src/abebox/utils");
 
 const listaFilePath = [];
 
