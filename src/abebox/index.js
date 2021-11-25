@@ -1,6 +1,10 @@
-const abebox = require("./core");
 const chokidar = require("chokidar");
 const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
+const Store = require("electron-store");
+const openurl = require("openurl");
+const { get } = require("config");
+
 const {
   parse_metadata,
   split_file_path,
@@ -11,17 +15,14 @@ const {
   generate_jwt,
   verify_jwt,
 } = require("./file_utils");
-const { v4: uuidv4 } = require("uuid");
-const Store = require("electron-store");
 const http = require("./http_utils");
-const openurl = require("openurl");
+const abebox = require("./core");
 const rsa = require("./rsa");
-const { get } = require("config");
 
+/* Comstants */
 const attrs_rel_path = "/attributes/attributes_list.json";
 const pub_keys_rel_path = "/pub_keys/";
 const keys_rel_path = "/keys/";
-
 const file_status = {
   sync: 0,
   local_change: 1,
@@ -50,7 +51,6 @@ const schema = {
 };
 
 const local_store = new Store({ schema });
-//local_store.clear();
 
 let files_list = [];
 

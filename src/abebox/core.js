@@ -1,5 +1,4 @@
 const fs = require("fs");
-const { contextIsolated } = require("process");
 const {
   encrypt_content,
   create_metadata,

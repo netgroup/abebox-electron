@@ -1,14 +1,5 @@
 const fs = require("fs");
-
 const crypto = require("crypto");
-
-/*const rsa_priv_key_path = __dirname + "/settings/rsa.pem";
-const rsa_pub_key_path = __dirname + "/settings/rsa_pub.pem";
-*/
-/**
- * Create RSA public/private key pair and return the public key.
- * @returns public key
- */
 
 const create_keys = function() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
@@ -27,8 +18,6 @@ const create_keys = function() {
     },
   });
 
-  //fs.writeFileSync(rsa_pub_key_path, publicKey);
-  //fs.writeFileSync(rsa_priv_key_path, privateKey);
   return {
     publicKey,
     privateKey,
@@ -45,11 +34,11 @@ const getPubKey = function() {
  * Create RSA public/private key pair and return the private key.
  * @returns private key
  */
-const getPrivKey = function() {
+/*const getPrivKey = function() {
   return fs.existsSync(rsa_priv_key_path)
     ? fs.readFileSync(rsa_priv_key_path)
     : exports.createAndSaveKeys().privateKey;
-};
+};*/
 
 /**
  * Encrypt the specified data with RSA using the specified public key
@@ -57,6 +46,7 @@ const getPrivKey = function() {
  * @param {} publicKey RSA public key
  * @returns encrypted data
  */
+
 const encrypt = function(data_buffer, publicKey) {
   // Perform encryption
   // 1. generate random sym key
