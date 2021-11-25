@@ -161,6 +161,9 @@ const file_encrypt = function(input_file_path, policy, output_file_path) {
     conf.abe_pub_key,
     policy
   );
+  
+  console.log("POLICY =", typeof(policy));
+  console.log("FILE ENC, ENC METADATA =", metadata.enc_metadata);
 
   // Write metadata on file
   fs.writeFileSync(
@@ -175,7 +178,7 @@ const file_decrypt = function(encrypted_filename) {
   console.log("[Decryption] Decrypting file " + encrypted_filename);
 
   if (
-    !fs.existsSync(conf.abe_sec_path_remote) ||
+    //!fs.existsSync(conf.abe_sec_path_remote) ||
     conf.abe_secret_key === undefined
   )
     return false;
@@ -202,7 +205,7 @@ const file_decrypt = function(encrypted_filename) {
   );
 
   const output_file = fs.createWriteStream(
-    conf.local_repo_path + "/" + file_path
+    conf.local_repo_path + "/enc_" + file_path
   );
 
   // Perform symmetric decryption

@@ -16,6 +16,10 @@ const {
   invite_user,
 } = require(".");
 
+const abebox = require("./core");
+const fu = require("./file_utils");
+const rabe = require("./rabejs/rabejs.node");
+
 //======================================= BOOTSTRAP =======================================//
 
 const test_admin_bootstrap = async function() {
@@ -84,5 +88,24 @@ const test_add_attr = async function() {
   console.log(new_attrs);
 };
 
-test_admin_bootstrap();
-test_add_attr();
+//test_admin_bootstrap();
+//test_add_attr();
+
+const [pk, msk] = rabe.setup();
+const policy_array = [["1"]];
+console.log("POLICY STRINGIFY =", typeof(policy_array));
+abebox.conf.local_repo_path = "/home/serse/Pubblici/";
+abebox.conf.remote_repo_path = "/home/serse/Pubblici";
+abebox.conf.abe_secret_key = abebox.create_abe_secret_key(
+  pk,
+  msk,
+  policy_array[0],
+  "abe"
+);
+console.log("ENC =", abebox.file_encrypt(
+  "test.txt",
+  fu.policy_as_string(policy_array),
+  "enc_test"
+));
+
+console.log("DEC =", abebox.file_decrypt("enc_test"));

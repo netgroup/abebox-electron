@@ -122,7 +122,9 @@ const handle_remote_add = function(full_file_path) {
   //console.log("PARSED ENC META = ", parsed_enc_metadata);
 
   const { _policy } = parsed_enc_metadata;
-  console.log(_policy[0]);
+  console.log("POLICY FROM METADATA = ", _policy[0]);
+
+  console.log("SK = ", abebox.conf.abe_secret_key);
 
   // Parse metadata
   const { file_path } = parse_metadata(
@@ -384,7 +386,7 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
         abebox.conf.abe_pub_key,
         keys.abe_msk_key,
         rem.attrs,
-        get_hash(rem.mail)
+        get_hash(rem.mail).toString("hex")
       );
     }
   }
@@ -412,9 +414,9 @@ const create_admin_abe_sk = async function() {
       abebox.conf.abe_pub_key,
       keys.abe_msk_key,
       attrs_list,
-      get_hash(data.name)
+      get_hash(data.name).toString("hex")
     );
-    console.log("ADMIN ABE SK CREATED");
+    console.log("ADMIN ABE SK CREATED: ", abebox.conf.abe_secret_key);
   } else console.log("ADMIN ABE SK NOT CREATED");
 };
 

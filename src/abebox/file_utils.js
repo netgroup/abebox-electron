@@ -66,6 +66,8 @@ const create_metadata = function(file_path, sym_key, iv, abe_pub_key, policy) {
     file_path: file_path,
   };
 
+  console.log("PK =", typeof(abe_pub_key), abe_pub_key);
+
   // Encrypt parameters using CP-ABE
   let enc_metadata = rabe.encrypt_str(
     abe_pub_key,
@@ -75,7 +77,7 @@ const create_metadata = function(file_path, sym_key, iv, abe_pub_key, policy) {
 
   // Add parameters in clear form to the encrypted ones and return the metadata
   return {
-    enc_metadata: enc_metadata,
+    enc_metadata: JSON.parse(enc_metadata),
     iv: iv.toString("hex"),
   };
 };
@@ -111,9 +113,12 @@ const parse_metadata = function(raw_metadata, abe_secret_key) {
   const metadata = JSON.parse(raw_metadata);
   const { enc_metadata, iv } = metadata;
 
+  console.log("PARSE METADATA, ENC META =", typeof(enc_metadata), enc_metadata);
+  console.log("SK =", typeof(abe_secret_key), abe_secret_key);
+
   try {
     // Decrypt the encrypted ones
-    let dec_metadata = rabe.decrypt(abe_secret_key, enc_metadata);
+    let dec_metadata = rabe.decrypt_str(abe_secret_key, JSON.stringify(enc_metadata));
   } catch(error) {
     console.log(`Decryption failed: ${error}`);
     return {
