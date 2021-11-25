@@ -12,5 +12,5 @@ describe("Rabe Test", () => {
     const sk = rabe.keygen(pk, msk, JSON.stringify(["A", "B", "C"]));
     const res = rabe.decrypt_str(sk, ciphertext);
     assert.equal(res, "hello world");
-  });
+  }).timeout(10000);
 });
