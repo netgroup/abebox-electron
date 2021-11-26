@@ -3,18 +3,8 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 const openurl = require("openurl");
-const { get } = require("config");
 
-const {
-  parse_metadata,
-  split_file_path,
-  policy_as_string,
-  get_random,
-  get_hash,
-  get_hmac,
-  generate_jwt,
-  verify_jwt,
-} = require("./file_utils");
+const file_utils = require("./file_utils");
 const http = require("./http_utils");
 const abebox = require("./core");
 const rsa = require("./rsa");
@@ -67,14 +57,14 @@ const init = function() {
 
 const handle_local_add = function(file_path) {
   const fid = uuidv4();
-  const { original_file_name, relative_path } = split_file_path(
+  const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
     abebox.conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, fid, original_file_name);
-  const path = file_path.replace(original_file_name, "");
-  const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
+console.log(file_path, fid, original_file_name);
+const path = file_path.replace(original_file_name, "");
+const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -92,7 +82,7 @@ const handle_local_add = function(file_path) {
 };
 
 const handle_remote_add = function(full_file_path) {
-  const { original_file_name, relative_path } = split_file_path(
+  const { original_file_name, relative_path } = file_utils.split_file_path(
     full_file_path,
     abebox.conf.remote_repo_path
   );
@@ -127,7 +117,7 @@ const handle_remote_add = function(full_file_path) {
   console.log("SK = ", abebox.conf.abe_secret_key);
 
   // Parse metadata
-  const { file_path } = parse_metadata(
+  const { file_path } = file_utils.parse_metadata(
     raw_metadata,
     abebox.conf.abe_secret_key
   );
@@ -162,14 +152,14 @@ const handle_remote_add = function(full_file_path) {
 };
 
 const handle_local_change = function(file_path) {
-  const { original_file_name, relative_path } = split_file_path(
+  const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
     abebox.conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, original_file_name);
-  const path = file_path.replace(original_file_name, "");
-  const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
+console.log(file_path, original_file_name);
+const path = file_path.replace(original_file_name, "");
+const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -180,7 +170,7 @@ const handle_local_change = function(file_path) {
 };
 
 const handle_remote_change = function(file_path) {
-  const { original_file_name, relative_path } = split_file_path(
+  const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
     abebox.conf.remote_repo_path
   );
@@ -199,9 +189,9 @@ const handle_remote_change = function(file_path) {
   }
   const fid_no_ext = original_file_name.split(".")[0];
   /*const fid = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, fid);
-  const path = file_path.replace(fid, "");
-  const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
+console.log(file_path, fid);
+const path = file_path.replace(fid, "");
+const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   const el = files_list.find(
     (el) => el.file_path === relative_path && el.file_id === fid_no_ext
   );
@@ -211,14 +201,14 @@ const handle_remote_change = function(file_path) {
 };
 
 const handle_local_remove = function(file_path) {
-  const { original_file_name, relative_path } = split_file_path(
+  const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
     abebox.conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, original_file_name);
-  const path = file_path.replace(original_file_name, "");
-  const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
+console.log(file_path, original_file_name);
+const path = file_path.replace(original_file_name, "");
+const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -230,15 +220,15 @@ const handle_local_remove = function(file_path) {
 };
 
 const handle_remote_remove = function(file_path) {
-  const { original_file_name, relative_path } = split_file_path(
+  const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
     abebox.conf.remote_repo_path
   );
   const fid_no_ext = original_file_name.split(".")[0];
   /*const fid = file_path.replace(/^.*[\\\/]/, "");
-  console.log(file_path, fid);
-  const path = file_path.replace(fid, "");
-  const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
+console.log(file_path, fid);
+const path = file_path.replace(fid, "");
+const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   const el = files_list.find(
     (el) => el.file_path === relative_path && el.file_id === fid_no_ext
   );
@@ -249,13 +239,11 @@ const handle_remote_remove = function(file_path) {
 };
 
 function start_services(local_repo, remote_repo) {
-  abebox.init(local_repo, remote_repo, local_store);
+  //abebox.init(local_repo, remote_repo, local_store);
 
-  create_admin_abe_sk();
+  //abebox.create_admin_abe_sk();
 
   watch_paths = [local_repo, remote_repo];
-
-  console.log(`Starting watching on ${watch_paths}`);
 
   let watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
@@ -270,7 +258,6 @@ function start_services(local_repo, remote_repo) {
       remote_repo + "/repo/*/.*",
     ],
   });
-
   //console.log("Setting on change event...");
 
   watcher
@@ -317,12 +304,12 @@ const send_invite = function(recv) {
 
 const send_token = function(conf) {
   //const data = local_store.get("data", []);
-  const token_hash = get_hash(conf.token);
+  const token_hash = file_utils.get_hash(conf.token);
   const rsa_pk = local_store.get("keys").rsa_pub_key;
 
   // Scrivere il file con nome token_hash e path repo
 
-  const signature = get_hmac(conf.token, rsa_pk + conf.name);
+  const signature = file_utils.get_hmac(conf.token, rsa_pk + conf.name);
   const data = {
     rsa_pub_key: rsa_pk.toString("hex"),
     sign: signature.toString("hex"),
@@ -337,13 +324,13 @@ const get_token = function(user) {
   //const data = local_store.get("data", []);
   const token = user.token;
   if (token != undefined) {
-    const token_hash = get_hash(token);
+    const token_hash = file_utils.get_hash(token);
     const res = http.get_token(token_hash);
     const res_token_hash = res.token;
     if (res != null && res_token_hash.toString("utf8") === token_hash) {
       const rsa_pk = res.rsa_pub_key.toString("utf8");
       const sign = res.sign.toString("utf8");
-      if (sign === get_hmac(res_token_hash, rsa_pk + user.mail)) {
+      if (sign === file_utils.get_hmac(res_token_hash, rsa_pk + user.mail)) {
         user.rsa_pub_key = rsa_pk;
         const users = local_store.get("users", []);
         // Check if already exists
@@ -364,14 +351,14 @@ const get_token = function(user) {
 const retrieve_pub_key = async function(full_file_name, file_name) {
   const users = local_store.get("users", []);
   const index = users.findIndex(
-    (item) => get_hash(item.token).toString("hex") === file_name
+    (item) => file_utils.get_hash(item.token).toString("hex") === file_name
   );
   if (index >= 0) {
     // Test sign
     const data = fs.readFileSync(full_file_name);
     const rsa_pk = data.rsa_pub_key;
     const sign = data.sign;
-    const signature = get_hmac(user.token, rsa_pk + user.mail);
+    const signature = file_utils.get_hmac(user.token, rsa_pk + user.mail);
     if (sign === signature) {
       // Add pub key to the specific user and update users list
       const rem = users.splice(index, 1);
@@ -386,7 +373,7 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
         abebox.conf.abe_pub_key,
         keys.abe_msk_key,
         rem.attrs,
-        get_hash(rem.mail).toString("hex")
+        file_utils.get_hash(rem.mail).toString("hex")
       );
     }
   }
@@ -396,7 +383,7 @@ const retrieve_abe_secret_key = function(full_file_name) {
   console.log("RETRIEVING USER ABE SECRET KEY...");
   const jwt = fs.readFileSync(full_file_name);
   console.log("USER JWT =", jwt);
-  const abe_enc_sk = verify_jwt(jwt, abebox.conf.rsa_pub_key);
+  const abe_enc_sk = file_utils.verify_jwt(jwt, abebox.conf.rsa_pub_key);
   console.log("USER ABE ENC SK =", abe_enc_sk);
   abebox.conf.abe_secret_key = rsa
     .decrypt(abe_enc_sk, abebox.conf.rsa_priv_key)
@@ -417,7 +404,7 @@ const create_admin_abe_sk = async function() {
       abebox.conf.abe_pub_key,
       keys.abe_msk_key,
       attrs_list,
-      get_hash(data.name).toString("hex")
+      file_utils.get_hash(data.name).toString("hex")
     );
     //console.log("ADMIN ABE SK CREATED: ", abebox.conf.abe_secret_key);
   } else {
@@ -453,7 +440,10 @@ const create_test_attributes = function() {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(
       attr_list_file,
       attrs_jwt //JSON.stringify(attributes)
@@ -500,7 +490,7 @@ const share_files = function() {
       const file_name = file.file_path + file.file_name;
       const res = abebox.file_encrypt(
         file_name,
-        policy_as_string(file.policy),
+        file_utils.policy_as_string(file.policy),
         file.file_id
       );
       if (res) file.status = file_status.sync;
@@ -566,7 +556,7 @@ const get_attrs = async function() {
   if (!fs.existsSync(attr_list_file)) {
     return [];
   } else {
-    const attrs_obj = verify_jwt(
+    const attrs_obj = file_utils.verify_jwt(
       fs.readFileSync(attr_list_file).toString(),
       abebox.conf.rsa_pub_key
     );
@@ -590,7 +580,10 @@ const new_attr = async function(new_obj) {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(data.remote + attrs_rel_path, attrs_jwt);
     //console.log("Adding:", new_obj, attrs);
     create_admin_abe_sk();
@@ -615,8 +608,10 @@ const set_attr = async function(new_obj) {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
-    //const attrs_jwt = generate_jwt(attrs, abebox.conf.rsa_priv_key);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(
       data.remote + attrs_rel_path,
       attrs_jwt //JSON.stringify(attrs)
@@ -644,8 +639,10 @@ const del_attr = async function(id) {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = generate_jwt(attrs_obj, abebox.conf.rsa_priv_key);
-    //const attrs_jwt = generate_jwt(attrs, abebox.conf.rsa_priv_key);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(
       data.remote + attrs_rel_path,
       attrs_jwt //JSON.stringify(attrs)
@@ -705,7 +702,7 @@ const invite_user = async function(user) {
   if (index < 0) {
     throw Error("User not present");
   } else {
-    const token = get_random(32).toString("hex");
+    const token = file_utils.get_random(32).toString("hex");
     const rem = users.splice(index, 1)[0];
     console.log("Removing:", rem, users);
     rem.token = token;
