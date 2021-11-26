@@ -94,8 +94,8 @@ const decrypt_content = function(input_stream, output_stream, sym_key, iv) {
   const algorithm = "aes-256-cbc";
   const decipher = crypto.createDecipheriv(
     algorithm,
-    Buffer.from(sym_key, "hex"),
-    Buffer.from(iv, "hex")
+    sym_key,
+    iv
   );
 
   // Read data, decrypt it and write the resulting plaintext
@@ -135,8 +135,12 @@ const parse_metadata = function(raw_metadata, abe_secret_key) {
   }
 };
 
+const get_file_name = function(full_file_name) {
+  return full_file_name.replace(/^.*[\\\/]/, "");
+};
+
 const split_file_path = function(file_path, repo_path) {
-  const filename = file_path.replace(/^.*[\\\/]/, "");
+  const filename = get_file_name(file_path);
   const abs_path = file_path.replace(filename, "");
   const rel_path = abs_path.replace(repo_path, "");
   return {
@@ -212,6 +216,7 @@ module.exports = {
   create_metadata,
   decrypt_content,
   parse_metadata,
+  get_file_name,
   split_file_path,
   policy_as_string,
   get_hash,

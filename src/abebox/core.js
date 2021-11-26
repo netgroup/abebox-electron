@@ -1,13 +1,6 @@
+const crypto = require("crypto");
 const fs = require("fs");
-const {
-  encrypt_content,
-  create_metadata,
-  decrypt_content,
-  parse_metadata,
-  get_hash,
-  generate_jwt,
-  verify_jwt,
-} = require("./file_utils");
+const fu = require("./file_utils");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
 
@@ -240,7 +233,7 @@ const init_abe_keys = function() {
 
 const set_abe_keys = function(pk, sk) {
   if (_conf.abe_init) throw Error("ABE Already initialized");
-  _conf.abe_keys = { pk: abe_pk, sk: abe_msk };
+  _conf.abe_keys = { pk: pk, sk: sk };
   _conf.abe_init = true;
 };
 
@@ -253,8 +246,99 @@ const set_abe_sk = function(sk) {
 const create_abe_sk = function(attr_list) {
   if (!_conf.abe_init) throw Error("ABE Not initialized");
   if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
-  _conf.abe_keys.sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
+  _conf.abe_keys.sk = rabe.keygen(
+    _conf.abe_keys.pk,
+    _conf.abe_keys.msk,
+    JSON.stringify(attr_list)
+  );
   return _conf.abe_keys.sk;
+};
+
+const create_metadata_file = function(
+  input_file,
+  output_file,
+  sym_key,
+  iv,
+  policy
+) {
+  if (!_conf.abe_init) throw Error("ABE Not initialized");
+  const input_file_name = fu.get_file_name(input_file);
+  // Group parameters to encrypt
+  const metadata_to_enc = {
+    sym_key: sym_key,
+    file_name: input_file_name,
+  };
+  // Encrypt parameters using CP-ABE
+  const enc_metadata = rabe.encrypt_str(
+    _conf.abe_keys.pk,
+    policy,
+    JSON.stringify(metadata_to_enc)
+  );
+  // Add parameters in clear form to the encrypted ones and return the metadata
+  const metadata = {
+    enc_metadata: enc_metadata,
+    iv: iv,
+  };
+  // Write metadata on file
+  fs.writeFileSync(output_file, JSON.stringify(metadata));
+};
+
+const retrieve_metadata = function(input_metadata_file) {
+  if (!_conf.abe_init) throw Error("ABE Not initialized");
+  if (_conf.abe_keys.sk === undefined) throw Error("ABE SK not initialized");
+  // Read raw metadata
+  const raw_metadata = fs.readFileSync(input_metadata_file, "utf-8");
+  // Read metadata
+  const { enc_metadata, iv } = JSON.parse(raw_metadata);
+  try {
+    // Decrypt the encrypted ones
+    const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
+    // Extract and return parameters
+    const { sym_key, file_name } = JSON.parse(JSON.parse(dec_metadata));
+    return {
+      file_name,
+      sym_key,
+      iv,
+    };
+  } catch (error) {
+    // TODO Gestire errori di rabe
+    throw Error("ABE Decryption failed");
+  }
+};
+
+const create_encrypted_file = function(input_file, output_file) {
+  if(!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
+  const input_file_stream = fs.createReadStream(input_file);
+  const output_file_stream = fs.createWriteStream(output_file);
+  // Create symmetric key
+  sym_key = crypto.randomBytes(32);
+  // Create IV
+  iv = crypto.randomBytes(16);
+  // Create symmetric cipher
+  const algorithm = "aes-256-cbc";
+  const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
+  // Read data, encrypt it and write the resulting ciphertext
+  const stream = input_file_stream.pipe(cipher).pipe(output_file_stream);
+  return {
+    stream: stream,
+    sym_key: sym_key.toString("hex"),
+    iv: iv.toString("hex"),
+  };
+};
+
+const retrieve_decrypted_file = function(input_file, output_file, sym_key, iv) {
+  if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
+  const input_file_stream = fs.createReadStream(input_file);
+  const output_file_stream = fs.createWriteStream(output_file);
+  // Create symmetric decipher
+  const algorithm = "aes-256-cbc";
+  const decipher = crypto.createDecipheriv(
+    algorithm,
+    Buffer.from(sym_key, "hex"),
+    Buffer.from(iv, "hex")
+  );
+  // Read data, decrypt it and write the resulting plaintext
+  return input_file_stream.pipe(decipher).pipe(output_file_stream);
 };
 
 module.exports = {
@@ -264,6 +348,10 @@ module.exports = {
   create_abe_sk, //used in abe admin mode
   set_abe_keys, // used by normal users
   set_abe_sk,
+  create_metadata_file,
+  create_encrypted_file,
+  retrieve_metadata,
+  retrieve_decrypted_file,
   file_encrypt,
   file_decrypt,
   file_reencrypt,
