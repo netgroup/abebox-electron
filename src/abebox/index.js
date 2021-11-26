@@ -239,9 +239,9 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
 };
 
 function start_services(local_repo, remote_repo) {
-  //abebox.init(local_repo, remote_repo, local_store);
+  abebox.init(local_repo, remote_repo, local_store);
 
-  //abebox.create_admin_abe_sk();
+  create_admin_abe_sk();
 
   watch_paths = [local_repo, remote_repo];
 
