@@ -7,9 +7,9 @@ const {
   get_hash,
   generate_jwt,
   verify_jwt,
-} = require("./file_utils");
+} = require("../file_utils");
 const rabe = require("./rabejs/rabejs.node");
-const rsa = require("./rsa");
+const rsa = require("../rsa");
 
 const conf = {
   /* abe_pub_path_remote: "./repo-shared/keys/abe.pub",

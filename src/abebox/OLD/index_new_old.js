@@ -4,10 +4,10 @@ const { v4: uuidv4 } = require("uuid");
 const Store = require("electron-store");
 const openurl = require("openurl");
 
-const file_utils = require("./file_utils");
-//const http = require("./http_utils");
-const core = require("./core");
-const rsa = require("./rsa");
+const file_utils = require("../file_utils");
+const http = require("./http_utils");
+const abebox = require("../core");
+const rsa = require("../rsa");
 
 /* Comstants */
 const attrs_rel_path = "/attributes/attributes_list.json";
@@ -20,10 +20,10 @@ const file_status = {
 };
 
 const schema = {
-  /*configured: {
+  configured: {
     type: "boolean",
     default: false,
-  },*/
+  },
   data: {
     type: "object",
   },
@@ -42,52 +42,11 @@ const schema = {
 
 const local_store = new Store({ schema });
 
-const remote_dirs = ["attributes", "keys", "repo", "pub_keys"];
-
 let files_list = [];
 
-const create_dirs = function(dirs, repo_path) {
-  dirs.forEach((dir) => {
-    absolute_dir = repo_path + "/" + dir;
-    if (!fs.existsSync(absolute_dir)) {
-      fs.mkdirSync(absolute_dir, { recursive: true });
-    }
-  });
-};
-
-const setup = function() {
-  const data = local_store.get("data", {});
-  if (data.length >= 0 && data.isAdmin) {
-    // ADMIN
-    create_dirs(remote_dirs, data.remote);
-    try {
-      core.init_rsa_keys();
-      core.init_abe_keys();
-      const rsa_keys = core.get_rsa_keys();
-      const abe_keys = core.get_abe_keys(); 
-    }
-    catch {
-      console.log("ERROR during keys creation");
-      // GESTIRE ERRORI
-      return null;
-    }
-    keys = {};
-    keys.rsa_pub_key = rsa_keys.pk;
-    keys.rsa_priv_key = rsa_keys.sk;
-    // keys.abe_pub_key = pk;
-    // keys.abe_msk_key = msk;
-    local_store.set("keys", keys);
-    //SALVA OPPORTUNAMENTE LE CHIAVI
-  } else {
-    //CREA CHIAVI RSA
-    //RECUPERA CHIAVE ABE
-    //SALVA OPPORTUNAMENTE LE CHIAVI
-  }
-};
-
 const init = function() {
-  const data = local_store.get("data", {});
-  if (data.length >= 0 && !data.configured) {
+  if (local_store.get("configured")) {
+    const data = local_store.get("data");
     console.log("LOADING ABEBOX CONFIGURATION: ", data);
     files_list = local_store.get("files", []);
     start_services(data.local, data.remote);
@@ -100,7 +59,7 @@ const handle_local_add = function(file_path) {
   const fid = uuidv4();
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.local_repo_path
+    abebox.conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
 console.log(file_path, fid, original_file_name);
@@ -125,7 +84,7 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
 const handle_remote_add = function(full_file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     full_file_path,
-    core.conf.remote_repo_path
+    abebox.conf.remote_repo_path
   );
   const data = local_store.get("data", {});
   if (relative_path.includes(pub_keys_rel_path)) {
@@ -144,7 +103,7 @@ const handle_remote_add = function(full_file_path) {
   //try {
   // Read raw metadata
   const raw_metadata = fs.readFileSync(
-    core.conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
+    abebox.conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
   );
   const { enc_metadata } = JSON.parse(raw_metadata);
   //console.log("ENC META = ", enc_metadata);
@@ -155,12 +114,12 @@ const handle_remote_add = function(full_file_path) {
   const { _policy } = parsed_enc_metadata;
   console.log("POLICY FROM METADATA = ", _policy[0]);
 
-  console.log("SK = ", core.conf.abe_secret_key);
+  console.log("SK = ", abebox.conf.abe_secret_key);
 
   // Parse metadata
   const { file_path } = file_utils.parse_metadata(
     raw_metadata,
-    core.conf.abe_secret_key
+    abebox.conf.abe_secret_key
   );
 
   if (file_path === null) {
@@ -195,7 +154,7 @@ const handle_remote_add = function(full_file_path) {
 const handle_local_change = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.local_repo_path
+    abebox.conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
 console.log(file_path, original_file_name);
@@ -213,7 +172,7 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
 const handle_remote_change = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.remote_repo_path
+    abebox.conf.remote_repo_path
   );
   const data = local_store.get("data", {});
   if (relative_path.includes(pub_keys_rel_path)) {
@@ -244,7 +203,7 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
 const handle_local_remove = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.local_repo_path
+    abebox.conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
 console.log(file_path, original_file_name);
@@ -263,7 +222,7 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
 const handle_remote_remove = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.remote_repo_path
+    abebox.conf.remote_repo_path
   );
   const fid_no_ext = original_file_name.split(".")[0];
   /*const fid = file_path.replace(/^.*[\\\/]/, "");
@@ -279,10 +238,8 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   }
 };
 
-const start_services = function(local_repo, remote_repo) {
-  setup();
-
-  core.init(local_repo, remote_repo, local_store);
+function start_services(local_repo, remote_repo) {
+  abebox.init(local_repo, remote_repo, local_store);
 
   create_admin_abe_sk();
 
@@ -334,7 +291,7 @@ const start_services = function(local_repo, remote_repo) {
         handle_remote_remove(file_path);
       }
     });
-};
+}
 
 const send_invite = function(recv) {
   const data = local_store.get("data");
@@ -412,8 +369,8 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
       console.log("Adding:", rem, users);
       // Create user secret key
       const keys = local_store.get("keys", {});
-      await core.create_abe_secret_key(
-        core.conf.abe_pub_key,
+      await abebox.create_abe_secret_key(
+        abebox.conf.abe_pub_key,
         keys.abe_msk_key,
         rem.attrs,
         file_utils.get_hash(rem.mail).toString("hex")
@@ -426,12 +383,12 @@ const retrieve_abe_secret_key = function(full_file_name) {
   console.log("RETRIEVING USER ABE SECRET KEY...");
   const jwt = fs.readFileSync(full_file_name);
   console.log("USER JWT =", jwt);
-  const abe_enc_sk = core.verify_jwt(jwt);
+  const abe_enc_sk = file_utils.verify_jwt(jwt, abebox.conf.rsa_pub_key);
   console.log("USER ABE ENC SK =", abe_enc_sk);
-  core.conf.abe_secret_key = rsa
-    .decrypt(abe_enc_sk, core.conf.rsa_priv_key)
+  abebox.conf.abe_secret_key = rsa
+    .decrypt(abe_enc_sk, abebox.conf.rsa_priv_key)
     .toString();
-  console.log("USER ABE SK =", core.conf.abe_secret_key);
+  console.log("USER ABE SK =", abebox.conf.abe_secret_key);
 };
 
 const create_admin_abe_sk = async function() {
@@ -443,13 +400,13 @@ const create_admin_abe_sk = async function() {
     const attrs_list = attrs.map((attr) => attr.id.toString());
 
     console.log(keys.abe_msk_key);
-    core.conf.abe_secret_key = await core.create_abe_secret_key(
-      core.conf.abe_pub_key,
+    abebox.conf.abe_secret_key = await abebox.create_abe_secret_key(
+      abebox.conf.abe_pub_key,
       keys.abe_msk_key,
       attrs_list,
       file_utils.get_hash(data.name).toString("hex")
     );
-    //console.log("ADMIN ABE SK CREATED: ", core.conf.abe_secret_key);
+    //console.log("ADMIN ABE SK CREATED: ", abebox.conf.abe_secret_key);
   } else {
     //console.log("ADMIN ABE SK NOT CREATED");
   }
@@ -483,7 +440,10 @@ const create_test_attributes = function() {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(
       attr_list_file,
       attrs_jwt //JSON.stringify(attributes)
@@ -528,7 +488,7 @@ const share_files = function() {
   files_list.forEach((file) => {
     if (file.status == file_status.local_change && file.policy.length != 0) {
       const file_name = file.file_path + file.file_name;
-      const res = core.file_encrypt(
+      const res = abebox.file_encrypt(
         file_name,
         file_utils.policy_as_string(file.policy),
         file.file_id
@@ -542,7 +502,7 @@ const share_files = function() {
         0,
         enc_file_name.lastIndexOf(".")
       );
-      const res = core.file_decrypt(enc_file_name);
+      const res = abebox.file_decrypt(enc_file_name);
       if (res) file.status = file_status.sync;
       else console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
     }
@@ -572,14 +532,14 @@ const reset_config = async function() {
 };
 
 const set_config = function(config_data) {
-  const data = local_store.get("data", {});
-  if (data.length >= 0) {
+  if (local_store.get("configured", false)) {
     console.log("ERRORE configurazione già presente");
     return "ERRORE"; // No config change
   } else {
     console.log("Saving configuration data", config_data);
     local_store.set("data", config_data);
-    //local_store.set("configured", true);
+    local_store.set("configured", true);
+
     start_services(config_data.local, config_data.remote);
     if (!config_data.isAdmin) {
       send_token(config_data);
@@ -596,8 +556,9 @@ const get_attrs = async function() {
   if (!fs.existsSync(attr_list_file)) {
     return [];
   } else {
-    const attrs_obj = core.verify_jwt(
-      fs.readFileSync(attr_list_file).toString()
+    const attrs_obj = file_utils.verify_jwt(
+      fs.readFileSync(attr_list_file).toString(),
+      abebox.conf.rsa_pub_key
     );
     return attrs_obj.attributes;
   }
@@ -619,7 +580,10 @@ const new_attr = async function(new_obj) {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(data.remote + attrs_rel_path, attrs_jwt);
     //console.log("Adding:", new_obj, attrs);
     create_admin_abe_sk();
@@ -644,7 +608,10 @@ const set_attr = async function(new_obj) {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(
       data.remote + attrs_rel_path,
       attrs_jwt //JSON.stringify(attrs)
@@ -672,7 +639,10 @@ const del_attr = async function(id) {
     const attrs_obj = {
       attributes: attrs,
     };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
+    const attrs_jwt = file_utils.generate_jwt(
+      attrs_obj,
+      abebox.conf.rsa_priv_key
+    );
     fs.writeFileSync(
       data.remote + attrs_rel_path,
       attrs_jwt //JSON.stringify(attrs)

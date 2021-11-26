@@ -222,6 +222,11 @@ const set_rsa_keys = function(pk, sk) {
   _conf.rsa_init = true;
 };
 
+const get_rsa_keys = function() {
+  if (!_conf.rsa_init) throw Error("RSA Not initialized");
+  return _conf.rsa_keys;
+};
+
 const init_abe_keys = function() {
   if (_conf.abe_init) throw Error("ABE Already initialized");
   const [abe_pk, abe_msk] = rabe.setup();
@@ -252,6 +257,11 @@ const create_abe_sk = function(attr_list) {
     JSON.stringify(attr_list)
   );
   return _conf.abe_keys.sk;
+};
+
+const get_abe_keys = function() {
+  if (!_conf.abe_init) throw Error("ABE Not initialized");
+  return _conf.abe_keys;
 };
 
 const create_metadata_file = function(
@@ -341,18 +351,32 @@ const retrieve_decrypted_file = function(input_file, output_file, sym_key, iv) {
   return input_file_stream.pipe(decipher).pipe(output_file_stream);
 };
 
+const generate_jwt = function(data) {
+  if (!_conf.rsa_init) throw Error("RSA Not initialized");
+  return jwt.sign(data, _conf.rsa_keys.sk, { algorithm: "RS256" });
+};
+
+const verify_jwt = function(token) {
+  if (!_conf.rsa_init) throw Error("RSA Not initialized");
+  return jwt.verify(token, _conf.rsa_keys.pk);
+};
+
 module.exports = {
   init_rsa_keys,
   set_rsa_keys,
+  get_rsa_keys,
   init_abe_keys, // used by abe admin
   create_abe_sk, //used in abe admin mode
   set_abe_keys, // used by normal users
   set_abe_sk,
+  get_abe_keys,
   create_metadata_file,
   create_encrypted_file,
   retrieve_metadata,
   retrieve_decrypted_file,
-  file_encrypt,
-  file_decrypt,
-  file_reencrypt,
+  generate_jwt,
+  verify_jwt,
+  //file_encrypt,
+  //file_decrypt,
+  //file_reencrypt,
 };
