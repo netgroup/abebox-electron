@@ -206,64 +206,12 @@ const file_reencrypt = function(encrypted_filename, policy) {
   console.log("Encrypt function");
 };
 
-_conf = {
-  rsa_init: false,
-  abe_init: false,
-  abe_admin: false,
-  rsa_keys: {},
-  abe_keys: {},
-};
-
-const init_rsa_keys = function() {
-  if (_conf.rsa_init) throw Error("RSA Already initialized");
-
-  const { publicKey: pk, privateKey: sk } = rsa.create_keys();
-  _conf.rsa_keys = { pk, sk };
-  _conf.rsa_init = true;
-  return _conf.rsa_keys;
-};
-
-const set_rsa_keys = function(pk, sk) {
-  if (_conf.rsa_init) throw Error("RSA Already initialized");
-  _conf.rsa_keys = { pk, sk };
-  _conf.rsa_init = true;
-};
-
-const init_abe_keys = function() {
-  if (_conf.abe_init) throw Error("ABE Already initialized");
-  const [abe_pk, abe_msk] = rabe.setup();
-  _conf.abe_keys = { pk: abe_pk, msk: abe_msk, sk: undefined };
-  _conf.abe_init = true;
-  _conf.abe_admin = true;
-  return _conf.abe_keys;
-};
-
-const set_abe_keys = function(pk, sk) {
-  if (_conf.abe_init) throw Error("ABE Already initialized");
-  _conf.abe_keys = { pk: abe_pk, sk: abe_msk };
-  _conf.abe_init = true;
-};
-
-const set_abe_sk = function(sk) {
-  if (!_conf.abe_init) throw Error("ABE Not initialized");
-  _conf.abe_keys.sk = sk;
-  return _conf.abe_keys;
-};
-
-const create_abe_sk = function(attr_list) {
-  if (!_conf.abe_init) throw Error("ABE Not initialized");
-  if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
-  _conf.abe_keys.sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
-  return _conf.abe_keys.sk;
-};
-
 module.exports = {
-  init_rsa_keys,
-  set_rsa_keys,
-  init_abe_keys, // used by abe admin
-  create_abe_sk, //used in abe admin mode
-  set_abe_keys, // used by normal users
-  set_abe_sk,
+  init,
+  conf,
+  init_repo_shared,
+  init_keys,
+  create_abe_secret_key,
   file_encrypt,
   file_decrypt,
   file_reencrypt,

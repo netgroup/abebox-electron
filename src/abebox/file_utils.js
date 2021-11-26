@@ -59,13 +59,15 @@ const encrypt_content = function(
  * @param {String} policy ABE policy
  * @returns Created metadata
  */
-const create_metadata = function(file_path, sym_key, iv, abe_pub_key, policy) {
+const create_metadata = function(all_data, abe_pub_key, policy) {
+  const { file_path, sym_key, iv } = all_data;
   // Group parameters to encrypt
   const metadata_to_enc = {
     sym_key: sym_key.toString("hex"),
     file_path: file_path,
   };
 
+  console.log("CM POL:", typeof policy, policy);
   // Encrypt parameters using CP-ABE
   let enc_metadata = rabe.encrypt_str(
     abe_pub_key,
@@ -111,8 +113,7 @@ const parse_metadata = function(raw_metadata, abe_secret_key) {
   const metadata = JSON.parse(raw_metadata);
   const { enc_metadata, iv } = metadata;
 
-  console.log("PARSE", typeof enc_metadata);
-
+  console.log("PM SK: ", abe_secret_key);
   try {
     // Decrypt the encrypted ones
     let dec_metadata = rabe.decrypt_str(abe_secret_key, enc_metadata);
@@ -120,15 +121,15 @@ const parse_metadata = function(raw_metadata, abe_secret_key) {
     // Extract and return parameters
     const { sym_key, file_path } = JSON.parse(dec_metadata);
     return {
-      sym_key: sym_key,
       file_path: file_path,
+      sym_key: sym_key,
       iv: iv,
     };
   } catch (error) {
-    console.log(`Decryption failed: ${error}`);
+    // TODO Gestire errori di rabe
     return {
-      sym_key: null,
       file_path: null,
+      sym_key: null,
       iv: null,
     };
   }

@@ -7,9 +7,8 @@ const fs = require("fs");
 const tmp_path = __dirname + "/tmp/";
 
 describe("RSA Test", () => {
-  it("should encrypt and decrypt a metadata file", () => {
+  /*it("direct encrypt and decrypt a metadata file", () => {
     const filePath1 = tmp_path + "test1.abebox";
-    const filePath = tmp_path + "test.abebox";
     //fs.unlinkSync(filePath);
 
     const [pk, msk] = rabe.setup();
@@ -34,24 +33,28 @@ describe("RSA Test", () => {
     let dec_metadata = rabe.decrypt_str(sk, raw_metadata);
     console.log("OK ", dec_metadata);
     // Create metadata file
-    const metadata = file_utils.create_metadata(
-      "input_file_path",
-      "sym_key",
-      "iv",
-      pk,
-      '"1"'
-    );
+  });*/
+  it("file_util encrypt and decrypt a metadata file", () => {
+    const filePath = tmp_path + "test.abebox";
+
+    const [pk, msk] = rabe.setup();
+    attr_list = ["1"];
+    const sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
+
+    const all_data = {
+      file_path: "input_file_path",
+      sym_key: "sym_key",
+      iv: "iv",
+    };
+
+    const metadata = file_utils.create_metadata(all_data, pk, '"1"');
 
     // Group parameters to encrypt
-
     fs.writeFileSync(filePath, JSON.stringify(metadata));
     const raw_metadata_2 = fs.readFileSync(filePath, "utf-8");
 
     dec_metadata = file_utils.parse_metadata(raw_metadata_2, sk);
-    //let dec_metadata = rabe.decrypt_str(sk, JSON.parse(raw_metadata));
 
-    console.log(dec_metadata);
-
-    //assert(JSON.stringify(dec_metadata) === );
+    assert.equal(JSON.stringify(all_data), JSON.stringify(dec_metadata));
   }).timeout(10000);
 });

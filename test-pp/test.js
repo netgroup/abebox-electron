@@ -21,7 +21,7 @@ const abebox = require("../src/abebox/index");
 
 const test_admin_bootstrap = async function() {
   const conf = await get_config();
-  console.log(conf);
+  //console.log(conf);
 
   const config_data = {
     name: "er@it.it",
@@ -33,7 +33,7 @@ const test_admin_bootstrap = async function() {
   };
 
   const new_conf = set_config(config_data);
-  console.log(new_conf);
+  //console.log(new_conf);
 
   const attrs = await get_attrs();
   console.log(attrs);
