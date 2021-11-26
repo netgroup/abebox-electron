@@ -2,11 +2,13 @@ const assert = require("assert");
 const core = require("../src/abebox/core");
 const fs = require("fs");
 
+let abe, rsa;
+
 describe("Core.js Tests", () => {
   it("Testing metadata creation/retrieving", () => {
     // Initialization
-    const rsa = core.init_rsa_keys();
-    const abe = core.init_abe_keys();
+    abe = abe || core.init_abe_keys();
+    rsa = rsa || core.init_rsa_keys();
     const attr_list = ["1", "2"];
     const sk = core.create_abe_sk(attr_list);
     const file = "./file";
@@ -58,4 +60,12 @@ describe("Core.js Tests", () => {
       });
     });
   }).timeout(10000);
+  it("Setting and getting keys", () => {
+    abe = abe || core.init_abe_keys();
+    rsa = rsa || core.init_rsa_keys();
+    const attr_list = ["1", "2"];
+    const sk = core.create_abe_sk(attr_list);
+    core.set_abe_sk(sk);
+    assert.equal(sk, core.get_abe_keys().sk);
+  });
 });
