@@ -51,5 +51,7 @@ describe("RSA Test", () => {
     //let dec_metadata = rabe.decrypt_str(sk, JSON.parse(raw_metadata));
 
     console.log(dec_metadata);
+
+    //assert(JSON.stringify(dec_metadata) === );
   }).timeout(10000);
 });

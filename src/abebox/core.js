@@ -48,6 +48,9 @@ const save_keys = function(keys, repo_path) {};
 
 //TODO CAPIRE CHE FA!!!
 const init = function(lp, rp, local_store) {
+  const abe_provider_name = get_hash(local_store.get("data").name).toString(
+    "hex"
+  );
   conf.local_repo_path = lp;
   conf.remote_repo_path = rp;
   conf.abe_pub_path_remote =
@@ -204,6 +207,8 @@ const file_reencrypt = function(encrypted_filename, policy) {
 };
 
 module.exports = {
+  init,
+  conf,
   init_repo_shared,
   init_keys,
   create_abe_secret_key,

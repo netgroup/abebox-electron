@@ -42,3 +42,9 @@ src/rabejs/rabejs.node
 
 test/repo-shared/
 test/repo-local/
+
+test-pp/repo-local/
+
+test-pp/repo-shared/
+
+test/tmp/
