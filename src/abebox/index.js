@@ -1,50 +1,128 @@
-const chokidar = require("chokidar");
 const fs = require("fs");
+
+const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
-const Store = require("electron-store");
 const openurl = require("openurl");
 
-const file_utils = require("./file_utils");
-//const http = require("./http_utils");
+const file_utils = require("./file_utils"); // TODO Rename
 const core = require("./core");
-const rsa = require("./rsa");
+const rsa = require("./rsa"); // TODO Remove
+const store = require("./store"); // local storage
+const { assert } = require("console");
 
-/* Comstants */
-const attrs_rel_path = "/attributes/attributes_list.json";
-const pub_keys_rel_path = "/pub_keys/";
-const keys_rel_path = "/keys/";
+/* Constants */
+const attrs_file_rel_path = "/attributes/attributes_list.json";
+const pk_dir_rel_path = "/pub_keys/";
+const keys_dir_rel_path = "/keys/";
+const remote_repo_dirs = ["attributes", "keys", "repo", "pub_keys"];
+
 const file_status = {
   sync: 0,
   local_change: 1,
   remote_change: 2,
 };
 
-const schema = {
-  /*configured: {
-    type: "boolean",
-    default: false,
-  },*/
-  data: {
-    type: "object",
-  },
-  keys: {
-    type: "object",
-  },
-  users: {
-    type: "array",
-    default: [],
-  },
-  files: {
-    type: "array",
-    default: [],
-  },
+let files_list = [];
+
+// Note sulla logica del modulo
+// 1 Il modulo quando parte cerca il file di configurazione
+// - Se non lo trova si mette in attesa di una set_config
+// - Se la trova si avvia ...
+
+// Avvio:
+// - inizializzazione del core
+// - avvio dei listner repo_local e repo_shared
+
+// Operazioni di Base Admin
+// Aggiunta attibuiti
+// 1 Viene aggiunto/modificato/eliminato un attributo
+// - si aggiorna la lista degli attributi
+// - si aggiorna la chiave sk (TBD cosa si fa con i file già cifrati con gli attibuti vecchi???)
+
+// Condivisione di file local
+// 1 viene aggiunto un file in repo_local:
+//   - viene aggiunto alla lista dei file da gestire (si aspetta la policy)
+// 2 viene aggiunta la policy del file
+//   - nel nella lista dei file viene scritta la policy
+// 3 si condivide il file
+//   - si copia il file nel repo_shared
+
+// Ricezione di un file da remote
+// 1 viene aggiunto un file in repo_shared:
+//   - si prova a decodificare i metadati ed eventualmente si aggiunge a repo_local
+
+let _conf = {};
+let _configured = false;
+
+const _boot = function() {
+  if (store.is_configured) {
+    _configured = true;
+    _conf = store.get_conf();
+    _start_watchers();
+  }
 };
 
-const local_store = new Store({ schema });
+const _setup_core = function() {
+  if (!_configured) throw Error("Setup called without configuration");
+};
 
-const remote_dirs = ["attributes", "keys", "repo", "pub_keys"];
+const _start_watchers = function() {
+  if (!_configured) throw Error("Start Watchers called without configuration");
+  /*setup();
 
-let files_list = [];
+  core.init(local_repo, remote_repo, local_store);
+
+  create_admin_abe_sk();*/
+
+  watch_paths = [local_repo, remote_repo];
+
+  let watcher = chokidar.watch(watch_paths, {
+    awaitWriteFinish: true,
+    ignored: [
+      // Local
+      local_repo + "/.*",
+      local_repo + "/*/.*",
+      // Remote
+      //remote_repo + "/keys/*",
+      remote_repo + "/attributes/*",
+      remote_repo + "/repo/.*",
+      remote_repo + "/repo/*/.*",
+    ],
+  });
+  //console.log("Setting on change event...");
+
+  watcher
+    .on("add", (file_path) => {
+      console.log(`File ${file_path} has been added`);
+      if (file_path.includes(watch_paths[0])) {
+        // New local file
+        handle_local_add(file_path);
+      } else {
+        // New remote file
+        handle_remote_add(file_path);
+      }
+    })
+    .on("change", (file_path) => {
+      console.log(`File ${file_path} has been modified`);
+      if (file_path.includes(watch_paths[0])) {
+        // Change on local file
+        handle_local_change(file_path);
+      } else {
+        // Change on remote file
+        handle_remote_change(file_path);
+      }
+    })
+    .on("unlink", (file_path) => {
+      console.log(`File ${file_path} has been removed`);
+      if (file_path.includes(watch_paths[0])) {
+        // Remove local file
+        handle_local_remove(file_path);
+      } else {
+        // Remove remote file
+        handle_remote_remove(file_path);
+      }
+    });
+};
 
 const create_dirs = function(dirs, repo_path) {
   dirs.forEach((dir) => {
@@ -59,14 +137,13 @@ const setup = function() {
   const data = local_store.get("data", {});
   if (data.length >= 0 && data.isAdmin) {
     // ADMIN
-    create_dirs(remote_dirs, data.remote);
+    create_dirs(remote_repo_dirs, data.remote);
     try {
       core.init_rsa_keys();
       core.init_abe_keys();
       const rsa_keys = core.get_rsa_keys();
-      const abe_keys = core.get_abe_keys(); 
-    }
-    catch {
+      const abe_keys = core.get_abe_keys();
+    } catch {
       console.log("ERROR during keys creation");
       // GESTIRE ERRORI
       return null;
@@ -128,13 +205,13 @@ const handle_remote_add = function(full_file_path) {
     core.conf.remote_repo_path
   );
   const data = local_store.get("data", {});
-  if (relative_path.includes(pub_keys_rel_path)) {
+  if (relative_path.includes(pk_dir_rel_path)) {
     if (data.isAdmin) {
       retrieve_pub_key(full_file_path, original_file_name);
     }
     return files_list;
   }
-  if (relative_path.includes(keys_rel_path)) {
+  if (relative_path.includes(keys_dir_rel_path)) {
     if (!data.isAdmin) {
       retrieve_abe_secret_key(full_file_path);
     }
@@ -216,13 +293,13 @@ const handle_remote_change = function(file_path) {
     core.conf.remote_repo_path
   );
   const data = local_store.get("data", {});
-  if (relative_path.includes(pub_keys_rel_path)) {
+  if (relative_path.includes(pk_dir_rel_path)) {
     if (data.isAdmin) {
       retrieve_pub_key(file_path, original_file_name);
     }
     return files_list;
   }
-  if (relative_path.includes(keys_rel_path)) {
+  if (relative_path.includes(keys_dir_rel_path)) {
     if (!data.isAdmin) {
       retrieve_abe_secret_key(file_path);
     }
@@ -279,63 +356,6 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   }
 };
 
-const start_services = function(local_repo, remote_repo) {
-  setup();
-
-  core.init(local_repo, remote_repo, local_store);
-
-  create_admin_abe_sk();
-
-  watch_paths = [local_repo, remote_repo];
-
-  let watcher = chokidar.watch(watch_paths, {
-    awaitWriteFinish: true,
-    ignored: [
-      // Local
-      local_repo + "/.*",
-      local_repo + "/*/.*",
-      // Remote
-      //remote_repo + "/keys/*",
-      remote_repo + "/attributes/*",
-      remote_repo + "/repo/.*",
-      remote_repo + "/repo/*/.*",
-    ],
-  });
-  //console.log("Setting on change event...");
-
-  watcher
-    .on("add", (file_path) => {
-      console.log(`File ${file_path} has been added`);
-      if (file_path.includes(watch_paths[0])) {
-        // New local file
-        handle_local_add(file_path);
-      } else {
-        // New remote file
-        handle_remote_add(file_path);
-      }
-    })
-    .on("change", (file_path) => {
-      console.log(`File ${file_path} has been modified`);
-      if (file_path.includes(watch_paths[0])) {
-        // Change on local file
-        handle_local_change(file_path);
-      } else {
-        // Change on remote file
-        handle_remote_change(file_path);
-      }
-    })
-    .on("unlink", (file_path) => {
-      console.log(`File ${file_path} has been removed`);
-      if (file_path.includes(watch_paths[0])) {
-        // Remove local file
-        handle_local_remove(file_path);
-      } else {
-        // Remove remote file
-        handle_remote_remove(file_path);
-      }
-    });
-};
-
 const send_invite = function(recv) {
   const data = local_store.get("data");
   return openurl.mailto([recv.mail], {
@@ -358,7 +378,7 @@ const send_token = function(conf) {
     sign: signature.toString("hex"),
   };
   fs.writeFileSync(
-    `${conf.remote}${pub_keys_rel_path}${token_hash.toString("hex")}`,
+    `${conf.remote}${pk_dir_rel_path}${token_hash.toString("hex")}`,
     JSON.stringify(data)
   );
 };
@@ -478,7 +498,7 @@ const create_test_attributes = function() {
     },
   ];
   const data = local_store.get("data");
-  const attr_list_file = data.remote + attrs_rel_path;
+  const attr_list_file = data.remote + attrs_file_rel_path;
   if (!fs.existsSync(attr_list_file)) {
     const attrs_obj = {
       attributes: attrs,
@@ -592,7 +612,7 @@ const set_config = function(config_data) {
 const get_attrs = async function() {
   //console.log(`GET_ATTRS`);
   const data = await local_store.get("data");
-  const attr_list_file = data.remote + attrs_rel_path;
+  const attr_list_file = data.remote + attrs_file_rel_path;
   if (!fs.existsSync(attr_list_file)) {
     return [];
   } else {
@@ -620,7 +640,7 @@ const new_attr = async function(new_obj) {
       attributes: attrs,
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(data.remote + attrs_rel_path, attrs_jwt);
+    fs.writeFileSync(data.remote + attrs_file_rel_path, attrs_jwt);
     //console.log("Adding:", new_obj, attrs);
     create_admin_abe_sk();
   }
@@ -646,7 +666,7 @@ const set_attr = async function(new_obj) {
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
     fs.writeFileSync(
-      data.remote + attrs_rel_path,
+      data.remote + attrs_file_rel_path,
       attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Adding:", new_obj, attrs);
@@ -674,7 +694,7 @@ const del_attr = async function(id) {
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
     fs.writeFileSync(
-      data.remote + attrs_rel_path,
+      data.remote + attrs_file_rel_path,
       attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Removing:", rem, attrs);
