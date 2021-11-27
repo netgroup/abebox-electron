@@ -120,87 +120,6 @@ const create_abe_secret_key = function(pk, msk, attr_list, file_name) {
   return sk;
 };
 
-const file_encrypt = function(input_file_path, policy, output_file_path) {
-  console.log(
-    `[Encryption] Encrypting ${input_file_path} with policy ${policy}`
-  );
-
-  // Get random file ID
-  //const encrypted_filename = get_random_filename();
-
-  // Encrypt file content with sym key
-  const input_file = fs.createReadStream(
-    conf.local_repo_path + input_file_path
-  );
-  const output_file = fs.createWriteStream(
-    conf.remote_repo_path + "/repo/" + output_file_path + ".0"
-  );
-
-  // Perform symmetric encryption
-  const { sym_key, iv } = encrypt_content(input_file, output_file);
-
-  const all_data = { file_path: input_file_path, sym_key: sym_key, iv: iv };
-
-  // Create metadata
-  const metadata = create_metadata(all_data, conf.abe_pub_key, policy);
-
-  // Write metadata on file
-  fs.writeFileSync(
-    conf.remote_repo_path + "/repo/" + output_file_path + ".abebox",
-    JSON.stringify(metadata)
-  );
-
-  return true;
-};
-
-const file_decrypt = function(encrypted_filename) {
-  console.log("[Decryption] Decrypting file " + encrypted_filename);
-
-  if (
-    //!fs.existsSync(conf.abe_sec_path_remote) ||
-    conf.abe_secret_key === undefined
-  )
-    return false;
-
-  // Read raw metadata
-  const raw_metadata = fs.readFileSync(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".abebox",
-    "utf-8"
-  );
-
-  console.log("CR SK:", conf.abe_secret_key);
-
-  // Parse metadata
-  const { sym_key, iv, file_path } = parse_metadata(
-    raw_metadata,
-    conf.abe_secret_key
-  );
-
-  if (file_path === null) {
-    // DECRYPTION ERROR
-    return false;
-  }
-
-  // Decrypt the encrypted content with sym key
-  const input_file = fs.createReadStream(
-    conf.remote_repo_path + "/repo/" + encrypted_filename + ".0"
-  );
-
-  const output_file = fs.createWriteStream(
-    conf.local_repo_path + "/enc_" + file_path
-  );
-
-  // Perform symmetric decryption
-  decrypt_content(input_file, output_file, sym_key, iv);
-
-  return true;
-};
-
-const file_reencrypt = function(encrypted_filename, policy) {
-  // re-encrypt the file according to the new policy
-  console.log("Encrypt function");
-};
-
 _conf = {
   rsa_init: false,
   abe_init: false,
@@ -367,6 +286,63 @@ const verify_jwt = function(token) {
   return jwt.verify(token, _conf.rsa_keys.pk);
 };
 
+const get_metadata_file_name = function(file) {
+  const last_dot_position = file.lastIndexOf(".");
+  return file.substring(0, last_dot_position) + ".abebox";
+};
+
+const get_encrypted_content_file_name = function(file) {
+  const last_dot_position = file.lastIndexOf(".");
+  return file.substring(0, last_dot_position) + ".0";
+};
+
+const file_encrypt = async function(plaintext_file, ciphertext_file, policy) {
+  if (!fs.existsSync(plaintext_file))
+    throw Error(`${plaintext_file} does not exist`);
+  try {
+    const encrypted_content_file = get_encrypted_content_file_name(
+      ciphertext_file
+    );
+    // File content symmetric encryption
+    const { sym_key, iv } = await create_encrypted_file(
+      plaintext_file,
+      encrypted_content_file
+    );
+    // Metadata file creation
+    const metadata_file = get_metadata_file_name(ciphertext_file);
+    create_metadata_file(plaintext_file, metadata_file, sym_key, iv, policy);
+  } catch (error) {
+    throw Error(
+      `Encryption of ${plaintext_file} with policy ${policy} failed with error ${error}`
+    );
+  }
+};
+
+const file_decrypt = async function(ciphertext_file) {
+  if (!fs.existsSync(ciphertext_file))
+    throw Error(`${ciphertext_file} does not exist`);
+  try {
+    // Metadata retrieving
+    const metadata_file = get_metadata_file_name(ciphertext_file);
+    const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
+    if (file_name === null) {
+      throw Error(`File name not defined`);
+    }
+    // File content symmetric decryption
+    const encrypted_content_file = get_encrypted_content_file_name(
+      ciphertext_file
+    );
+    await retrieve_decrypted_file(encrypted_content_file, file_name, sym_key, iv);
+  } catch (error) {
+    throw Error(`Decryption of ${ciphertext_file} failed with error ${error}`);
+  }
+};
+
+const file_reencrypt = async function(encrypted_filename, policy) {
+  // re-encrypt the file according to the new policy
+  console.log("Encrypt function");
+};
+
 module.exports = {
   init_rsa_keys,
   set_rsa_keys,
@@ -382,7 +358,7 @@ module.exports = {
   retrieve_decrypted_file,
   generate_jwt,
   verify_jwt,
-  //file_encrypt,
-  //file_decrypt,
-  //file_reencrypt,
+  file_encrypt,
+  file_decrypt,
+  file_reencrypt,
 };
