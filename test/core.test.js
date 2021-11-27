@@ -1,14 +1,19 @@
 const assert = require("assert");
 const fs = require("fs");
 
+const tmp_dir = "./test/tmp";
 const plaintext_file = "./test/tmp/hello.txt";
 const ciphertext_file = "./test/tmp/enc_hello.0";
+const ciphermeta_file = "./test/tmp/enc_hello.abebox";
 const dec_plaintext_file = "./test/tmp/dec_hello.txt";
 const out_meta_file = "./test/tmp/test_meta_file.abebox";
 
 // remove and create test files
 before(() => {
-  // removing files
+  // Create dirs
+  if (!fs.existsSync(tmp_dir)) fs.mkdirSync(tmp_dir);
+
+  // Removing files
   if (fs.existsSync(plaintext_file)) fs.unlinkSync(plaintext_file);
   if (fs.existsSync(ciphertext_file)) fs.unlinkSync(ciphertext_file);
   if (fs.existsSync(dec_plaintext_file)) fs.unlinkSync(dec_plaintext_file);
@@ -91,5 +96,29 @@ describe("Core Basic Tests", () => {
     assert.equal("./" + metadata.file_name, file);
     assert.equal(metadata.sym_key, sym_key);
     assert.equal(metadata.iv, iv);
+  }).timeout(10000);
+
+  it("test admin metadata and content files creation (with outfile = '.0') and user file decoding", async () => {
+    // IN FILE ENCRYPT PASSO COME OUTPUT FILE "*.0"
+    // Process
+    const policy = '"1"';
+    const plaintext = fs.readFileSync(plaintext_file, "utf-8");
+    await admin_core.file_encrypt(plaintext_file, ciphertext_file, policy);
+    // SERVE CERTEZZA CHE VECCHIO PLAINTEXT FILE VENGA CANCELLATO PRIMA DELLA DECRYPT OPPURE CHE CI SIA UNA VERA MODIFICA AL FILE
+    await user_core.file_decrypt(ciphertext_file);
+    const dec_plaintext = fs.readFileSync(plaintext_file, "utf-8");
+    assert.equal(plaintext, dec_plaintext);
+  }).timeout(10000);
+
+  it("test admin metadata and content files creation (with outfile = '.abebox') and user file decoding", async () => {
+    // IN FILE ENCRYPT PASSO COME OUTPUT FILE "*.abebox"
+    // Process
+    const policy = '"1"';
+    const plaintext = fs.readFileSync(plaintext_file, "utf-8");
+    await admin_core.file_encrypt(plaintext_file, ciphermeta_file, policy);
+    // SERVE CERTEZZA CHE VECCHIO PLAINTEXT FILE VENGA CANCELLATO PRIMA DELLA DECRYPT OPPURE CHE CI SIA UNA VERA MODIFICA AL FILE
+    await user_core.file_decrypt(ciphertext_file);
+    const dec_plaintext = fs.readFileSync(plaintext_file, "utf-8");
+    assert.equal(plaintext, dec_plaintext);
   }).timeout(10000);
 });
