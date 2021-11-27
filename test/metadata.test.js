@@ -7,7 +7,7 @@ const fs = require("fs");
 const tmp_path = __dirname + "/tmp/";
 
 describe("RSA Test", () => {
-  /*it("direct encrypt and decrypt a metadata file", () => {
+  it("direct encrypt and decrypt a metadata file", () => {
     const filePath1 = tmp_path + "test1.abebox";
     //fs.unlinkSync(filePath);
 
@@ -33,7 +33,7 @@ describe("RSA Test", () => {
     let dec_metadata = rabe.decrypt_str(sk, raw_metadata);
     console.log("OK ", dec_metadata);
     // Create metadata file
-  });*/
+  });
   it("file_util encrypt and decrypt a metadata file", () => {
     const filePath = tmp_path + "test.abebox";
 

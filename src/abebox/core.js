@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const fs = require("fs");
+const { pipeline } = require("stream/promises");
 
 const fu = require("./file_utils");
 const rabe = require("./rabejs/rabejs.node");
@@ -305,7 +306,7 @@ const retrieve_metadata = function(input_metadata_file) {
     // Decrypt the encrypted ones
     const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
     // Extract and return parameters
-    const { sym_key, file_name } = JSON.parse(JSON.parse(dec_metadata));
+    const { sym_key, file_name } = JSON.parse(dec_metadata);
     return {
       file_name,
       sym_key,
@@ -313,11 +314,11 @@ const retrieve_metadata = function(input_metadata_file) {
     };
   } catch (error) {
     // TODO Gestire errori di rabe
-    throw Error("ABE Decryption failed");
+    throw Error("ABE Decryption failed - " + error);
   }
 };
 
-const create_encrypted_file = function(input_file, output_file) {
+const create_encrypted_file = async function(input_file, output_file) {
   if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
   const input_file_stream = fs.createReadStream(input_file);
   const output_file_stream = fs.createWriteStream(output_file);
@@ -329,15 +330,19 @@ const create_encrypted_file = function(input_file, output_file) {
   const algorithm = "aes-256-cbc";
   const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
   // Read data, encrypt it and write the resulting ciphertext
-  const stream = input_file_stream.pipe(cipher).pipe(output_file_stream);
+  await pipeline(input_file_stream, cipher, output_file_stream);
   return {
-    stream: stream,
     sym_key: sym_key.toString("hex"),
     iv: iv.toString("hex"),
   };
 };
 
-const retrieve_decrypted_file = function(input_file, output_file, sym_key, iv) {
+const retrieve_decrypted_file = async function(
+  input_file,
+  output_file,
+  sym_key,
+  iv
+) {
   if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
   const input_file_stream = fs.createReadStream(input_file);
   const output_file_stream = fs.createWriteStream(output_file);
@@ -349,7 +354,7 @@ const retrieve_decrypted_file = function(input_file, output_file, sym_key, iv) {
     Buffer.from(iv, "hex")
   );
   // Read data, decrypt it and write the resulting plaintext
-  return input_file_stream.pipe(decipher).pipe(output_file_stream);
+  return await pipeline(input_file_stream, decipher, output_file_stream);
 };
 
 const generate_jwt = function(data) {
