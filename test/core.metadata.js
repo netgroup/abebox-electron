@@ -12,7 +12,7 @@ describe("Core.js Tests", () => {
     const attr_list = ["1", "2"];
     const sk = core.create_abe_sk(attr_list);
     const file = "./file";
-    const out_meta_file = "./test/out_meta_file.abebox";
+    const out_meta_file = "./test/tmp/out_meta_file.abebox";
     const sym_key = "sym_key";
     const iv = "iv";
     const policy = '"1"';
@@ -29,9 +29,9 @@ describe("Core.js Tests", () => {
 
   it("Testing file content encryption/decryption", () => {
     // Initialization
-    const plaintext_file = "./test/hello.txt";
-    const ciphertext_file = "./test/enc_hello.0";
-    const dec_plaintext_file = "./test/dec_hello.txt";
+    const plaintext_file = "./test/tmp/hello.txt";
+    const ciphertext_file = "./test/tmp/enc_hello.0";
+    const dec_plaintext_file = "./test/tmp/dec_hello.txt";
     if (fs.existsSync(plaintext_file)) fs.unlinkSync(plaintext_file);
     if (fs.existsSync(ciphertext_file)) fs.unlinkSync(ciphertext_file);
     if (fs.existsSync(dec_plaintext_file)) fs.unlinkSync(dec_plaintext_file);

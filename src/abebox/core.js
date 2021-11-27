@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const fs = require("fs");
+
 const fu = require("./file_utils");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
@@ -317,7 +318,7 @@ const retrieve_metadata = function(input_metadata_file) {
 };
 
 const create_encrypted_file = function(input_file, output_file) {
-  if(!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
+  if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
   const input_file_stream = fs.createReadStream(input_file);
   const output_file_stream = fs.createWriteStream(output_file);
   // Create symmetric key
