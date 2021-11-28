@@ -11,9 +11,9 @@ const store = require("./store"); // local storage
 const { assert } = require("console");
 
 /* Constants */
-const attrs_file_rel_path = "/attributes/attributes_list.json";
-const pk_dir_rel_path = "/pub_keys/";
-const keys_dir_rel_path = "/keys/";
+const attrs_file_rel_path = "attributes/attributes_list.json";
+const pk_dir_rel_path = "pub_keys/";
+const keys_dir_rel_path = "keys/";
 const remote_repo_dirs = ["attributes", "keys", "repo", "pub_keys"];
 
 const file_status = {
@@ -23,6 +23,7 @@ const file_status = {
 };
 
 let files_list = [];
+let watcher;
 
 // Note sulla logica del modulo
 // 1 Il modulo quando parte cerca il file di configurazione
@@ -55,41 +56,59 @@ let _conf = {};
 let _configured = false;
 
 const _boot = function() {
-  if (store.is_configured) {
+  if (store.is_configured()) {
     _configured = true;
     _conf = store.get_conf();
+    console.log("ABEBox booting - Loading Configuration \n", _conf);
     _start_watchers();
+  } else {
+    console.log("ABEBox booting - NO Configuration Find");
   }
+};
+
+// called when a new configuration is set
+const _setup = function() {
+  if (_configured) throw Error("ABEBox already configured - no setup needed");
+  _configured = true;
+  _conf = store.get_conf();
+  _create_dirs(remote_repo_dirs);
+  _init_core();
+  _start_watchers();
 };
 
 const _setup_core = function() {
   if (!_configured) throw Error("Setup called without configuration");
 };
 
+const _init_core = function() {
+  if (!_configured) throw Error("Setup called without configuration");
+  if (_conf.isAdmin) {
+    _conf.keys = {};
+    _conf.keys.rsa = core.init_rsa_keys(); // Admin RSA Keys
+    _conf.keys.abe = core.init_abe_keys(); // Admin ABE Keys
+    store.set_keys(_conf.keys);
+  } else {
+  }
+};
+
 const _start_watchers = function() {
   if (!_configured) throw Error("Start Watchers called without configuration");
-  /*setup();
 
-  core.init(local_repo, remote_repo, local_store);
+  watch_paths = [_conf.local, _conf.remote];
+  console.log("_start_watchers \n", watch_paths);
 
-  create_admin_abe_sk();*/
-
-  watch_paths = [local_repo, remote_repo];
-
-  let watcher = chokidar.watch(watch_paths, {
+  watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
     ignored: [
       // Local
-      local_repo + "/.*",
-      local_repo + "/*/.*",
+      _conf.local + "/.*",
+      _conf.local + "/*/.*",
       // Remote
-      //remote_repo + "/keys/*",
-      remote_repo + "/attributes/*",
-      remote_repo + "/repo/.*",
-      remote_repo + "/repo/*/.*",
+      _conf.remote + "/attributes/*",
+      _conf.remote + "/repo/.*",
+      _conf.remote + "/repo/*/.*",
     ],
   });
-  //console.log("Setting on change event...");
 
   watcher
     .on("add", (file_path) => {
@@ -124,16 +143,24 @@ const _start_watchers = function() {
     });
 };
 
-const create_dirs = function(dirs, repo_path) {
+const _stop_watchers = async function() {
+  await watcher.close();
+};
+
+const stop = async function() {
+  await _stop_watchers();
+};
+
+const _create_dirs = function(dirs) {
   dirs.forEach((dir) => {
-    absolute_dir = repo_path + "/" + dir;
+    absolute_dir = _conf.remote + "/" + dir;
     if (!fs.existsSync(absolute_dir)) {
       fs.mkdirSync(absolute_dir, { recursive: true });
     }
   });
 };
 
-const setup = function() {
+/*const setup = function() {
   const data = local_store.get("data", {});
   if (data.length >= 0 && data.isAdmin) {
     // ADMIN
@@ -171,18 +198,15 @@ const init = function() {
   } else {
     console.log("ABEBOX NOT CONFIGURED");
   }
-};
+};*/
 
 const handle_local_add = function(file_path) {
   const fid = uuidv4();
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.local_repo_path
+    _conf.local
   );
-  /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-console.log(file_path, fid, original_file_name);
-const path = file_path.replace(original_file_name, "");
-const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
+
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
@@ -195,52 +219,36 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
       policy: [],
       status: file_status.local_change,
     });
-    local_store.set("files", files_list);
+    store.set_files(files_list);
   }
 };
 
+//TODO rivedere
 const handle_remote_add = function(full_file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     full_file_path,
-    core.conf.remote_repo_path
+    _conf.remote
   );
-  const data = local_store.get("data", {});
   if (relative_path.includes(pk_dir_rel_path)) {
-    if (data.isAdmin) {
+    if (_conf.isAdmin) {
       retrieve_pub_key(full_file_path, original_file_name);
     }
     return files_list;
   }
   if (relative_path.includes(keys_dir_rel_path)) {
-    if (!data.isAdmin) {
+    if (!_conf.isAdmin) {
       retrieve_abe_secret_key(full_file_path);
     }
     return files_list;
   }
   const fid_no_ext = original_file_name.split(".")[0];
   //try {
-  // Read raw metadata
-  const raw_metadata = fs.readFileSync(
-    core.conf.remote_repo_path + "/repo/" + fid_no_ext + ".abebox"
-  );
-  const { enc_metadata } = JSON.parse(raw_metadata);
-  //console.log("ENC META = ", enc_metadata);
 
-  const parsed_enc_metadata = JSON.parse(enc_metadata);
-  //console.log("PARSED ENC META = ", parsed_enc_metadata);
-
-  const { _policy } = parsed_enc_metadata;
-  console.log("POLICY FROM METADATA = ", _policy[0]);
-
-  console.log("SK = ", core.conf.abe_secret_key);
-
-  // Parse metadata
-  const { file_path } = file_utils.parse_metadata(
-    raw_metadata,
-    core.conf.abe_secret_key
+  const metadata = admin_core.retrieve_metadata(
+    _conf.remote + "/repo/" + fid_no_ext + ".abebox"
   );
 
-  if (file_path === null) {
+  if (metadata.file_path === null) {
     // DECRYPTION ERROR
     console.log("Decryption failed: " + error);
     return undefined;
@@ -249,18 +257,18 @@ const handle_remote_add = function(full_file_path) {
   const el = files_list.find(
     (el) =>
       el.file_path === relative_path &&
-      el.file_name === file_path &&
+      el.file_name === metadata.file_path &&
       el.file_id === fid_no_ext
   );
   if (el === undefined) {
     files_list.push({
       file_path: relative_path,
-      file_name: file_path,
+      file_name: metadata.file_path,
       file_id: fid_no_ext,
       policy: _policy[0],
       status: file_status.remote_change,
     });
-    local_store.set("files", files_list);
+    store.set_files(files_list);
     return files_list;
   }
   //} catch (error) {
@@ -292,15 +300,15 @@ const handle_remote_change = function(file_path) {
     file_path,
     core.conf.remote_repo_path
   );
-  const data = local_store.get("data", {});
+
   if (relative_path.includes(pk_dir_rel_path)) {
-    if (data.isAdmin) {
+    if (_conf.isAdmin) {
       retrieve_pub_key(file_path, original_file_name);
     }
     return files_list;
   }
   if (relative_path.includes(keys_dir_rel_path)) {
-    if (!data.isAdmin) {
+    if (!_conf.isAdmin) {
       retrieve_abe_secret_key(file_path);
     }
     return files_list;
@@ -333,7 +341,7 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
   );
   if (el !== undefined) {
     files_list.pop(el);
-    local_store.set("files", files_list);
+    store.set_files(files_list);
   }
 };
 
@@ -352,23 +360,20 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
   );
   if (el !== undefined) {
     files_list.pop(el);
-    local_store.set("files", files_list);
+    store.set_files(files_list);
   }
 };
 
 const send_invite = function(recv) {
-  const data = local_store.get("data");
   return openurl.mailto([recv.mail], {
     subject: "ABEBox invitation!",
-    body: `${data.name} has invited you to download ABEBox!\nYou can dowload it from this link [LINK].\n
+    body: `${_conf.name} has invited you to download ABEBox!\nYou can dowload it from this link [LINK].\n
     Here is your invitation token ${recv.token}\n`,
   });
 };
 
 const send_token = function(conf) {
-  //const data = local_store.get("data", []);
-  const token_hash = file_utils.get_hash(conf.token);
-  const rsa_pk = local_store.get("keys").rsa_pub_key;
+  const token_hash = file_utils.get_hash(_conf.token);
 
   // Scrivere il file con nome token_hash e path repo
 
@@ -384,7 +389,6 @@ const send_token = function(conf) {
 };
 
 const get_token = function(user) {
-  //const data = local_store.get("data", []);
   const token = user.token;
   if (token != undefined) {
     const token_hash = file_utils.get_hash(token);
@@ -395,7 +399,7 @@ const get_token = function(user) {
       const sign = res.sign.toString("utf8");
       if (sign === file_utils.get_hmac(res_token_hash, rsa_pk + user.mail)) {
         user.rsa_pub_key = rsa_pk;
-        const users = local_store.get("users", []);
+        const users = store.get_users();
         // Check if already exists
         const index = users.findIndex((item) => item.mail == user.mail);
         if (index >= 0) {
@@ -404,7 +408,7 @@ const get_token = function(user) {
           console.log("Removing:", rem, users);
         }
         users.push(user);
-        local_store.set("users", users);
+        store.set_users(users);
         console.log("Adding:", user, users);
       }
     }
@@ -412,7 +416,7 @@ const get_token = function(user) {
 };
 
 const retrieve_pub_key = async function(full_file_name, file_name) {
-  const users = local_store.get("users", []);
+  const users = store.get_users();
   const index = users.findIndex(
     (item) => file_utils.get_hash(item.token).toString("hex") === file_name
   );
@@ -428,10 +432,10 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
       console.log("Removing:", rem, users);
       rem.rsa_pub_key = rsa_pk;
       users.push(rem);
-      local_store.set("users", users);
+      store.set_users(users);
       console.log("Adding:", rem, users);
       // Create user secret key
-      const keys = local_store.get("keys", {});
+      const keys = store.get_keys();
       await core.create_abe_secret_key(
         core.conf.abe_pub_key,
         keys.abe_msk_key,
@@ -454,26 +458,13 @@ const retrieve_abe_secret_key = function(full_file_name) {
   console.log("USER ABE SK =", core.conf.abe_secret_key);
 };
 
-const create_admin_abe_sk = async function() {
-  const data = local_store.get("data", {});
-  const attrs = await get_attrs();
-
-  if (data.isAdmin && attrs.length > 0) {
-    const keys = local_store.get("keys", {});
-    const attrs_list = attrs.map((attr) => attr.id.toString());
-
-    console.log(keys.abe_msk_key);
-    core.conf.abe_secret_key = await core.create_abe_secret_key(
-      core.conf.abe_pub_key,
-      keys.abe_msk_key,
-      attrs_list,
-      file_utils.get_hash(data.name).toString("hex")
-    );
-    //console.log("ADMIN ABE SK CREATED: ", core.conf.abe_secret_key);
-  } else {
-    //console.log("ADMIN ABE SK NOT CREATED");
+/*const create_admin_abe_sk = async function() {
+  const attr_list = await get_attrs();
+  if (_conf.isAdmin && attrs.length > 0) {
+    const sk = core.create_abe_sk(attr_list);
+    // Save sk in a file
   }
-};
+};*/
 
 /************************ TEST FUNCTIONS ************************/
 const create_test_attributes = function() {
@@ -497,8 +488,7 @@ const create_test_attributes = function() {
       vers: "1",
     },
   ];
-  const data = local_store.get("data");
-  const attr_list_file = data.remote + attrs_file_rel_path;
+  const attr_list_file = _conf.remote + "/" + attrs_file_rel_path;
   if (!fs.existsSync(attr_list_file)) {
     const attrs_obj = {
       attributes: attrs,
@@ -511,24 +501,12 @@ const create_test_attributes = function() {
   }
 };
 
-const create_test_users = function() {
-  const users = [
-    { mail: "ppl0@ppl.it", rsa_pub_key: "", attrs: ["1", "2", "3"] },
-    { mail: "ppl1@ppl.it", rsa_pub_key: "", attrs: ["2", "3"] },
-    { mail: "ppl2@ppl.it", rsa_pub_key: "", attrs: ["1", "2"] },
-    { mail: "ppl3@ppl.it", rsa_pub_key: "", attrs: ["1"] },
-    { mail: "ppl4@ppl.it", rsa_pub_key: "", attrs: ["2"] },
-  ];
-  if (local_store.get("users", []).length == 0) local_store.set("users", users);
-};
-
 /******************************** EXPORTED FUNCTIONS ********************************/
 
 /**************** FILES *****************/
 const get_files_list = function() {
   //console.log(`GET_FILES_LIST`);
-  files_list = local_store.get("files", []);
-  //console.log("FILE LIST", files_list);
+  files_list = store.get_files();
   return files_list;
 };
 
@@ -539,7 +517,7 @@ const set_policy = async function(data) {
   if (el !== undefined) {
     el.policy = data.policy;
   }
-  local_store.set("files", files_list);
+  store.set_files(files_list);
   return files_list;
 };
 
@@ -572,19 +550,17 @@ const share_files = function() {
 
 /**************** CONFIGURATION *****************/
 
-const del_config = async function() {
-  console.log(`DEL_CONFIG`);
-  const conf = await local_store.clear();
-  return conf;
-};
+const get_config = function() {
+  assert(false);
 
-const get_config = async function() {
   console.log(`GET_CONFIG`);
-  const conf = await local_store.get("data", {});
+  const conf = store.get("conf");
   return conf;
 };
 
 const reset_config = async function() {
+  assert(false);
+
   console.log(`RESET_CONFIG`);
   // TODO clear Repo Folder
   local_store.clear();
@@ -592,7 +568,13 @@ const reset_config = async function() {
 };
 
 const set_config = function(config_data) {
-  const data = local_store.get("data", {});
+  if (_conf.configured) throw Error("ABEBox already configured");
+  // store the new configuration
+  store.set_conf(config_data);
+
+  _setup(); //Activating the new configuration
+
+  /*const data = local_store.get("data", {});
   if (data.length >= 0) {
     console.log("ERRORE configurazione già presente");
     return "ERRORE"; // No config change
@@ -605,14 +587,15 @@ const set_config = function(config_data) {
       send_token(config_data);
     }
     return config_data;
-  }
+  }*/
+  return config_data;
 };
 
 /**************** ATTRIBUTES *****************/
-const get_attrs = async function() {
-  //console.log(`GET_ATTRS`);
-  const data = await local_store.get("data");
-  const attr_list_file = data.remote + attrs_file_rel_path;
+const get_attrs = function() {
+  if (!_conf.configured) throw Error("ABEBox not configured in get_attrs");
+
+  const attr_list_file = _conf.remote + attrs_file_rel_path;
   if (!fs.existsSync(attr_list_file)) {
     return [];
   } else {
@@ -623,10 +606,11 @@ const get_attrs = async function() {
   }
 };
 
-const new_attr = async function(new_obj) {
-  //console.log(`NEW_ATTR ${new_obj.toString()}`);
-  const data = await local_store.get("data");
-  const attrs = await get_attrs();
+const new_attr = function(new_obj) {
+  if (!_conf.configured) throw Error("ABEBox not configured");
+  if (!_conf.isAdmin) throw Error("To Add an Attribute need to be admin");
+
+  const attrs = get_attrs();
 
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == new_obj.id);
@@ -640,16 +624,17 @@ const new_attr = async function(new_obj) {
       attributes: attrs,
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(data.remote + attrs_file_rel_path, attrs_jwt);
-    //console.log("Adding:", new_obj, attrs);
-    create_admin_abe_sk();
+    fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
+    _conf.keys.abe.sk == core.create_abe_sk(attrs);
   }
   return attrs;
 };
 
 const set_attr = async function(new_obj) {
+  if (!_conf.configured) throw Error("ABEBox not configured");
+  if (!_conf.isAdmin) throw Error("To Modify an Attribute need to be admin");
+
   console.log(`SET_ATTR ${new_obj.toString()}`);
-  const data = await local_store.get("data");
 
   const attrs = await get_attrs();
   // Check if already exists
@@ -666,21 +651,17 @@ const set_attr = async function(new_obj) {
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
     fs.writeFileSync(
-      data.remote + attrs_file_rel_path,
+      _conf.remote + "/" + attrs_file_rel_path,
       attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Adding:", new_obj, attrs);
-    create_admin_abe_sk();
   }
   return attrs;
 };
 
 const del_attr = async function(id) {
   console.log(`DEL_ATTR ${id.toString()}`);
-  const data = await local_store.get("data");
-  /*const attrs = JSON.parse(
-    fs.readFileSync(data.remote + "/attributes/attributes_list.json")
-  );*/
+
   const attrs = await get_attrs();
   // Check if already exists
   const index = attrs.findIndex((item) => item.id == id);
@@ -694,24 +675,24 @@ const del_attr = async function(id) {
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
     fs.writeFileSync(
-      data.remote + attrs_file_rel_path,
+      _conf.remote + "/" + attrs_file_rel_path,
       attrs_jwt //JSON.stringify(attrs)
     );
     console.log("Removing:", rem, attrs);
-    create_admin_abe_sk();
+    _conf.keys.abe.sk == core.create_abe_sk(attrs);
   }
   return attrs;
 };
 
 /**************** USERS *****************/
-const get_users = async function() {
+const get_users = function() {
   console.log(`GET_USERS`);
-  return await local_store.get("users");
+  return store.get_users();
 };
 
-const new_user = async function(new_obj) {
+const new_user = function(new_obj) {
   console.log(`NEW_USER ${new_obj.toString()}`);
-  const users = await local_store.get("users");
+  const users = store.get_users();
   // Check if already exists
   const index = users.findIndex((item) => item.mail == new_obj.mail);
   if (index >= 0) {
@@ -719,15 +700,14 @@ const new_user = async function(new_obj) {
   } else {
     // Add new
     users.push(new_obj);
-    local_store.set("users", users);
-    console.log("Adding:", new_obj, users);
+    store.set_users(users);
   }
   return users;
 };
 
-const set_user = async function(new_obj) {
+const set_user = function(new_obj) {
   console.log(`SET_USER ${new_obj.toString()}`);
-  const users = await local_store.get("users");
+  const users = store.get_users();
   // Check if already exists
   const index = users.findIndex((item) => item.mail == new_obj.mail);
   if (index < 0) {
@@ -735,18 +715,16 @@ const set_user = async function(new_obj) {
   } else {
     // Replace
     const rem = users.splice(index, 1);
-    console.log("Removing:", rem, users);
     users.push(new_obj);
-    local_store.set("users", users);
-    console.log("Adding:", new_obj, users);
+    store.set_users(users);
   }
   return users;
 };
 
-const invite_user = async function(user) {
+const invite_user = function(user) {
   console.log(`INVITE_USER ${user.toString()}`);
   console.log(user);
-  const users = await local_store.get("users");
+  const users = store.get_users();
   // Check if already exists
   const index = users.findIndex((el) => el.mail == user.mail);
   if (index < 0) {
@@ -757,19 +735,17 @@ const invite_user = async function(user) {
     console.log("Removing:", rem, users);
     rem.token = token;
     users.push(rem);
-    local_store.set("users", users);
+    store.set_users(users);
     console.log("Adding:", rem, users);
     // TODO SEND EMAIL
     console.log(`SEND INVITE RES = ${send_invite(rem)}`);
     return rem;
-    //console.log("Sending email to", rem.mail);
-    //return users;
   }
 };
 
 const del_user = async function(mail) {
   console.log(`DEL_USER ${mail.toString()}`);
-  const users = await local_store.get("users");
+  const users = store.get_users();
   const index = users.findIndex((item) => item.mail == mail);
   // Check if already exists
   if (index < 0) {
@@ -777,15 +753,18 @@ const del_user = async function(mail) {
   } else {
     // Remove
     const rem = users.splice(index, 1);
-    local_store.set("users", users);
+    store.set_users(users);
     console.log("Removing:", rem, users);
   }
   return users;
 };
 
-init();
+//init();
+
+_boot();
 
 module.exports = {
+  stop,
   get_files_list,
   set_policy,
   share_files,

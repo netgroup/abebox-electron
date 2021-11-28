@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const { pipeline } = require("stream/promises");
+const jwt = require("jsonwebtoken");
 
 const fu = require("./file_utils");
 const rabe = require("./rabejs/rabejs.node");
@@ -332,7 +333,12 @@ const file_decrypt = async function(ciphertext_file) {
     const encrypted_content_file = get_encrypted_content_file_name(
       ciphertext_file
     );
-    await retrieve_decrypted_file(encrypted_content_file, file_name, sym_key, iv);
+    await retrieve_decrypted_file(
+      encrypted_content_file,
+      file_name,
+      sym_key,
+      iv
+    );
   } catch (error) {
     throw Error(`Decryption of ${ciphertext_file} failed with error ${error}`);
   }
