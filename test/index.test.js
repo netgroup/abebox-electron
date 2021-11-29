@@ -99,9 +99,9 @@ describe("Abebox Tests", () => {
     assert.equal(attr_list_get.length, 1);
   });
 
-  it("admin abebox add second attribute", async () => {
+  it("admin abebox add second attribute", () => {
     const attr_data = { univ: "UN", attr: "B", vers: "1" };
-    const attr_list = await admin_abebox_init.new_attr(attr_data);
+    const attr_list = admin_abebox_init.new_attr(attr_data);
 
     assert.equal(attr_list.length, 2);
     assert.equal(attr_list[1], attr_data);
