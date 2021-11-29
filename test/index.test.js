@@ -85,11 +85,25 @@ describe("Abebox Tests", () => {
     admin_abebox_init.set_config(conf);
   });
 
-  it("admin abebox new attribute", async () => {
+  it("admin abebox new attribute", () => {
     const attr_data = { univ: "UN", attr: "A", vers: "1" };
-    const attr_list = await admin_abebox_init.new_attr(attr_data);
+    const attr_list = admin_abebox_init.new_attr(attr_data);
 
     assert.equal(attr_list.length, 1);
     assert.equal(attr_list[0], attr_data);
+  });
+
+  it("admin abebox new attribute", () => {
+    const attr_list_get = admin_abebox_init.get_attrs();
+    console.log("LG:", attr_list_get);
+    assert.equal(attr_list_get.length, 1);
+  });
+
+  it("admin abebox add second attribute", async () => {
+    const attr_data = { univ: "UN", attr: "B", vers: "1" };
+    const attr_list = await admin_abebox_init.new_attr(attr_data);
+
+    assert.equal(attr_list.length, 2);
+    assert.equal(attr_list[1], attr_data);
   });
 });

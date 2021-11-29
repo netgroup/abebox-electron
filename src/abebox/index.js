@@ -466,43 +466,6 @@ const retrieve_abe_secret_key = function(full_file_name) {
   }
 };*/
 
-/************************ TEST FUNCTIONS ************************/
-const create_test_attributes = function() {
-  const attrs = [
-    {
-      id: "1",
-      univ: "university",
-      attr: "professore",
-      vers: "1",
-    },
-    {
-      id: "2",
-      univ: "university",
-      attr: "studente",
-      vers: "1",
-    },
-    {
-      id: "3",
-      univ: "university",
-      attr: "triennale",
-      vers: "1",
-    },
-  ];
-  const attr_list_file = _conf.remote + "/" + attrs_file_rel_path;
-  if (!fs.existsSync(attr_list_file)) {
-    const attrs_obj = {
-      attributes: attrs,
-    };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(
-      attr_list_file,
-      attrs_jwt //JSON.stringify(attributes)
-    );
-  }
-};
-
-/******************************** EXPORTED FUNCTIONS ********************************/
-
 /**************** FILES *****************/
 const get_files_list = function() {
   //console.log(`GET_FILES_LIST`);
@@ -595,7 +558,7 @@ const set_config = function(config_data) {
 const get_attrs = function() {
   if (!_conf.configured) throw Error("ABEBox not configured in get_attrs");
 
-  const attr_list_file = _conf.remote + attrs_file_rel_path;
+  const attr_list_file = _conf.remote + "/" + attrs_file_rel_path;
   if (!fs.existsSync(attr_list_file)) {
     return [];
   } else {
@@ -628,6 +591,8 @@ const new_attr = function(new_obj) {
       attributes: attrs,
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
+
+    console.log("NA: ", attrs_jwt);
     fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
     const attrs_comp = _compress_list(attrs);
     _conf.keys.abe.sk == core.create_abe_sk(attrs_comp);
