@@ -8,13 +8,21 @@ const file_utils = require("./file_utils"); // TODO Rename
 const core = require("./core");
 const rsa = require("./rsa"); // TODO Remove
 const store = require("./store"); // local storage
+const attribute = require("./attribute");
 const { assert } = require("console");
 
 /* Constants */
-const attrs_file_rel_path = "attributes/attributes_list.json";
-const pk_dir_rel_path = "pub_keys/";
-const keys_dir_rel_path = "keys/";
-const remote_repo_dirs = ["attributes", "keys", "repo", "pub_keys"];
+//const attrs_file_rel_path = "attributes/attributes_list.json";
+const attr_rel_path = "attributes";
+const pk_dir_rel_path = "pub_keys";
+const keys_dir_rel_path = "keys";
+const repo_rel_path = "repo";
+const remote_repo_dirs = [
+  attr_rel_path,
+  keys_dir_rel_path,
+  repo_rel_path,
+  pk_dir_rel_path,
+];
 
 const file_status = {
   sync: 0,
@@ -60,6 +68,7 @@ const _boot = function() {
     _configured = true;
     _conf = store.get_conf();
     console.log("ABEBox booting - Loading Configuration \n", _conf);
+    _init_attribute(_conf.remote + "/" + attr_rel_path);
     _start_watchers();
   } else {
     console.log("ABEBox booting - NO Configuration Find");
@@ -73,6 +82,7 @@ const _setup = function() {
   _conf = store.get_conf();
   _create_dirs(remote_repo_dirs);
   _init_core();
+  _init_attribute(_conf.remote + "/" + attr_rel_path);
   _start_watchers();
 };
 
@@ -91,6 +101,10 @@ const _init_core = function() {
   }
 };
 
+const _init_attribute = function(attribute_path) {
+  attribute.init(attribute_path);
+};
+
 const _start_watchers = function() {
   if (!_configured) throw Error("Start Watchers called without configuration");
 
@@ -104,9 +118,9 @@ const _start_watchers = function() {
       _conf.local + "/.*",
       _conf.local + "/*/.*",
       // Remote
-      _conf.remote + "/attributes/*",
-      _conf.remote + "/repo/.*",
-      _conf.remote + "/repo/*/.*",
+      _conf.remote + "/" + attr_rel_path + "/*",
+      _conf.remote + "/" + repo_rel_path + ".*",
+      _conf.remote + "/" + repo_rel_path + "/*/.*",
     ],
   });
 
@@ -229,13 +243,13 @@ const handle_remote_add = function(full_file_path) {
     full_file_path,
     _conf.remote
   );
-  if (relative_path.includes(pk_dir_rel_path)) {
+  if (relative_path.includes(pk_dir_rel_path + "/")) {
     if (_conf.isAdmin) {
       retrieve_pub_key(full_file_path, original_file_name);
     }
     return files_list;
   }
-  if (relative_path.includes(keys_dir_rel_path)) {
+  if (relative_path.includes(keys_dir_rel_path + "/")) {
     if (!_conf.isAdmin) {
       retrieve_abe_secret_key(full_file_path);
     }
@@ -301,13 +315,13 @@ const handle_remote_change = function(file_path) {
     core.conf.remote_repo_path
   );
 
-  if (relative_path.includes(pk_dir_rel_path)) {
+  if (relative_path.includes(pk_dir_rel_path + "/")) {
     if (_conf.isAdmin) {
       retrieve_pub_key(file_path, original_file_name);
     }
     return files_list;
   }
-  if (relative_path.includes(keys_dir_rel_path)) {
+  if (relative_path.includes(keys_dir_rel_path + "/")) {
     if (!_conf.isAdmin) {
       retrieve_abe_secret_key(file_path);
     }
@@ -383,7 +397,7 @@ const send_token = function(conf) {
     sign: signature.toString("hex"),
   };
   fs.writeFileSync(
-    `${conf.remote}${pk_dir_rel_path}${token_hash.toString("hex")}`,
+    `${conf.remote}/${pk_dir_rel_path}/${token_hash.toString("hex")}`,
     JSON.stringify(data)
   );
 };
@@ -475,7 +489,7 @@ const get_files_list = function() {
 
 const set_policy = function(data) {
   //console.log(`SET_POLICY ${data.toString()}`);
-  console.log("SET POLICY", data.file_id, data.policy);
+  //console.log("SET POLICY", data.file_id, data.policy);
   const el = files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
     el.policy = data.policy;
@@ -488,11 +502,17 @@ const share_files = function() {
   console.log(`SHARE_FILES`);
   files_list.forEach((file) => {
     if (file.status == file_status.local_change && file.policy.length != 0) {
-      const file_name = file.file_path + file.file_name;
+      const file_name =
+        file.file_path.charAt(0) === "/"
+          ? file.file_path.substring(1) + file.file_name
+          : file.file_path + file.file_name;
+      console.log(`FILE ${file_name} TO ENCRYPT`);
       const res = core.file_encrypt(
         file_name,
-        file_utils.policy_as_string(file.policy),
-        file.file_id
+        _conf.local + "/" + file_name,
+        _conf.remote + "/" + repo_rel_path,
+        file.file_id,
+        file_utils.policy_as_string(file.policy)
       );
       if (res) file.status = file_status.sync;
       else console.log("[ERROR] ENCRYPTING LOCAL FILE " + file_name);
@@ -554,96 +574,31 @@ const set_config = function(config_data) {
 /**************** ATTRIBUTES *****************/
 const get_attrs = function() {
   if (!_conf.configured) throw Error("ABEBox not configured in get_attrs");
-
-  const attr_list_file = _conf.remote + "/" + attrs_file_rel_path;
-  if (!fs.existsSync(attr_list_file)) {
-    return [];
-  } else {
-    const attrs_obj = core.verify_jwt(
-      fs.readFileSync(attr_list_file).toString()
-    );
-    return attrs_obj.attributes;
-  }
-};
-
-const _compress_list = function(attr_list) {
-  return attr_list.map((el) => _get_attr_id(el));
-};
-
-const _get_attr_id = function(attr) {
-  return `${attr.univ}:${attr.attr}:v${attr.vers}`;
+  return attribute.get_all();
 };
 
 const new_attr = function(new_obj) {
   if (!_conf.configured) throw Error("ABEBox not configured");
   if (!_conf.isAdmin) throw Error("To Add an Attribute need to be admin");
-
-  const attrs = get_attrs();
-
-  // Check if already exists
-  const index = attrs.findIndex(
-    (item) => _get_attr_id(item) == _get_attr_id(new_obj)
-  );
-  if (index >= 0) {
-    throw Error("ID is already present");
-  } else {
-    // Add new
-    attrs.push(new_obj);
-    const attrs_obj = {
-      attributes: attrs,
-    };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
-
-    fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
-    const attrs_comp = _compress_list(attrs);
-    _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
-  }
+  const attrs = attribute.add(new_obj);
+  const attrs_comp = attribute.compress_list();
+  _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   return attrs;
 };
 
 const set_attr = function(old_obj, new_obj) {
   if (!_conf.configured) throw Error("ABEBox not configured");
   if (!_conf.isAdmin) throw Error("To Modify an Attribute need to be admin");
-
-  const attrs = get_attrs();
-  // Check if already exists
-  const index = attrs.findIndex(
-    (item) => _get_attr_id(item) == _get_attr_id(old_obj)
-  );
-  if (index < 0) {
-    throw Error("ID not present");
-  } else {
-    attrs[index] = new_obj;
-    const attrs_obj = {
-      attributes: attrs,
-    };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
-    const attrs_comp = _compress_list(attrs);
-    _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
-  }
+  const attrs = attribute.set(old_obj, new_obj);
+  const attrs_comp = attribute.compress_list();
+  _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   return attrs;
 };
 
 const del_attr = function(obj_del) {
-  const attrs = get_attrs();
-  // Check if already exists
-  const index = attrs.findIndex(
-    (item) => _get_attr_id(item) == _get_attr_id(obj_del)
-  );
-  if (index < 0) {
-    throw Error("ID not present");
-  } else {
-    // Remove
-    const rem = attrs.splice(index, 1);
-    const attrs_obj = {
-      attributes: attrs,
-    };
-    const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
-    const attrs_comp = _compress_list(attrs);
-    _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
-  }
+  const attrs = attribute.del(obj_del);
+  const attrs_comp = attribute.compress_list();
+  _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   return attrs;
 };
 

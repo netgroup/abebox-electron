@@ -250,8 +250,10 @@ const create_encrypted_file = async function(input_file, output_file) {
   // Create symmetric cipher
   const algorithm = "aes-256-cbc";
   const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
+  console.log(`SYM KEY = ${sym_key}\nIV = ${iv}`);
   // Read data, encrypt it and write the resulting ciphertext
   await pipeline(input_file_stream, cipher, output_file_stream);
+  console.log(`AFTER PIPELINE SYM KEY = ${sym_key}\nIV = ${iv}`);
   return {
     sym_key: sym_key.toString("hex"),
     iv: iv.toString("hex"),
@@ -304,16 +306,24 @@ const file_encrypt = async function(
   rel_plaintext_file,
   abs_plaintext_file,
   abs_remote_repo_path,
+  ciphertext_file,
   policy
 ) {
   if (!fs.existsSync(abs_plaintext_file))
     throw Error(`${abs_plaintext_file} does not exist`);
   try {
-    const ciphertext_file = fu.get_random_filename();
+    console.log(`rel_plain = ${rel_plaintext_file}`);
+    console.log(`abs_plain = ${abs_plaintext_file}`);
+    console.log(`abs_rem = ${abs_remote_repo_path}`);
+    console.log(`cipher = ${ciphertext_file}`);
+    console.log(`policy = ${policy}`);
+    //const ciphertext_file = fu.get_random_filename();
     const metadata_file =
       abs_remote_repo_path + "/" + ciphertext_file + ".abebox";
     const encrypted_content_file =
       abs_remote_repo_path + "/" + ciphertext_file + ".0";
+    console.log(`meta = ${metadata_file}`);
+    console.log(`enc = ${encrypted_content_file}`);
     /*const encrypted_content_file = _get_encrypted_content_file_name(
       ciphertext_file
     );*/
