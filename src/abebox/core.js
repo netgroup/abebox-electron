@@ -173,6 +173,8 @@ const set_abe_sk = function(sk) {
 const create_abe_sk = function(attr_list) {
   if (!_conf.abe_init) throw Error("ABE Not initialized");
   if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
+
+  console.log("AL: ", attr_list);
   _conf.abe_keys.sk = rabe.keygen(
     _conf.abe_keys.pk,
     _conf.abe_keys.msk,

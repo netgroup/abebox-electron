@@ -606,6 +606,10 @@ const get_attrs = function() {
   }
 };
 
+const _compress_list = function(attr_list) {
+  return attr_list.map((el) => el.id.toString());
+};
+
 const new_attr = function(new_obj) {
   if (!_conf.configured) throw Error("ABEBox not configured");
   if (!_conf.isAdmin) throw Error("To Add an Attribute need to be admin");
@@ -625,7 +629,8 @@ const new_attr = function(new_obj) {
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
     fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
-    _conf.keys.abe.sk == core.create_abe_sk(attrs);
+    const attrs_comp = _compress_list(attrs);
+    _conf.keys.abe.sk == core.create_abe_sk(attrs_comp);
   }
   return attrs;
 };
