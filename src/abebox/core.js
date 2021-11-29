@@ -174,7 +174,6 @@ const create_abe_sk = function(attr_list) {
   if (!_conf.abe_init) throw Error("ABE Not initialized");
   if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
 
-  console.log("AL: ", attr_list);
   _conf.abe_keys.sk = rabe.keygen(
     _conf.abe_keys.pk,
     _conf.abe_keys.msk,
@@ -291,8 +290,7 @@ const verify_jwt = function(token) {
 
 const _get_metadata_file_name = function(file) {
   const last_dot_position = file.lastIndexOf(".");
-  if (last_dot_position >= file.length)
-    return file + ".abebox";
+  if (last_dot_position >= file.length) return file + ".abebox";
   return file.substring(0, last_dot_position) + ".abebox";
 };
 
@@ -326,7 +324,14 @@ const file_encrypt = async function(
     );
     // Metadata file creation
     //const metadata_file = _get_metadata_file_name(ciphertext_file);
-    create_metadata_file(rel_plaintext_file, metadata_file, sym_key, iv, policy);
+    create_metadata_file(
+      rel_plaintext_file,
+      metadata_file,
+      sym_key,
+      iv,
+      policy
+    );
+    return metadata_file;
   } catch (error) {
     throw Error(
       `Encryption of ${abs_plaintext_file} with policy ${policy} failed with error ${error}`
@@ -346,7 +351,7 @@ const file_decrypt = async function(abs_ciphertext_file, abs_local_repo_path) {
     }
     // File content symmetric decryption
     const encrypted_content_file = _get_encrypted_content_file_name(
-      ciphertext_file
+      abs_ciphertext_file
     );
     await retrieve_decrypted_file(
       encrypted_content_file,
@@ -355,7 +360,9 @@ const file_decrypt = async function(abs_ciphertext_file, abs_local_repo_path) {
       iv
     );
   } catch (error) {
-    throw Error(`Decryption of ${abs_ciphertext_file} failed with error ${error}`);
+    throw Error(
+      `Decryption of ${abs_ciphertext_file} failed with error ${error}`
+    );
   }
 };
 

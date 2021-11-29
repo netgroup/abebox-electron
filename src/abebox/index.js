@@ -473,10 +473,10 @@ const get_files_list = function() {
   return files_list;
 };
 
-const set_policy = async function(data) {
+const set_policy = function(data) {
   //console.log(`SET_POLICY ${data.toString()}`);
-  //console.log("SET POLICY", data.file_id, data.policy);
-  const el = await files_list.find((el) => el.file_id === data.file_id);
+  console.log("SET POLICY", data.file_id, data.policy);
+  const el = files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
     el.policy = data.policy;
   }

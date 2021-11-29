@@ -100,37 +100,19 @@ describe("Core Basic Tests", () => {
     assert.equal(metadata.sym_key, sym_key);
     assert.equal(metadata.iv, iv);
   }).timeout(10000);
-
-  it("test admin metadata and content files creation (with outfile = '.0') and user file decoding", async () => {
-    // IN FILE ENCRYPT PASSO COME OUTPUT FILE "*.0"
-    // Process
-    const policy = '"1"';
-    const plaintext = fs.readFileSync(plaintext_file, "utf-8");
-    await admin_core.file_encrypt(
-      rel_plaintext_file,
-      plaintext_file,
-      abs_remote_repo_path,
-      policy
-    );
-    // SERVE CERTEZZA CHE VECCHIO PLAINTEXT FILE VENGA CANCELLATO PRIMA DELLA DECRYPT OPPURE CHE CI SIA UNA VERA MODIFICA AL FILE
-    await user_core.file_decrypt(ciphertext_file, abs_local_repo_path);
-    const dec_plaintext = fs.readFileSync(plaintext_file, "utf-8");
-    assert.equal(plaintext, dec_plaintext);
-  }).timeout(10000);
-
   it("test admin metadata and content files creation (with outfile = '.abebox') and user file decoding", async () => {
-    // IN FILE ENCRYPT PASSO COME OUTPUT FILE "*.abebox"
-    // Process
     const policy = '"1"';
+    const plaintext_file = __dirname + "/tmp/pippo/hello.txt";
+    const rel_plaintext_file = "pippo/hello.txt";
     const plaintext = fs.readFileSync(plaintext_file, "utf-8");
-    await admin_core.file_encrypt(
+    const metadata_file = await admin_core.file_encrypt(
       rel_plaintext_file,
       plaintext_file,
       abs_remote_repo_path,
       policy
     );
-    // SERVE CERTEZZA CHE VECCHIO PLAINTEXT FILE VENGA CANCELLATO PRIMA DELLA DECRYPT OPPURE CHE CI SIA UNA VERA MODIFICA AL FILE
-    await user_core.file_decrypt(ciphertext_file, abs_local_repo_path);
+    fs.rmSync(plaintext_file);
+    await user_core.file_decrypt(metadata_file, abs_local_repo_path);
     const dec_plaintext = fs.readFileSync(plaintext_file, "utf-8");
     assert.equal(plaintext, dec_plaintext);
   }).timeout(10000);
