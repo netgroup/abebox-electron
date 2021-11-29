@@ -196,11 +196,11 @@ const create_metadata_file = function(
   policy
 ) {
   if (!_conf.abe_init) throw Error("ABE Not initialized");
-  const input_file_name = fu.get_file_name(input_file);
+  //const input_file_name = fu.get_file_name(input_file);
   // Group parameters to encrypt
   const metadata_to_enc = {
     sym_key: sym_key,
-    file_name: input_file_name,
+    file_name: input_file, //input_file_name,
   };
   // Encrypt parameters using CP-ABE
   const enc_metadata = rabe.encrypt_str(
@@ -291,42 +291,55 @@ const verify_jwt = function(token) {
 
 const _get_metadata_file_name = function(file) {
   const last_dot_position = file.lastIndexOf(".");
+  if (last_dot_position >= file.length)
+    return file + ".abebox";
   return file.substring(0, last_dot_position) + ".abebox";
 };
 
 const _get_encrypted_content_file_name = function(file) {
   const last_dot_position = file.lastIndexOf(".");
+  if (last_dot_position >= file.length) return file + ".0";
   return file.substring(0, last_dot_position) + ".0";
 };
 
-const file_encrypt = async function(plaintext_file, ciphertext_file, policy) {
-  if (!fs.existsSync(plaintext_file))
-    throw Error(`${plaintext_file} does not exist`);
+const file_encrypt = async function(
+  rel_plaintext_file,
+  abs_plaintext_file,
+  abs_remote_repo_path,
+  policy
+) {
+  if (!fs.existsSync(abs_plaintext_file))
+    throw Error(`${abs_plaintext_file} does not exist`);
   try {
-    const encrypted_content_file = _get_encrypted_content_file_name(
+    const ciphertext_file = fu.get_random_filename();
+    const metadata_file =
+      abs_remote_repo_path + "/" + ciphertext_file + ".abebox";
+    const encrypted_content_file =
+      abs_remote_repo_path + "/" + ciphertext_file + ".0";
+    /*const encrypted_content_file = _get_encrypted_content_file_name(
       ciphertext_file
-    );
+    );*/
     // File content symmetric encryption
     const { sym_key, iv } = await create_encrypted_file(
-      plaintext_file,
+      abs_plaintext_file,
       encrypted_content_file
     );
     // Metadata file creation
-    const metadata_file = _get_metadata_file_name(ciphertext_file);
-    create_metadata_file(plaintext_file, metadata_file, sym_key, iv, policy);
+    //const metadata_file = _get_metadata_file_name(ciphertext_file);
+    create_metadata_file(rel_plaintext_file, metadata_file, sym_key, iv, policy);
   } catch (error) {
     throw Error(
-      `Encryption of ${plaintext_file} with policy ${policy} failed with error ${error}`
+      `Encryption of ${abs_plaintext_file} with policy ${policy} failed with error ${error}`
     );
   }
 };
 
-const file_decrypt = async function(ciphertext_file) {
-  if (!fs.existsSync(ciphertext_file))
-    throw Error(`${ciphertext_file} does not exist`);
+const file_decrypt = async function(abs_ciphertext_file, abs_local_repo_path) {
+  if (!fs.existsSync(abs_ciphertext_file))
+    throw Error(`${abs_ciphertext_file} does not exist`);
   try {
     // Metadata retrieving
-    const metadata_file = _get_metadata_file_name(ciphertext_file);
+    const metadata_file = _get_metadata_file_name(abs_ciphertext_file);
     const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
     if (file_name === null) {
       throw Error(`File name not defined`);
@@ -337,12 +350,12 @@ const file_decrypt = async function(ciphertext_file) {
     );
     await retrieve_decrypted_file(
       encrypted_content_file,
-      file_name,
+      abs_local_repo_path + "/" + file_name,
       sym_key,
       iv
     );
   } catch (error) {
-    throw Error(`Decryption of ${ciphertext_file} failed with error ${error}`);
+    throw Error(`Decryption of ${abs_ciphertext_file} failed with error ${error}`);
   }
 };
 

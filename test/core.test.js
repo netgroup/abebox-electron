@@ -7,6 +7,9 @@ const ciphertext_file = "./test/tmp/enc_hello.0";
 const ciphermeta_file = "./test/tmp/enc_hello.abebox";
 const dec_plaintext_file = "./test/tmp/dec_hello.txt";
 const out_meta_file = "./test/tmp/test_meta_file.abebox";
+const rel_plaintext_file = "hello.txt";
+const abs_remote_repo_path = "test/tmp";
+const abs_local_repo_path = abs_remote_repo_path;
 
 // remove and create test files
 before(() => {
@@ -53,7 +56,7 @@ describe("Core Basic Tests", () => {
     const policy = '"1"';
     admin_core.create_metadata_file(file, out_meta_file, sym_key, iv, policy);
     const metadata = admin_core.retrieve_metadata(out_meta_file);
-    assert.equal("./" + metadata.file_name, file);
+    assert.equal(metadata.file_name, file);
     assert.equal(metadata.sym_key, sym_key);
     assert.equal(metadata.iv, iv);
   }).timeout(10000);
@@ -62,7 +65,7 @@ describe("Core Basic Tests", () => {
     const policy = '"1"';
     admin_core.create_metadata_file(file, out_meta_file, sym_key, iv, policy);
     const metadata = admin_core.retrieve_metadata(out_meta_file);
-    assert.equal("./" + metadata.file_name, file);
+    assert.equal(metadata.file_name, file);
     assert.equal(metadata.sym_key, sym_key);
     assert.equal(metadata.iv, iv);
   }).timeout(10000);
@@ -93,7 +96,7 @@ describe("Core Basic Tests", () => {
 
   it("test user metadata file reading", () => {
     const metadata = user_core.retrieve_metadata(out_meta_file);
-    assert.equal("./" + metadata.file_name, file);
+    assert.equal(metadata.file_name, file);
     assert.equal(metadata.sym_key, sym_key);
     assert.equal(metadata.iv, iv);
   }).timeout(10000);
@@ -103,9 +106,14 @@ describe("Core Basic Tests", () => {
     // Process
     const policy = '"1"';
     const plaintext = fs.readFileSync(plaintext_file, "utf-8");
-    await admin_core.file_encrypt(plaintext_file, ciphertext_file, policy);
+    await admin_core.file_encrypt(
+      rel_plaintext_file,
+      plaintext_file,
+      abs_remote_repo_path,
+      policy
+    );
     // SERVE CERTEZZA CHE VECCHIO PLAINTEXT FILE VENGA CANCELLATO PRIMA DELLA DECRYPT OPPURE CHE CI SIA UNA VERA MODIFICA AL FILE
-    await user_core.file_decrypt(ciphertext_file);
+    await user_core.file_decrypt(ciphertext_file, abs_local_repo_path);
     const dec_plaintext = fs.readFileSync(plaintext_file, "utf-8");
     assert.equal(plaintext, dec_plaintext);
   }).timeout(10000);
@@ -115,9 +123,14 @@ describe("Core Basic Tests", () => {
     // Process
     const policy = '"1"';
     const plaintext = fs.readFileSync(plaintext_file, "utf-8");
-    await admin_core.file_encrypt(plaintext_file, ciphermeta_file, policy);
+    await admin_core.file_encrypt(
+      rel_plaintext_file,
+      plaintext_file,
+      abs_remote_repo_path,
+      policy
+    );
     // SERVE CERTEZZA CHE VECCHIO PLAINTEXT FILE VENGA CANCELLATO PRIMA DELLA DECRYPT OPPURE CHE CI SIA UNA VERA MODIFICA AL FILE
-    await user_core.file_decrypt(ciphertext_file);
+    await user_core.file_decrypt(ciphertext_file, abs_local_repo_path);
     const dec_plaintext = fs.readFileSync(plaintext_file, "utf-8");
     assert.equal(plaintext, dec_plaintext);
   }).timeout(10000);
