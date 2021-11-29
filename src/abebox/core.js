@@ -289,12 +289,12 @@ const verify_jwt = function(token) {
   return jwt.verify(token, _conf.rsa_keys.pk);
 };
 
-const get_metadata_file_name = function(file) {
+const _get_metadata_file_name = function(file) {
   const last_dot_position = file.lastIndexOf(".");
   return file.substring(0, last_dot_position) + ".abebox";
 };
 
-const get_encrypted_content_file_name = function(file) {
+const _get_encrypted_content_file_name = function(file) {
   const last_dot_position = file.lastIndexOf(".");
   return file.substring(0, last_dot_position) + ".0";
 };
@@ -303,7 +303,7 @@ const file_encrypt = async function(plaintext_file, ciphertext_file, policy) {
   if (!fs.existsSync(plaintext_file))
     throw Error(`${plaintext_file} does not exist`);
   try {
-    const encrypted_content_file = get_encrypted_content_file_name(
+    const encrypted_content_file = _get_encrypted_content_file_name(
       ciphertext_file
     );
     // File content symmetric encryption
@@ -312,7 +312,7 @@ const file_encrypt = async function(plaintext_file, ciphertext_file, policy) {
       encrypted_content_file
     );
     // Metadata file creation
-    const metadata_file = get_metadata_file_name(ciphertext_file);
+    const metadata_file = _get_metadata_file_name(ciphertext_file);
     create_metadata_file(plaintext_file, metadata_file, sym_key, iv, policy);
   } catch (error) {
     throw Error(
@@ -326,13 +326,13 @@ const file_decrypt = async function(ciphertext_file) {
     throw Error(`${ciphertext_file} does not exist`);
   try {
     // Metadata retrieving
-    const metadata_file = get_metadata_file_name(ciphertext_file);
+    const metadata_file = _get_metadata_file_name(ciphertext_file);
     const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
     if (file_name === null) {
       throw Error(`File name not defined`);
     }
     // File content symmetric decryption
-    const encrypted_content_file = get_encrypted_content_file_name(
+    const encrypted_content_file = _get_encrypted_content_file_name(
       ciphertext_file
     );
     await retrieve_decrypted_file(
