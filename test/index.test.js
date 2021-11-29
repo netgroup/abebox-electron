@@ -35,7 +35,8 @@ before(() => {
     });
 
   // Create dirs
-  if (!fs.existsSync(__dirname + "/" + tmp_dir)) fs.mkdirSync(tmp_dir);
+  if (!fs.existsSync(__dirname + "/" + tmp_dir))
+    fs.mkdirSync(__dirname + "/" + tmp_dir);
   if (!fs.existsSync(__dirname + "/" + repo_local_dir))
     fs.mkdirSync(__dirname + "/" + repo_local_dir);
   if (!fs.existsSync(__dirname + "/" + repo_shared_dir))
@@ -152,6 +153,41 @@ describe("Abebox Tests", () => {
     admin_abebox_init.del_user(new_user.mail);
     const after_del_user_list = admin_abebox_init.get_users();
     assert.equal(after_del_user_list.length + 1, after_add_user_list.length);
+  });
+  it("add a file in the local repo", () => {
+    const add_filename = "test_add.txt";
+    fs.writeFileSync(
+      __dirname + "/" + repo_local_dir + "/" + add_filename,
+      "ciao"
+    );
+    // we should await for the watcher
+    // either set a timeout or export a callback
+    setTimeout((e) => {
+      const file_list = admin_abebox_init.get_files_list();
+      console.log(`file_list = ${JSON.stringify(file_list)}`);
+      const my_file = file_list[0];
+      assert.equal(my_file.file_name, add_filename);
+      admin_abebox_init.share_files();
+      const my_policy = {
+        file_id: my_file.file_id,
+        policy: [["A"]],
+      };
+      admin_abebox_init.set_policy(my_policy);
+      const file_list2 = admin_abebox_init.get_files_list();
+      console.log(`file_list2 = ${JSON.stringify(file_list2)}`);
+      assert.ok(
+        fs.existsSync(
+          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
+        )
+      );
+      assert.ok(
+        fs.existsSync(
+          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".abebox"
+        )
+      );
+    }, 3000);
+
+    //
   });
 });
 
