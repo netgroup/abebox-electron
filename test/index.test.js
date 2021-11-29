@@ -83,9 +83,11 @@ describe("Abebox Tests", () => {
 
     // loading new configuration
     admin_abebox_init.set_config(conf);
-  });
+    const retrieved_conf = admin_abebox_init.get_config();
+    assert.deepEqual(conf, retrieved_conf);
+  }).timeout(10000);
 
-  it("admin abebox new attribute", () => {
+  it("set new attribute", () => {
     const attr_data = { univ: "UN", attr: "A", vers: "1" };
     const attr_list = admin_abebox_init.new_attr(attr_data);
 
@@ -93,17 +95,82 @@ describe("Abebox Tests", () => {
     assert.equal(attr_list[0], attr_data);
   });
 
-  it("admin abebox new attribute", () => {
+  it("get attribute list", () => {
     const attr_list_get = admin_abebox_init.get_attrs();
-    console.log("LG:", attr_list_get);
     assert.equal(attr_list_get.length, 1);
   });
 
-  it("admin abebox add second attribute", () => {
+  it("add a second attribute", () => {
     const attr_data = { univ: "UN", attr: "B", vers: "1" };
     const attr_list = admin_abebox_init.new_attr(attr_data);
-
     assert.equal(attr_list.length, 2);
     assert.equal(attr_list[1], attr_data);
   });
+
+  it("modify an attribute", () => {
+    const attr_list_get = admin_abebox_init.get_attrs();
+    const old_obj = attr_list_get[0];
+    const new_obj = { univ: "UN", attr: "B", vers: "2" };
+    const attr_list = admin_abebox_init.set_attr(old_obj, new_obj);
+    assert.equal(attr_list[0].vers, "2");
+  });
+  it("delete an attribute", () => {
+    const attr_list_get_initial = admin_abebox_init.get_attrs();
+    admin_abebox_init.del_attr(attr_list_get_initial[0]);
+    const attr_list_get_final = admin_abebox_init.get_attrs();
+    assert.equal(attr_list_get_initial.length, attr_list_get_final.length + 1);
+  });
+
+  it("get, create, set and del new user", () => {
+    // get users list
+    const user_list = admin_abebox_init.get_users();
+
+    const new_user = {
+      mail: "pippo@uniroma2.it",
+      attrs: [],
+      token: "",
+      rsa_pub_key: "",
+    };
+
+    //add new user
+    const after_add_user_list = admin_abebox_init.new_user(new_user);
+    assert.equal(user_list.length, after_add_user_list.length - 1);
+
+    // change the attribute set of the user
+    const new_attributes = ["A", "B", "C"];
+    new_user.attrs = new_attributes;
+    admin_abebox_init.set_user(new_user);
+    const after_set_user_list = admin_abebox_init.get_users();
+
+    const index = after_set_user_list.findIndex(
+      (item) => item.mail == new_user.mail
+    );
+    assert.deepEqual(after_set_user_list[index].attrs, new_attributes);
+
+    // delete the user
+
+    admin_abebox_init.del_user(new_user.mail);
+    const after_del_user_list = admin_abebox_init.get_users();
+    assert.equal(after_del_user_list.length + 1, after_add_user_list.length);
+  });
 });
+
+/*
+stop,
+  get_files_list,
+  set_policy,
+  share_files,
+  OK get_config,
+  OK set_config,
+  N/A reset_config,
+  OK get_attrs,
+  OK new_attr,
+  OK set_attr,
+  OK del_attr,
+  OK get_users,
+  OK new_user,
+  OK set_user,
+  invite_user,
+  OK del_user,
+
+*/

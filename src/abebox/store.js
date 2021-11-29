@@ -47,7 +47,7 @@ const get_keys = function() {
 };
 
 const get_users = function() {
-  return local_store.set("users");
+  return local_store.get("users");
 };
 
 const set_users = function(users) {
@@ -55,7 +55,7 @@ const set_users = function(users) {
 };
 
 const get_files = function() {
-  return local_store.set("files");
+  return local_store.get("files");
 };
 
 const set_files = function(files) {

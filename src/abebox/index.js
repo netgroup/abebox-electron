@@ -95,7 +95,7 @@ const _start_watchers = function() {
   if (!_configured) throw Error("Start Watchers called without configuration");
 
   watch_paths = [_conf.local, _conf.remote];
-  console.log("_start_watchers \n", watch_paths);
+  //console.log("_start_watchers \n", watch_paths);
 
   watcher = chokidar.watch(watch_paths, {
     awaitWriteFinish: true,
@@ -514,15 +514,12 @@ const share_files = function() {
 /**************** CONFIGURATION *****************/
 
 const get_config = function() {
-  assert(false);
-
-  console.log(`GET_CONFIG`);
-  const conf = store.get("conf");
-  return conf;
+  return store.get_conf();
 };
 
 const reset_config = async function() {
-  assert(false);
+  // Not implemented
+  throw Error("Not implemented");
 
   console.log(`RESET_CONFIG`);
   // TODO clear Repo Folder
@@ -570,7 +567,11 @@ const get_attrs = function() {
 };
 
 const _compress_list = function(attr_list) {
-  return attr_list.map((el) => el.id.toString());
+  return attr_list.map((el) => _get_attr_id(el));
+};
+
+const _get_attr_id = function(attr) {
+  return `${attr.univ}:${attr.attr}:v${attr.vers}`;
 };
 
 const new_attr = function(new_obj) {
@@ -580,61 +581,56 @@ const new_attr = function(new_obj) {
   const attrs = get_attrs();
 
   // Check if already exists
-  const index = attrs.findIndex((item) => item.id == new_obj.id);
+  const index = attrs.findIndex(
+    (item) => _get_attr_id(item) == _get_attr_id(new_obj)
+  );
   if (index >= 0) {
     throw Error("ID is already present");
   } else {
     // Add new
-    new_obj.id = attrs.length + 1;
     attrs.push(new_obj);
     const attrs_obj = {
       attributes: attrs,
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
 
-    console.log("NA: ", attrs_jwt);
     fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
     const attrs_comp = _compress_list(attrs);
-    _conf.keys.abe.sk == core.create_abe_sk(attrs_comp);
+    _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   }
   return attrs;
 };
 
-const set_attr = async function(new_obj) {
+const set_attr = function(old_obj, new_obj) {
   if (!_conf.configured) throw Error("ABEBox not configured");
   if (!_conf.isAdmin) throw Error("To Modify an Attribute need to be admin");
 
-  console.log(`SET_ATTR ${new_obj.toString()}`);
-
-  const attrs = await get_attrs();
+  const attrs = get_attrs();
   // Check if already exists
-  const index = attrs.findIndex((item) => item.id == new_obj.id);
+  const index = attrs.findIndex(
+    (item) => _get_attr_id(item) == _get_attr_id(old_obj)
+  );
   if (index < 0) {
     throw Error("ID not present");
   } else {
-    // Replace
-    const rem = attrs.splice(index, 1);
-    console.log("Removing:", rem, attrs);
-    attrs.push(new_obj);
+    attrs[index] = new_obj;
     const attrs_obj = {
       attributes: attrs,
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(
-      _conf.remote + "/" + attrs_file_rel_path,
-      attrs_jwt //JSON.stringify(attrs)
-    );
-    console.log("Adding:", new_obj, attrs);
+    fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
+    const attrs_comp = _compress_list(attrs);
+    _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   }
   return attrs;
 };
 
-const del_attr = async function(id) {
-  console.log(`DEL_ATTR ${id.toString()}`);
-
-  const attrs = await get_attrs();
+const del_attr = function(obj_del) {
+  const attrs = get_attrs();
   // Check if already exists
-  const index = attrs.findIndex((item) => item.id == id);
+  const index = attrs.findIndex(
+    (item) => _get_attr_id(item) == _get_attr_id(obj_del)
+  );
   if (index < 0) {
     throw Error("ID not present");
   } else {
@@ -644,24 +640,19 @@ const del_attr = async function(id) {
       attributes: attrs,
     };
     const attrs_jwt = core.generate_jwt(attrs_obj);
-    fs.writeFileSync(
-      _conf.remote + "/" + attrs_file_rel_path,
-      attrs_jwt //JSON.stringify(attrs)
-    );
-    console.log("Removing:", rem, attrs);
-    _conf.keys.abe.sk == core.create_abe_sk(attrs);
+    fs.writeFileSync(_conf.remote + "/" + attrs_file_rel_path, attrs_jwt);
+    const attrs_comp = _compress_list(attrs);
+    _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   }
   return attrs;
 };
 
 /**************** USERS *****************/
 const get_users = function() {
-  console.log(`GET_USERS`);
   return store.get_users();
 };
 
 const new_user = function(new_obj) {
-  console.log(`NEW_USER ${new_obj.toString()}`);
   const users = store.get_users();
   // Check if already exists
   const index = users.findIndex((item) => item.mail == new_obj.mail);
@@ -676,24 +667,19 @@ const new_user = function(new_obj) {
 };
 
 const set_user = function(new_obj) {
-  console.log(`SET_USER ${new_obj.toString()}`);
   const users = store.get_users();
   // Check if already exists
   const index = users.findIndex((item) => item.mail == new_obj.mail);
   if (index < 0) {
     throw Error("User not present");
   } else {
-    // Replace
-    const rem = users.splice(index, 1);
-    users.push(new_obj);
+    users[index] = new_obj;
     store.set_users(users);
   }
   return users;
 };
 
 const invite_user = function(user) {
-  console.log(`INVITE_USER ${user.toString()}`);
-  console.log(user);
   const users = store.get_users();
   // Check if already exists
   const index = users.findIndex((el) => el.mail == user.mail);
@@ -702,19 +688,16 @@ const invite_user = function(user) {
   } else {
     const token = file_utils.get_random(32).toString("hex");
     const rem = users.splice(index, 1)[0];
-    console.log("Removing:", rem, users);
     rem.token = token;
     users.push(rem);
     store.set_users(users);
-    console.log("Adding:", rem, users);
     // TODO SEND EMAIL
     console.log(`SEND INVITE RES = ${send_invite(rem)}`);
     return rem;
   }
 };
 
-const del_user = async function(mail) {
-  console.log(`DEL_USER ${mail.toString()}`);
+const del_user = function(mail) {
   const users = store.get_users();
   const index = users.findIndex((item) => item.mail == mail);
   // Check if already exists
@@ -724,7 +707,6 @@ const del_user = async function(mail) {
     // Remove
     const rem = users.splice(index, 1);
     store.set_users(users);
-    console.log("Removing:", rem, users);
   }
   return users;
 };

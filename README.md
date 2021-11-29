@@ -1,7 +1,7 @@
 # Requirements
 
 git
-node >= 14
+node >= 16
 cargo
 npm install yarn
 
