@@ -255,12 +255,17 @@ const handle_remote_add = function(full_file_path) {
     }
     return files_list;
   }
-  const fid_no_ext = original_file_name.split(".")[0];
+
+  const [file_name, file_ext] = original_file_name.split(".");
+  if (file_ext != "abebox") return files_list; // Capire perché
+
   //try {
 
   const metadata = core.retrieve_metadata(
-    _conf.remote + "/repo/" + fid_no_ext + ".abebox"
+    _conf.remote + "/repo/" + original_file_name
   );
+
+  console.log("MTD: ", metadata);
 
   if (metadata.file_path === null) {
     // DECRYPTION ERROR
@@ -272,7 +277,7 @@ const handle_remote_add = function(full_file_path) {
     (el) =>
       el.file_path === relative_path &&
       el.file_name === metadata.file_path &&
-      el.file_id === fid_no_ext
+      el.file_id === file_name
   );
   if (el === undefined) {
     files_list.push({
@@ -581,7 +586,7 @@ const new_attr = function(new_obj) {
   if (!_conf.configured) throw Error("ABEBox not configured");
   if (!_conf.isAdmin) throw Error("To Add an Attribute need to be admin");
   const attrs = attribute.add(new_obj);
-  const attrs_comp = attribute.compress_list();
+  const attrs_comp = attribute.compress_list(attrs);
   _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   return attrs;
 };
@@ -590,14 +595,14 @@ const set_attr = function(old_obj, new_obj) {
   if (!_conf.configured) throw Error("ABEBox not configured");
   if (!_conf.isAdmin) throw Error("To Modify an Attribute need to be admin");
   const attrs = attribute.set(old_obj, new_obj);
-  const attrs_comp = attribute.compress_list();
+  const attrs_comp = attribute.compress_list(attrs);
   _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   return attrs;
 };
 
 const del_attr = function(obj_del) {
   const attrs = attribute.del(obj_del);
-  const attrs_comp = attribute.compress_list();
+  const attrs_comp = attribute.compress_list(attrs);
   _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
   return attrs;
 };

@@ -75,7 +75,15 @@ const conf = {
   token: "",
 };
 
+function delay(t, v) {
+  return new Promise(function(resolve) {
+    setTimeout(resolve.bind(null, v), t);
+  });
+}
+
 let admin_abebox_init;
+const attr_data_1 = { univ: "UN", attr: "A", vers: "1" };
+const attr_data_2 = { univ: "UN", attr: "B", vers: "1" };
 
 describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
@@ -89,11 +97,10 @@ describe("Abebox Tests", () => {
   }).timeout(10000);
 
   it("set new attribute", () => {
-    const attr_data = { univ: "UN", attr: "A", vers: "1" };
-    const attr_list = admin_abebox_init.new_attr(attr_data);
+    const attr_list = admin_abebox_init.new_attr(attr_data_1);
 
     assert.equal(attr_list.length, 1);
-    assert.equal(attr_list[0], attr_data);
+    assert.equal(attr_list[0], attr_data_1);
   });
 
   it("get attribute list", () => {
@@ -102,10 +109,9 @@ describe("Abebox Tests", () => {
   });
 
   it("add a second attribute", () => {
-    const attr_data = { univ: "UN", attr: "B", vers: "1" };
-    const attr_list = admin_abebox_init.new_attr(attr_data);
+    const attr_list = admin_abebox_init.new_attr(attr_data_2);
     assert.equal(attr_list.length, 2);
-    assert.equal(attr_list[1], attr_data);
+    assert.equal(attr_list[1], attr_data_2);
   });
 
   it("modify an attribute", () => {
@@ -117,13 +123,9 @@ describe("Abebox Tests", () => {
   });
   it("delete an attribute", () => {
     const attr_list_get_initial = admin_abebox_init.get_attrs();
-    console.log("INITIAL LEN =", attr_list_get_initial.length);
     const attr_list_get_final = admin_abebox_init.del_attr(
-      attr_list_get_initial[0]
+      attr_list_get_initial[1]
     );
-    console.log("FINAL LEN =", attr_list_get_final.length);
-    console.log("INITIAL LEN =", attr_list_get_initial.length);
-    //const attr_list_get_final = admin_abebox_init.get_attrs();
     assert.equal(attr_list_get_initial.length, attr_list_get_final.length + 1);
   });
 
@@ -159,47 +161,44 @@ describe("Abebox Tests", () => {
     const after_del_user_list = admin_abebox_init.get_users();
     assert.equal(after_del_user_list.length + 1, after_add_user_list.length);
   });
-  it("add a file in the local repo", (done) => {
+
+  it("add a file in the local repo", async () => {
     const add_filename = "test_add.txt";
     fs.writeFileSync(
       __dirname + "/" + repo_local_dir + "/" + add_filename,
       "ciao"
     );
-    let promise = new Promise((resolve, reject) => {});
-    // we should await for the watcher
-    // either set a timeout or export a callback
-    setTimeout((e) => {
-      const file_list = admin_abebox_init.get_files_list();
-      const my_file = file_list[0];
-      assert.equal(my_file.file_name, add_filename);
-      const my_policy = {
-        file_id: my_file.file_id,
-        policy: [["A"]],
-      };
-      admin_abebox_init.set_policy(my_policy);
-      const file_list2 = admin_abebox_init.get_files_list();
-      const my_file2 = file_list2[0];
-      assert.deepEqual(my_file2.policy, my_policy.policy);
-      admin_abebox_init.share_files();
-      setTimeout((e) => {
-        assert.ok(
-          fs.existsSync(
-            __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
-          )
-        );
-        assert.ok(
-          fs.existsSync(
-            __dirname +
-              "/" +
-              repo_shared_dir +
-              "/" +
-              my_file.file_id +
-              ".abebox"
-          )
-        );
-        done(true);
-      }, 3000);
-      /*assert.ok(
+
+    await delay(4000); // wait 4s for watcher file detection
+    const file_list = admin_abebox_init.get_files_list();
+    assert(file_list.length > 0);
+    const my_file = file_list[0];
+    assert.equal(my_file.file_name, add_filename);
+    const my_policy = {
+      file_id: my_file.file_id,
+      policy: [[attr_data_1]],
+    };
+    admin_abebox_init.set_policy(my_policy);
+    const file_list2 = admin_abebox_init.get_files_list();
+    const my_file2 = file_list2[0];
+    console.log("MF: ", JSON.stringify(my_file2));
+    assert.deepEqual(my_file2.policy, my_policy.policy);
+    //admin_abebox_init.share_files();
+
+    await delay(4000); // wait 4s for watcher file detection
+    /*    setTimeout((e) => {
+      assert.ok(
+        fs.existsSync(
+          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
+        )
+      );
+      assert.ok(
+        fs.existsSync(
+          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".abebox"
+        )
+      );
+    }, 3000);
+    /*assert.ok(
         fs.existsSync(
           __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
         )
@@ -209,7 +208,6 @@ describe("Abebox Tests", () => {
           __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".abebox"
         )
       );*/
-    }, 3000);
 
     //
   }).timeout(10000);

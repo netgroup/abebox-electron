@@ -92,11 +92,7 @@ const create_metadata = function(all_data, abe_pub_key, policy) {
 const decrypt_content = function(input_stream, output_stream, sym_key, iv) {
   // Create symmetric decipher
   const algorithm = "aes-256-cbc";
-  const decipher = crypto.createDecipheriv(
-    algorithm,
-    sym_key,
-    iv
-  );
+  const decipher = crypto.createDecipheriv(algorithm, sym_key, iv);
 
   // Read data, decrypt it and write the resulting plaintext
   input_stream.pipe(decipher).pipe(output_stream);
@@ -163,29 +159,6 @@ const split_file_path = function(file_path, repo_path) {
     return null;
   }
 }*/
-
-const policy_as_string = function(policy_array) {
-  let policy_string = "";
-  policy_array.forEach(function(outer_el, outer_el_index, outer_array) {
-    if (outer_el.length === 1) {
-      policy_string = policy_string + '"' + outer_el + '"';
-    } else {
-      policy_string = policy_string + "(";
-      outer_el.forEach(function(inner_el, inner_el_index, inner_array) {
-        policy_string = policy_string + '"' + inner_el + '"';
-        if (inner_el_index != inner_array.length - 1) {
-          policy_string = policy_string + " OR ";
-        }
-      });
-      policy_string = policy_string + ")";
-    }
-    if (outer_el_index != outer_array.length - 1) {
-      policy_string = policy_string + " AND ";
-    }
-  });
-  console.log("POLICY AS STRING = ", policy_string);
-  return policy_string;
-};
 
 const get_hash = function(message) {
   return crypto
