@@ -9,9 +9,9 @@ const _get_attr_id = function(attr) {
   return `${attr.univ}:${attr.attr}:v${attr.vers}`;
 };
 
-const _save = function() {
+const _save = function(attr_list) {
   const attrs_obj = {
-    attributes: _attributes.list,
+    attributes: attr_list,
   };
   const attrs_jwt = core.generate_jwt(attrs_obj);
   fs.writeFileSync(_attributes.file, attrs_jwt);
@@ -19,37 +19,45 @@ const _save = function() {
 
 const init = function(attribute_file_path) {
   _attributes.file = attribute_file_path + "/" + attributes_file;
-  _attributes.list = get_all();
 };
 
 const get_all = function() {
   if (!fs.existsSync(_attributes.file)) {
-    return [];
+    throw Error("Attribute file not exists");
   } else {
     const attrs_obj = core.verify_jwt(
       fs.readFileSync(_attributes.file, "utf-8").toString()
     );
-    _attributes.list = attrs_obj.attributes;
-    return _attributes.list;
+    return attrs_obj.attributes;
   }
 };
 
 const add = function(new_attr) {
-  // Check if already exists
-  const index = _attributes.list.findIndex(
-    (item) => _get_attr_id(item) == _get_attr_id(new_attr)
-  );
-  if (index >= 0) {
-    throw Error("Attribute already exists");
-  } else {
-    // Add new
-    _attributes.list.push(new_attr);
-    _save();
+  try {
+    const attr_list = get_all();
+    if (attr_list.length != 0) {
+      // Check if already exists
+      const index = attr_list.findIndex(
+        (item) => _get_attr_id(item) == _get_attr_id(new_attr)
+      );
+      if (index >= 0) {
+        throw Error("Attribute already exists");
+      } else {
+        // Add new
+        attr_list.push(new_attr);
+        _save(attr_list);
+      }
+    }
+    return attr_list;
+  } catch (error) {
+    throw Error(`Cannot add attribute - ${error}`);
   }
-  return _attributes.list;
 };
 
 const set = function(old_attr, new_attr) {
+  try {
+    const attr_list = get_all();
+    if (attr_list.length != 0) {
   // Check if already exists
   const index = _attributes.list.findIndex(
     (item) => _get_attr_id(item) == _get_attr_id(old_attr)
@@ -61,7 +69,10 @@ const set = function(old_attr, new_attr) {
     _attributes.list[index] = new_attr;
     _save();
   }
+}
   return _attributes.list;
+} catch (error) {
+    throw Error(`Cannot add attribute - ${error}`);
 };
 
 const del = function(attr) {

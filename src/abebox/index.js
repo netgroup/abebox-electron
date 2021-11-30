@@ -258,8 +258,8 @@ const handle_remote_add = function(full_file_path) {
   const fid_no_ext = original_file_name.split(".")[0];
   //try {
 
-  const metadata = admin_core.retrieve_metadata(
-    _conf.remote + "/repo/" + fid_no_ext + ".abebox"
+  const metadata = core.retrieve_metadata(
+    _conf.remote + "/" + repo_rel_path + "/" + fid_no_ext + ".abebox"
   );
 
   if (metadata.file_path === null) {

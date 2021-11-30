@@ -117,12 +117,13 @@ describe("Abebox Tests", () => {
   });
   it("delete an attribute", () => {
     const attr_list_get_initial = admin_abebox_init.get_attrs();
+    const pp = Object.assign({}, attr_list_get_initial[0]);
     console.log("INITIAL LEN =", attr_list_get_initial.length);
-    const attr_list_get_final = admin_abebox_init.del_attr(
-      attr_list_get_initial[0]
-    );
+    const attr_list_get_final = admin_abebox_init.del_attr(pp);
     console.log("FINAL LEN =", attr_list_get_final.length);
+    const attr_list_get_initial2 = admin_abebox_init.get_attrs();
     console.log("INITIAL LEN =", attr_list_get_initial.length);
+    console.log("INITIAL LEN2 =", attr_list_get_initial2.length);
     //const attr_list_get_final = admin_abebox_init.get_attrs();
     assert.equal(attr_list_get_initial.length, attr_list_get_final.length + 1);
   });

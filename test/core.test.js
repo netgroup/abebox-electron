@@ -104,7 +104,7 @@ describe("Core Basic Tests", () => {
     const policy = '"1"';
     const plaintext_file = __dirname + "/tmp/hello.txt";
     const rel_plaintext_file = "hello.txt";
-    const cipher_file = ""
+    const cipher_file = "";
     const plaintext = fs.readFileSync(plaintext_file, "utf-8");
     const metadata_file = await admin_core.file_encrypt(
       rel_plaintext_file,

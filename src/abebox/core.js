@@ -209,6 +209,7 @@ const create_metadata_file = function(
   );
   // Add parameters in clear form to the encrypted ones and return the metadata
   const metadata = {
+    
     enc_metadata: enc_metadata,
     iv: iv,
   };
