@@ -14,6 +14,7 @@ const { assert } = require("console");
 const attrs_file_rel_path = "attributes/attributes_list.json";
 const pk_dir_rel_path = "pub_keys/";
 const keys_dir_rel_path = "keys/";
+const repo_rel_path = "repo";
 const remote_repo_dirs = ["attributes", "keys", "repo", "pub_keys"];
 
 const file_status = {
@@ -244,7 +245,7 @@ const handle_remote_add = function(full_file_path) {
   const fid_no_ext = original_file_name.split(".")[0];
   //try {
 
-  const metadata = admin_core.retrieve_metadata(
+  const metadata = core.retrieve_metadata(
     _conf.remote + "/repo/" + fid_no_ext + ".abebox"
   );
 
@@ -488,11 +489,17 @@ const share_files = function() {
   console.log(`SHARE_FILES`);
   files_list.forEach((file) => {
     if (file.status == file_status.local_change && file.policy.length != 0) {
-      const file_name = file.file_path + file.file_name;
+      const file_name =
+        file.file_path.charAt(0) === "/"
+          ? file.file_path.substring(1) + file.file_name
+          : file.file_path + file.file_name;
+      console.log(`FILE ${file_name} TO ENCRYPT`);
       const res = core.file_encrypt(
         file_name,
-        file_utils.policy_as_string(file.policy),
-        file.file_id
+        _conf.local + "/" + file_name,
+        _conf.remote + "/" + repo_rel_path,
+        file.file_id,
+        file_utils.policy_as_string(file.policy)
       );
       if (res) file.status = file_status.sync;
       else console.log("[ERROR] ENCRYPTING LOCAL FILE " + file_name);

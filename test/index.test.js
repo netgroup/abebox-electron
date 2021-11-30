@@ -159,12 +159,13 @@ describe("Abebox Tests", () => {
     const after_del_user_list = admin_abebox_init.get_users();
     assert.equal(after_del_user_list.length + 1, after_add_user_list.length);
   });
-  it("add a file in the local repo", () => {
+  it("add a file in the local repo", (done) => {
     const add_filename = "test_add.txt";
     fs.writeFileSync(
       __dirname + "/" + repo_local_dir + "/" + add_filename,
       "ciao"
     );
+    let promise = new Promise((resolve, reject) => {});
     // we should await for the watcher
     // either set a timeout or export a callback
     setTimeout((e) => {
@@ -196,6 +197,7 @@ describe("Abebox Tests", () => {
               ".abebox"
           )
         );
+        done(true);
       }, 3000);
       /*assert.ok(
         fs.existsSync(
@@ -210,7 +212,7 @@ describe("Abebox Tests", () => {
     }, 3000);
 
     //
-  });
+  }).timeout(10000);
 });
 
 /*
