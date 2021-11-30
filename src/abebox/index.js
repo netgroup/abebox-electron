@@ -640,13 +640,10 @@ const invite_user = function(user) {
     throw Error("User not present");
   } else {
     const token = file_utils.get_random(32).toString("hex");
-    const rem = users.splice(index, 1)[0];
-    rem.token = token;
-    users.push(rem);
+    users[index].token = token;
     store.set_users(users);
-    // TODO SEND EMAIL
-    console.log(`SEND INVITE RES = ${send_invite(rem)}`);
-    return rem;
+    // send_invite(rem) // ==> to open the email
+    return users[index];
   }
 };
 
