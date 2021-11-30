@@ -23,7 +23,11 @@ const schema = {
   },
 };
 
-const local_store = new Store({ schema });
+let local_store = undefined;
+
+const setup = function(name = "config.json") {
+  local_store = new Store({ schema: schema, name: name });
+};
 
 const is_configured = function() {
   return local_store.get("configured");

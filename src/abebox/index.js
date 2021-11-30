@@ -63,7 +63,7 @@ let watcher;
 let _conf = {};
 let _configured = false;
 
-const _boot = function() {
+const boot = function(config_name = "config.json") {
   if (store.is_configured()) {
     _configured = true;
     _conf = store.get_conf();
@@ -71,6 +71,7 @@ const _boot = function() {
     _init_attribute(_conf.remote + "/" + attr_rel_path);
     _start_watchers();
   } else {
+    store.setup(config_name);
     console.log("ABEBox booting - NO Configuration Find");
   }
 };
@@ -672,11 +673,8 @@ const del_user = function(mail) {
   return users;
 };
 
-//init();
-
-_boot();
-
 module.exports = {
+  boot,
   stop,
   get_files_list,
   set_policy,
