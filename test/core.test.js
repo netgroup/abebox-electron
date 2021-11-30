@@ -110,7 +110,7 @@ describe("Core Basic Tests", () => {
       rel_plaintext_file,
       plaintext_file,
       abs_remote_repo_path,
-      //ciphertext_file,
+      ciphertext_file,
       policy
     );
     fs.rmSync(plaintext_file);
