@@ -117,8 +117,13 @@ describe("Abebox Tests", () => {
   });
   it("delete an attribute", () => {
     const attr_list_get_initial = admin_abebox_init.get_attrs();
-    admin_abebox_init.del_attr(attr_list_get_initial[0]);
-    const attr_list_get_final = admin_abebox_init.get_attrs();
+    console.log("INITIAL LEN =", attr_list_get_initial.length);
+    const attr_list_get_final = admin_abebox_init.del_attr(
+      attr_list_get_initial[0]
+    );
+    console.log("FINAL LEN =", attr_list_get_final.length);
+    console.log("INITIAL LEN =", attr_list_get_initial.length);
+    //const attr_list_get_final = admin_abebox_init.get_attrs();
     assert.equal(attr_list_get_initial.length, attr_list_get_final.length + 1);
   });
 
@@ -164,18 +169,35 @@ describe("Abebox Tests", () => {
     // either set a timeout or export a callback
     setTimeout((e) => {
       const file_list = admin_abebox_init.get_files_list();
-      console.log(`file_list = ${JSON.stringify(file_list)}`);
       const my_file = file_list[0];
       assert.equal(my_file.file_name, add_filename);
-      admin_abebox_init.share_files();
       const my_policy = {
         file_id: my_file.file_id,
         policy: [["A"]],
       };
       admin_abebox_init.set_policy(my_policy);
       const file_list2 = admin_abebox_init.get_files_list();
-      console.log(`file_list2 = ${JSON.stringify(file_list2)}`);
-      assert.ok(
+      const my_file2 = file_list2[0];
+      assert.deepEqual(my_file2.policy, my_policy.policy);
+      admin_abebox_init.share_files();
+      setTimeout((e) => {
+        assert.ok(
+          fs.existsSync(
+            __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
+          )
+        );
+        assert.ok(
+          fs.existsSync(
+            __dirname +
+              "/" +
+              repo_shared_dir +
+              "/" +
+              my_file.file_id +
+              ".abebox"
+          )
+        );
+      }, 3000);
+      /*assert.ok(
         fs.existsSync(
           __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
         )
@@ -184,7 +206,7 @@ describe("Abebox Tests", () => {
         fs.existsSync(
           __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".abebox"
         )
-      );
+      );*/
     }, 3000);
 
     //

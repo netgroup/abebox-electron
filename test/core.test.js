@@ -102,13 +102,15 @@ describe("Core Basic Tests", () => {
   }).timeout(10000);
   it("test admin metadata and content files creation (with outfile = '.abebox') and user file decoding", async () => {
     const policy = '"1"';
-    const plaintext_file = __dirname + "/tmp/pippo/hello.txt";
-    const rel_plaintext_file = "pippo/hello.txt";
+    const plaintext_file = __dirname + "/tmp/hello.txt";
+    const rel_plaintext_file = "hello.txt";
+    const cipher_file = ""
     const plaintext = fs.readFileSync(plaintext_file, "utf-8");
     const metadata_file = await admin_core.file_encrypt(
       rel_plaintext_file,
       plaintext_file,
       abs_remote_repo_path,
+      ciphertext_file,
       policy
     );
     fs.rmSync(plaintext_file);
