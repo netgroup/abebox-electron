@@ -25,7 +25,7 @@ const schema = {
 
 let local_store = undefined;
 
-const setup = function(name = "config.json") {
+const setup = function(name = "config") {
   local_store = new Store({ schema: schema, name: name });
 };
 
@@ -81,4 +81,5 @@ module.exports = {
   get_files,
   set_files,
   reset,
+  setup,
 };

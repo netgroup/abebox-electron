@@ -146,6 +146,7 @@ const set_abe_sk = function(sk) {
 };
 
 const create_abe_sk = function(attr_list, store_key = true) {
+  console.log("create_abe_sk: ", _conf);
   if (!_conf.abe_init) throw Error("ABE Not initialized");
   if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
 
@@ -380,4 +381,5 @@ module.exports = {
   file_encrypt,
   file_decrypt,
   file_reencrypt,
+  _conf,
 };

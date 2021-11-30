@@ -10,6 +10,7 @@ const rsa = require("./rsa"); // TODO Remove
 const store = require("./store"); // local storage
 const attribute = require("./attribute");
 const { assert } = require("console");
+const { on } = require("events");
 
 /* Constants */
 //const attrs_file_rel_path = "attributes/attributes_list.json";
@@ -63,7 +64,8 @@ let watcher;
 let _conf = {};
 let _configured = false;
 
-const boot = function(config_name = "config.json") {
+const boot = function(config_name = "config") {
+  store.setup(config_name);
   if (store.is_configured()) {
     _configured = true;
     _conf = store.get_conf();
@@ -71,7 +73,6 @@ const boot = function(config_name = "config.json") {
     _init_attribute(_conf.remote + "/" + attr_rel_path);
     _start_watchers();
   } else {
-    store.setup(config_name);
     console.log("ABEBox booting - NO Configuration Find");
   }
 };
@@ -86,10 +87,11 @@ const _setup = function() {
   _init_attribute(_conf.remote + "/" + attr_rel_path);
   _start_watchers();
 };
-
+/*
 const _setup_core = function() {
   if (!_configured) throw Error("Setup called without configuration");
 };
+*/
 
 const _init_core = function() {
   if (!_configured) throw Error("Setup called without configuration");
@@ -136,7 +138,11 @@ const _start_watchers = function() {
         handle_local_add(file_path);
       } else {
         // New remote file
-        handle_remote_add(file_path);
+        try {
+          handle_remote_add(file_path);
+        } catch (err) {
+          console.log("Catched chokidar: " + String(err));
+        }
       }
     })
     .on("change", (file_path) => {
@@ -158,6 +164,9 @@ const _start_watchers = function() {
         // Remove remote file
         handle_remote_remove(file_path);
       }
+    })
+    .on("error", (err) => {
+      console.log("Error from chokidar: " + String(err));
     });
 };
 
@@ -296,7 +305,7 @@ const handle_remote_add = function(full_file_path) {
 const handle_local_change = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.local_repo_path
+    _conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
 console.log(file_path, original_file_name);
@@ -314,7 +323,7 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
 const handle_remote_change = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.remote_repo_path
+    _conf.remote_repo_path
   );
 
   if (relative_path.includes(pk_dir_rel_path + "/")) {
@@ -345,7 +354,7 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
 const handle_local_remove = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.local_repo_path
+    _conf.local_repo_path
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
 console.log(file_path, original_file_name);
@@ -364,7 +373,7 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
 const handle_remote_remove = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    core.conf.remote_repo_path
+    _conf.remote_repo_path
   );
   const fid_no_ext = original_file_name.split(".")[0];
   /*const fid = file_path.replace(/^.*[\\\/]/, "");
@@ -395,6 +404,8 @@ const send_user_rsa_pk = function() {
   // Scrivere il file con nome token_hash e path repo
 
   const signature = file_utils.get_hmac(_conf.token, rsa_keys.pk + _conf.name);
+  console.log("SIGNATURE CHECK send_user_rsa_pk: ", rsa_keys.pk + _conf.name);
+
   const data = {
     rsa_pub_key: rsa_keys.pk.toString("hex"),
     sign: signature.toString("hex"),
@@ -446,24 +457,32 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
     const data = JSON.parse(fs.readFileSync(full_file_name, "utf-8"));
     const rsa_pk = data.rsa_pub_key;
     const sign = data.sign;
-    const signature = file_utils.get_hmac(user.token, rsa_pk + user.mail);
-    if (sign === signature) {
+    const signature = file_utils.get_hmac(
+      users[index].token,
+      rsa_pk + users[index].mail
+    );
+    if (sign == signature.toString("hex")) {
       // Add pub key to the specific user and update users list
       users[index].rsa_pub_key = rsa_pk;
       store.set_users(users);
       // Create user secret key
-      const keys = core.get_abe_keys();
       const user_abe_sk_filename = file_utils
         .get_hash(users[index].mail)
         .toString("hex");
 
       const user_abe_sk_path = `${_conf.remote}/${keys_dir_rel_path}/${user_abe_sk_filename}.sk`;
       //filename: conf.remote_repo_path + "/keys/" + file_name + ".sk",
+      console.log("admin create SK of user at ", user_abe_sk_path);
+      console.log("user attributes: ", users[index].attrs);
       send_abe_user_secret_key(
         users[index].rsa_pub_key,
         attribute.compress_list(users[index].attrs),
+        users[index].token,
         user_abe_sk_path
       );
+    } else {
+      console.log("Invalid signature");
+      throw Error("Invalid signature on retrieve_pub_key");
     }
   }
 };
@@ -492,14 +511,28 @@ const send_abe_user_secret_key = function(
   user_token,
   file_name
 ) {
-  const sk = core.create_abe_sk(attr_list, false);
+  console.log(
+    `user_rsa_pk: ${user_rsa_pk},attr_list: ${attr_list},user_token: ${user_token},file_name: ${file_name}`
+  );
 
-  const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
-  const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
-  const admin_rsa_pk = core.get_rsa_keys().pk;
+  try {
+    console.log("ciao");
+    console.log(debug_core());
+    /// <----
+    const sk = core.create_abe_sk(attr_list, false);
+    console.log("sk: ", sk);
+    const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
+    console.log("enc_sk: ", enc_sk);
+    const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
+    console.log("abe_enc_sk_jwt: ", abe_enc_sk_jwt);
+    const admin_rsa_pk = core.get_rsa_keys().pk;
 
-  const signature = file_utils.get_hmac(user_token, admin_rsa_pk);
+    const signature = file_utils.get_hmac(user_token, admin_rsa_pk);
+  } catch (err) {
+    console.log("catched error", err);
+  }
 
+  console.log("signature: ", signature);
   const data = {
     admin_rsa_pk: {
       pk: admin_rsa_pk,
@@ -673,6 +706,10 @@ const del_user = function(mail) {
   return users;
 };
 
+const debug_core = function() {
+  console.log("MY CONF:", core._conf);
+};
+
 module.exports = {
   boot,
   stop,
@@ -692,4 +729,5 @@ module.exports = {
   invite_user,
   del_user,
   send_user_rsa_pk,
+  debug_core, // DEBUG
 };

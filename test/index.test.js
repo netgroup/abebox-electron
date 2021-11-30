@@ -14,7 +14,8 @@ const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
 
 const abs_user_local_repo_path = `${tmp_dir}/repo-user-local`;
 
-const cfg_filename = "config.json";
+const cfg_filename_admin = "admin_config.json";
+const cfg_filename_user = "user_config.json";
 
 // plaintext files
 const local_dir = "mytestfolder";
@@ -26,8 +27,10 @@ const abs_dec_plaintext_file_path = `${abs_plaintext_file_path}.decripted.txt`;
 // remove and create test files
 before(() => {
   // Rename cfg file
-  if (fs.existsSync(paths.config + "/" + cfg_filename))
-    fs.rmSync(paths.config + "/" + cfg_filename);
+  if (fs.existsSync(paths.config + "/" + cfg_filename_admin))
+    fs.rmSync(paths.config + "/" + cfg_filename_admin);
+  if (fs.existsSync(paths.config + "/" + cfg_filename_user))
+    fs.rmSync(paths.config + "/" + cfg_filename_user);
 
   // Removing all files in dirs
   if (fs.existsSync(tmp_dir))
@@ -49,6 +52,7 @@ after(() => {
 beforeEach(() => {
   delete require.cache[require.resolve("../src/abebox/core")];
   delete require.cache[require.resolve("../src/abebox/index")];
+  delete require.cache[require.resolve("../src/abebox/store")];
 });
 
 let abe;
@@ -65,7 +69,7 @@ const conf = {
   configured: true,
   isAdmin: true,
   local: abs_local_repo_path,
-  name: "pp@pp.it",
+  name: "admin@uniroma2.it",
   remote: abs_remote_repo_path,
   token: "",
 };
@@ -74,7 +78,7 @@ const user_conf = {
   configured: true,
   isAdmin: false,
   local: abs_user_local_repo_path,
-  name: "pp@pp.it",
+  name: "user@uniroma2.it",
   remote: abs_remote_repo_path,
   token: "",
 };
@@ -93,12 +97,12 @@ describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
     // setup
     admin_abebox = require("../src/abebox/index");
-
+    admin_abebox.boot(cfg_filename_admin.split(".")[0]);
     // loading new configuration
     admin_abebox.set_config(conf);
     const retrieved_conf = admin_abebox.get_config();
     assert.deepEqual(conf, retrieved_conf);
-  }).timeout(10000);
+  }).timeout(15000);
 
   it("set new attribute", () => {
     const attr_list = admin_abebox.new_attr(attr_data_1);
@@ -194,26 +198,31 @@ describe("Abebox Tests", () => {
   }).timeout(15000);
   it("invite user", () => {
     const new_user = {
-      mail: "pippo2@uniroma2.it",
-      attrs: [],
+      mail: "user@uniroma2.it",
+      attrs: [attr_data_1, attr_data_2],
       token: "",
       rsa_pub_key: "",
     };
     //add the new user to the list
     const user_list = admin_abebox.new_user(new_user);
     const user = user_list[0];
+    assert.ok(admin_abebox.get_users().length > 0);
     console.log("user: ", user);
     const invited_user = admin_abebox.invite_user(user);
     invited_user_token = invited_user.token;
     assert.equal(invited_user.mail, new_user.mail);
     assert.ok(invited_user_token);
-  });
+  }).timeout(15000);
+  /*
   it("stop abebox", () => {
     admin_abebox.stop();
     admin_abebox.reset_config();
   });
+  */
   it("setup abebox user with token", () => {
     user_abebox = require("../src/abebox/index");
+
+    user_abebox.boot(cfg_filename_user.split(".")[0]);
 
     user_conf.token = invited_user_token;
     // loading new configuration
