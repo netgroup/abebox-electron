@@ -61,6 +61,11 @@ const get_files = function() {
 const set_files = function(files) {
   local_store.set("files", files);
 };
+
+const reset = function() {
+  local_store.clear();
+};
+
 module.exports = {
   is_configured,
   get_conf,
@@ -71,4 +76,5 @@ module.exports = {
   set_users,
   get_files,
   set_files,
+  reset,
 };

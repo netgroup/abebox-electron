@@ -98,6 +98,9 @@ const _init_core = function() {
     _conf.keys.abe = core.init_abe_keys(); // Admin ABE Keys
     store.set_keys(_conf.keys);
   } else {
+    _conf.keys = {};
+    _conf.keys.rsa = core.init_rsa_keys(); // User RSA Keys
+    store.set_keys(_conf.keys);
   }
 };
 
@@ -384,24 +387,27 @@ const send_invite = function(recv) {
   });
 };
 
-const send_token = function(conf) {
+// User send the RSA PK to Admin, writing it on pub keys.
+const send_user_rsa_pk = function() {
   const token_hash = file_utils.get_hash(_conf.token);
-
+  const rsa_keys = core.get_rsa_keys();
   // Scrivere il file con nome token_hash e path repo
 
-  const signature = file_utils.get_hmac(conf.token, rsa_pk + conf.name);
+  const signature = file_utils.get_hmac(_conf.token, rsa_keys.pk + _conf.name);
   const data = {
-    rsa_pub_key: rsa_pk.toString("hex"),
+    rsa_pub_key: rsa_keys.pk.toString("hex"),
     sign: signature.toString("hex"),
   };
   fs.writeFileSync(
-    `${conf.remote}/${pk_dir_rel_path}/${token_hash.toString("hex")}`,
+    `${_conf.remote}/${pk_dir_rel_path}/${token_hash.toString("hex")}`,
     JSON.stringify(data)
   );
 };
-
+/*
 const get_token = function(user) {
   const token = user.token;
+  const rsa_keys = core.get_rsa_keys();
+
   if (token != undefined) {
     const token_hash = file_utils.get_hash(token);
     const res = http.get_token(token_hash);
@@ -426,7 +432,9 @@ const get_token = function(user) {
     }
   }
 };
+*/
 
+// Admin retrieves the user RSA PK and send the ABE SK.
 const retrieve_pub_key = async function(full_file_name, file_name) {
   const users = store.get_users();
   const index = users.findIndex(
@@ -434,49 +442,72 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
   );
   if (index >= 0) {
     // Test sign
-    const data = fs.readFileSync(full_file_name);
+    const data = JSON.parse(fs.readFileSync(full_file_name, "utf-8"));
     const rsa_pk = data.rsa_pub_key;
     const sign = data.sign;
     const signature = file_utils.get_hmac(user.token, rsa_pk + user.mail);
     if (sign === signature) {
       // Add pub key to the specific user and update users list
-      const rem = users.splice(index, 1);
-      console.log("Removing:", rem, users);
-      rem.rsa_pub_key = rsa_pk;
-      users.push(rem);
+      users[index].rsa_pub_key = rsa_pk;
       store.set_users(users);
-      console.log("Adding:", rem, users);
       // Create user secret key
-      const keys = store.get_keys();
-      await core.create_abe_secret_key(
-        core.conf.abe_pub_key,
-        keys.abe_msk_key,
-        rem.attrs,
-        file_utils.get_hash(rem.mail).toString("hex")
+      const keys = core.get_abe_keys();
+      const user_abe_sk_filename = file_utils
+        .get_hash(users[index].mail)
+        .toString("hex");
+
+      const user_abe_sk_path = `${_conf.remote}/${keys_dir_rel_path}/${user_abe_sk_filename}.sk`;
+      //filename: conf.remote_repo_path + "/keys/" + file_name + ".sk",
+      send_abe_user_secret_key(
+        users[index].rsa_pub_key,
+        attribute.compress_list(users[index].attrs),
+        user_abe_sk_path
       );
     }
   }
 };
 
+// user retrieves her ABE SK
 const retrieve_abe_secret_key = function(full_file_name) {
   console.log("RETRIEVING USER ABE SECRET KEY...");
-  const jwt = fs.readFileSync(full_file_name);
-  console.log("USER JWT =", jwt);
-  const abe_enc_sk = core.verify_jwt(jwt);
-  console.log("USER ABE ENC SK =", abe_enc_sk);
-  core.conf.abe_secret_key = rsa
-    .decrypt(abe_enc_sk, core.conf.rsa_priv_key)
-    .toString();
-  console.log("USER ABE SK =", core.conf.abe_secret_key);
+  const { admin_rsa_pk, user_abe_sk } = JSON.parse(
+    fs.readFileSync(full_file_name, "utf-8")
+  );
+
+  const computed_signature = file_utils.get_hmac(_conf.token, admin_rsa_pk.pk);
+  if (admin_rsa_pk.sign != computed_signature)
+    throw Error("Admin RSA PK has not been signed correctly");
+
+  const abe_enc_sk = core.verify_jwt(user_abe_sk, admin_rsa_pk.pk);
+  //TODO controllo d'errore
+
+  core.set_abe_sk(abe_enc_sk);
 };
 
-/*const create_admin_abe_sk = async function() {
-  const attr_list = await get_attrs();
-  if (_conf.isAdmin && attrs.length > 0) {
-    const sk = core.create_abe_sk(attr_list);
-    // Save sk in a file
-  }
-};*/
+// admin calls this function to send the user ABE sk.
+const send_abe_user_secret_key = function(
+  user_rsa_pk,
+  attr_list,
+  user_token,
+  file_name
+) {
+  const sk = core.create_abe_sk(attr_list, false);
+
+  const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
+  const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
+  const admin_rsa_pk = core.get_rsa_keys().pk;
+
+  const signature = file_utils.get_hmac(user_token, admin_rsa_pk);
+
+  const data = {
+    admin_rsa_pk: {
+      pk: admin_rsa_pk,
+      sign: signature,
+    },
+    user_abe_sk: abe_enc_sk_jwt,
+  };
+  fs.writeFileSync(file_name, JSON.stringify(data));
+};
 
 /**************** FILES *****************/
 const get_files_list = function() {
@@ -536,13 +567,7 @@ const get_config = function() {
 };
 
 const reset_config = async function() {
-  // Not implemented
-  throw Error("Not implemented");
-
-  console.log(`RESET_CONFIG`);
-  // TODO clear Repo Folder
-  local_store.clear();
-  return True;
+  store.reset();
 };
 
 const set_config = function(config_data) {
@@ -552,20 +577,6 @@ const set_config = function(config_data) {
 
   _setup(); //Activating the new configuration
 
-  /*const data = local_store.get("data", {});
-  if (data.length >= 0) {
-    console.log("ERRORE configurazione già presente");
-    return "ERRORE"; // No config change
-  } else {
-    console.log("Saving configuration data", config_data);
-    local_store.set("data", config_data);
-    //local_store.set("configured", true);
-    start_services(config_data.local, config_data.remote);
-    if (!config_data.isAdmin) {
-      send_token(config_data);
-    }
-    return config_data;
-  }*/
   return config_data;
 };
 
@@ -642,7 +653,7 @@ const invite_user = function(user) {
     const token = file_utils.get_random(32).toString("hex");
     users[index].token = token;
     store.set_users(users);
-    // send_invite(rem) // ==> to open the email
+    // send_invite(users[index]); // ==> to open the email
     return users[index];
   }
 };
@@ -682,4 +693,5 @@ module.exports = {
   set_user,
   invite_user,
   del_user,
+  send_user_rsa_pk,
 };

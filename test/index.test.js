@@ -1,5 +1,8 @@
 const assert = require("assert");
 const fs = require("fs");
+
+const file_utils = require("../src/abebox/file_utils");
+
 const envPaths = require("env-paths");
 const paths = envPaths("electron-store");
 
@@ -205,14 +208,37 @@ describe("Abebox Tests", () => {
     assert.equal(invited_user.mail, new_user.mail);
     assert.ok(invited_user_token);
   });
+  it("stop abebox", () => {
+    admin_abebox.stop();
+    admin_abebox.reset_config();
+  });
   it("setup abebox user", () => {
-    console.log(user_abebox);
     user_abebox = require("../src/abebox/index");
-    console.log(user_abebox.get_config());
+
     user_conf.token = invited_user_token;
     // loading new configuration
     user_abebox.set_config(user_conf);
-  });
+
+    user_abebox.send_user_rsa_pk();
+    const token_hash = file_utils.get_hash(user_conf.token);
+    const user_rsa_pk_filename = `${
+      user_conf.remote
+    }/pub_keys/${token_hash.toString("hex")}`;
+    assert.ok(fs.existsSync(user_rsa_pk_filename));
+    const user_rsa_file_content = fs.readFileSync(
+      user_rsa_pk_filename,
+      "utf-8"
+    );
+    const user_rsa_obj = JSON.parse(user_rsa_file_content);
+    assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
+    assert.ok(user_rsa_obj.hasOwnProperty("sign"));
+    console.log("Token file: ", user_rsa_obj);
+
+    // admin deve chiamare retrieve_pub_key (tramite watcher)
+    // che crea user sk
+
+    // user imposta la sua chiave sk (tramite watcher e retrieve_abe_secret_key)
+  }).timeout(10000);
 });
 
 /*

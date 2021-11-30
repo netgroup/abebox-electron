@@ -6,15 +6,8 @@ const jwt = require("jsonwebtoken");
 const fu = require("./file_utils");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
+/*
 
-const conf = {
-  /* abe_pub_path_remote: "./repo-shared/keys/abe.pub",
-  abe_sec_path_remote: "./repo-shared/keys/abe.sk",
-  abe_msk_path: "./settings/abe.msk",
-  abe_pub_path: "./settings/abe.pub", */
-};
-
-//const conf = {};
 
 const create_dirs = function(dirs, repo_path) {
   dirs.forEach((dir) => {
@@ -72,12 +65,7 @@ const init = function(lp, rp, local_store) {
   ) {
     create_abe_keys(local_store);
   }
-  /*conf.abe_pub_key = JSON.stringify(
-    verify_jwt(
-      fs.readFileSync(conf.abe_pub_path_remote).toString(),
-      conf.rsa_pub_key
-    )
-  );*/
+ 
   conf.abe_pub_key = JSON.stringify(
     fs.readFileSync(conf.abe_pub_path_remote).toString()
   );
@@ -107,20 +95,7 @@ const create_abe_keys = function(local_store) {
   const abe_pk_jwt = pk;
   fs.writeFileSync(conf.abe_pub_path_remote, abe_pk_jwt);
 };
-
-const create_abe_secret_key = function(pk, msk, attr_list, file_name) {
-  console.log(`CREATING NEW ABE SK...`);
-  console.log("ATTR LIST =", JSON.stringify(attr_list));
-  const sk = rabe.keygen(pk, msk, JSON.stringify(attr_list));
-  const enc_sk = rsa.encrypt(Buffer.from(sk), conf.rsa_pub_key);
-  const abe_enc_sk_jwt = generate_jwt(enc_sk, conf.rsa_priv_key);
-  fs.writeFileSync(
-    conf.remote_repo_path + "/keys/" + file_name + ".sk",
-    abe_enc_sk_jwt
-  );
-  return sk;
-};
-
+*/
 _conf = {
   rsa_init: false,
   abe_init: false,
@@ -170,16 +145,18 @@ const set_abe_sk = function(sk) {
   return _conf.abe_keys;
 };
 
-const create_abe_sk = function(attr_list) {
+const create_abe_sk = function(attr_list, store_key = true) {
   if (!_conf.abe_init) throw Error("ABE Not initialized");
   if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
 
-  _conf.abe_keys.sk = rabe.keygen(
+  const sk = rabe.keygen(
     _conf.abe_keys.pk,
     _conf.abe_keys.msk,
     JSON.stringify(attr_list)
   );
-  return _conf.abe_keys.sk;
+
+  if (store_key) _conf.abe_keys.sk = sk;
+  return sk;
 };
 
 const get_abe_keys = function() {
@@ -287,9 +264,9 @@ const generate_jwt = function(data) {
   return jwt.sign(data, _conf.rsa_keys.sk, { algorithm: "RS256" });
 };
 
-const verify_jwt = function(token) {
+const verify_jwt = function(token, pk = _conf.rsa_keys.pk) {
   if (!_conf.rsa_init) throw Error("RSA Not initialized");
-  return jwt.verify(token, _conf.rsa_keys.pk);
+  return jwt.verify(token, pk);
 };
 
 const _get_metadata_file_name = function(file) {
