@@ -212,14 +212,14 @@ describe("Abebox Tests", () => {
     admin_abebox.stop();
     admin_abebox.reset_config();
   });
-  it("setup abebox user", () => {
+  it("setup abebox user with token", () => {
     user_abebox = require("../src/abebox/index");
 
     user_conf.token = invited_user_token;
     // loading new configuration
     user_abebox.set_config(user_conf);
 
-    user_abebox.send_user_rsa_pk();
+    user_abebox.send_user_rsa_pk(); // send the token
     const token_hash = file_utils.get_hash(user_conf.token);
     const user_rsa_pk_filename = `${
       user_conf.remote
@@ -238,6 +238,9 @@ describe("Abebox Tests", () => {
     // che crea user sk
 
     // user imposta la sua chiave sk (tramite watcher e retrieve_abe_secret_key)
+    // NOTA: controllare che il watcher forse ora ignora i path delle chiavi
+
+    // non sono necessarie chiamate a funzioni (fa tutto il watcher)
   }).timeout(10000);
 });
 
