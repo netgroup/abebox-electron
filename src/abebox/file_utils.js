@@ -191,7 +191,6 @@ module.exports = {
   parse_metadata,
   get_file_name,
   split_file_path,
-  policy_as_string,
   get_hash,
   get_hmac,
   generate_jwt,

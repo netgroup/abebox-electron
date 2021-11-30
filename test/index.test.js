@@ -3,47 +3,46 @@ const fs = require("fs");
 const envPaths = require("env-paths");
 const paths = envPaths("electron-store");
 
-const tmp_dir = "tmp";
-const repo_local_dir = "tmp/repo-local";
-const repo_shared_dir = "tmp/repo-shared";
-const attrs_file_rel_path = "attributes/attributes_list.json";
+// paths
+const tmp_dir = `${__dirname}/tmp`;
+const abs_local_repo_path = `${tmp_dir}/repo-local`;
+const abs_remote_repo_path = `${tmp_dir}/repo-shared`;
+const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
 
-const cfg_file = "config.json";
+const cfg_filename = "config.json";
 
-const test_file_1 = "tmp/repo-local/hello1.txt";
+// plaintext files
+const local_dir = "mytestfolder";
+const plaintext_filename = "hello_index.txt"; // we are creating /mytestfolder/hello.txt file in the local repo
+const rel_plaintext_file_path = `${local_dir}/${plaintext_filename}`;
+const abs_plaintext_file_path = `${abs_local_repo_path}/${rel_plaintext_file_path}`;
+const abs_dec_plaintext_file_path = `${abs_plaintext_file_path}.decripted.txt`;
+
+//const tmp_dir = "tmp";
+//const abs_local_repo_path = "tmp/repo-local";
+//const abs_remote_repo_path = "tmp/repo-shared";
+//const attrs_file_rel_path = "attributes/attributes_list.json";
+
+//const test_local_file = "tmp/repo-local/hello1.txt";
 
 // remove and create test files
 before(() => {
   // Rename cfg file
-  if (fs.existsSync(paths.config + "/" + cfg_file))
+  if (fs.existsSync(paths.config + "/" + cfg_filename))
     fs.renameSync(
-      paths.config + "/" + cfg_file,
-      paths.config + "/" + Date.now() + "_" + cfg_file
+      paths.config + "/" + cfg_filename,
+      paths.config + "/" + Date.now() + "_" + cfg_filename
     );
 
   // Removing all files in dirs
-  //RM Attribute repo
-  if (fs.existsSync(__dirname + "/" + repo_local_dir))
-    fs.rmSync(__dirname + "/" + repo_local_dir, {
-      recursive: true,
-      force: true,
-    });
-  if (fs.existsSync(__dirname + "/" + repo_shared_dir))
-    fs.rmSync(__dirname + "/" + repo_shared_dir, {
+  if (fs.existsSync(tmp_dir))
+    fs.rmSync(tmp_dir, {
       recursive: true,
       force: true,
     });
 
-  // Create dirs
-  if (!fs.existsSync(__dirname + "/" + tmp_dir))
-    fs.mkdirSync(__dirname + "/" + tmp_dir);
-  if (!fs.existsSync(__dirname + "/" + repo_local_dir))
-    fs.mkdirSync(__dirname + "/" + repo_local_dir);
-  if (!fs.existsSync(__dirname + "/" + repo_shared_dir))
-    fs.mkdirSync(__dirname + "/" + repo_shared_dir);
-
-  // Write test file
-  //fs.writeFileSync(plaintext_file, "Hello, World!");
+  fs.mkdirSync(`${abs_local_repo_path}/${local_dir}`, { recursive: true });
+  fs.mkdirSync(abs_remote_repo_repo_path, { recursive: true });
 });
 
 after(() => {
@@ -69,9 +68,9 @@ const iv = "iv";
 const conf = {
   configured: true,
   isAdmin: true,
-  local: __dirname + "/" + repo_local_dir,
+  local: abs_local_repo_path,
   name: "pp@pp.it",
-  remote: __dirname + "/" + repo_shared_dir,
+  remote: abs_remote_repo_path,
   token: "",
 };
 
@@ -84,6 +83,7 @@ function delay(t, v) {
 let admin_abebox_init;
 const attr_data_1 = { univ: "UN", attr: "A", vers: "1" };
 const attr_data_2 = { univ: "UN", attr: "B", vers: "1" };
+const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
 
 describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
@@ -117,7 +117,7 @@ describe("Abebox Tests", () => {
   it("modify an attribute", () => {
     const attr_list_get = admin_abebox_init.get_attrs();
     const old_obj = attr_list_get[0];
-    const new_obj = { univ: "UN", attr: "B", vers: "2" };
+    const new_obj = { univ: "UN", attr: "A", vers: "2" };
     const attr_list = admin_abebox_init.set_attr(old_obj, new_obj);
     assert.equal(attr_list[0].vers, "2");
   });
@@ -163,54 +163,33 @@ describe("Abebox Tests", () => {
   });
 
   it("add a file in the local repo", async () => {
-    const add_filename = "test_add.txt";
-    fs.writeFileSync(
-      __dirname + "/" + repo_local_dir + "/" + add_filename,
-      "ciao"
-    );
+    fs.writeFileSync(abs_plaintext_file_path, "ciao");
 
     await delay(4000); // wait 4s for watcher file detection
     const file_list = admin_abebox_init.get_files_list();
     assert(file_list.length > 0);
     const my_file = file_list[0];
-    assert.equal(my_file.file_name, add_filename);
+    assert.equal(my_file.file_name, plaintext_filename);
+    admin_abebox_init.new_attr(attr_data_3);
     const my_policy = {
       file_id: my_file.file_id,
-      policy: [[attr_data_1]],
+      policy: [[attr_data_3]],
     };
     admin_abebox_init.set_policy(my_policy);
     const file_list2 = admin_abebox_init.get_files_list();
     const my_file2 = file_list2[0];
-    console.log("MF: ", JSON.stringify(my_file2));
     assert.deepEqual(my_file2.policy, my_policy.policy);
-    //admin_abebox_init.share_files();
+    admin_abebox_init.share_files();
 
     await delay(4000); // wait 4s for watcher file detection
-    /*    setTimeout((e) => {
-      assert.ok(
-        fs.existsSync(
-          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
-        )
-      );
-      assert.ok(
-        fs.existsSync(
-          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".abebox"
-        )
-      );
-    }, 3000);
-    /*assert.ok(
-        fs.existsSync(
-          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".0"
-        )
-      );
-      assert.ok(
-        fs.existsSync(
-          __dirname + "/" + repo_shared_dir + "/" + my_file.file_id + ".abebox"
-        )
-      );*/
 
-    //
-  }).timeout(10000);
+    assert.ok(
+      fs.existsSync(`${abs_remote_repo_repo_path}/${my_file.file_id}.0`)
+    );
+    assert.ok(
+      fs.existsSync(`${abs_remote_repo_repo_path}/${my_file.file_id}.abebox`)
+    );
+  }).timeout(15000);
 });
 
 /*

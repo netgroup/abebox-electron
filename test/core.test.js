@@ -4,7 +4,8 @@ const fs = require("fs");
 // paths
 const tmp_dir = `${__dirname}/tmp`;
 const abs_local_repo_path = `${tmp_dir}/repo-local`;
-const abs_remote_repo_path = `${tmp_dir}/repo-shared/repo`;
+const abs_remote_repo_path = `${tmp_dir}/repo-shared`;
+const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
 
 // plaintext files
 const local_dir = "mytestfolder";
@@ -17,22 +18,11 @@ const abs_dec_plaintext_file_path = `${abs_plaintext_file_path}.decripted.txt`;
 const file_id = "enc_hello";
 const metadata_filename = `${file_id}.abebox`;
 const encrypted_filename = `${file_id}.0`;
-const abs_metadata_file_path = `${abs_remote_repo_path}/${metadata_filename}`;
-const abs_encrypted_file_path = `${abs_remote_repo_path}/${encrypted_filename}`;
+const abs_metadata_file_path = `${abs_remote_repo_repo_path}/${metadata_filename}`;
+const abs_encrypted_file_path = `${abs_remote_repo_repo_path}/${encrypted_filename}`;
 
 const sym_key = "sym_key";
 const iv = "iv";
-
-// OLD
-/*
-const ciphertext_file = "./test/tmp/enc_hello.0";
-const ciphermeta_file = "./test/tmp/enc_hello.abebox";
-const dec_plaintext_file = "./test/tmp/dec_hello.txt";
-const out_meta_file = "./test/tmp/test_meta_file.abebox";
-const rel_plaintext_file = "hello.txt";
-const abs_remote_repo_path = "test/tmp/repo-shared/repo";
-const abs_local_repo_path = "test/tmp/repo-local";
-*/
 
 // remove and create test files
 before(() => {
@@ -44,7 +34,7 @@ before(() => {
     });
 
   fs.mkdirSync(`${abs_local_repo_path}/${local_dir}`, { recursive: true });
-  fs.mkdirSync(abs_remote_repo_path, { recursive: true });
+  fs.mkdirSync(abs_remote_repo_repo_path, { recursive: true });
 
   // Write test file
   fs.writeFileSync(abs_plaintext_file_path, "Hello, World!");
@@ -86,6 +76,7 @@ describe("Core Basic Tests", () => {
     assert.equal(metadata.file_name, rel_plaintext_file_path);
     assert.equal(metadata.sym_key, sym_key);
     assert.equal(metadata.iv, iv);
+    assert.equal(metadata.policy, policy);
   }).timeout(10000);
 
   it("admin file creation and decoding", async () => {
@@ -120,18 +111,13 @@ describe("Core Basic Tests", () => {
   }).timeout(10000);
 
   it("admin create file and user try to decode", async () => {
-    //metadata and content files creation (with outfile = '.abebox') and user file decoding
-    //
-    //const plaintext_file = __dirname + "/tmp/hello.txt";
-    //const rel_plaintext_file = "hello.txt";
-    //const cipher_file = "enc_hello";
     const policy = '"1"';
     const plaintext = fs.readFileSync(abs_plaintext_file_path, "utf-8");
 
     const metadata_file = await admin_core.file_encrypt(
       rel_plaintext_file_path,
       abs_plaintext_file_path,
-      abs_remote_repo_path,
+      abs_remote_repo_repo_path,
       file_id,
       policy
     );

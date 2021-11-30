@@ -1,3 +1,4 @@
+const { assert } = require("console");
 const fs = require("fs");
 const core = require("./core");
 
@@ -87,26 +88,22 @@ const get_attr_id = function(attr) {
 };
 
 const policy_as_string = function(policy_array) {
-  let policy_string = "";
-  policy_array.forEach(function(outer_el, outer_el_index, outer_array) {
-    if (outer_el.length === 1) {
-      policy_string = policy_string + '"' + outer_el[0] + '"';
-    } else {
-      policy_string = policy_string + "(";
-      outer_el.forEach(function(inner_el, inner_el_index, inner_array) {
-        policy_string = policy_string + '"' + inner_el + '"';
-        if (inner_el_index != inner_array.length - 1) {
-          policy_string = policy_string + " OR ";
-        }
-      });
-      policy_string = policy_string + ")";
-    }
-    if (outer_el_index != outer_array.length - 1) {
-      policy_string = policy_string + " AND ";
-    }
+  if (!Array.isArray(policy_array))
+    throw Error("Policy must be an array of array of error");
+  policy_array.forEach((el) => {
+    if (!Array.isArray(el))
+      throw Error("Policy must be an array of array of error");
   });
-  console.log("POLICY AS STRING = ", policy_string);
-  return policy_string;
+
+  const attribute_map = function(attrs_list) {
+    return attrs_list.map((el) => `"${_get_attr_id(el)}"`);
+  };
+
+  return policy_array
+    .map((subarray) => {
+      return "(" + attribute_map(subarray).join(" OR ") + ")";
+    })
+    .join(" AND ");
 };
 
 module.exports = {
@@ -117,4 +114,5 @@ module.exports = {
   del,
   compress_list,
   get_attr_id,
+  policy_as_string,
 };

@@ -259,13 +259,9 @@ const handle_remote_add = function(full_file_path) {
   const [file_name, file_ext] = original_file_name.split(".");
   if (file_ext != "abebox") return files_list; // Capire perché
 
-  //try {
-
   const metadata = core.retrieve_metadata(
     _conf.remote + "/repo/" + original_file_name
   );
-
-  console.log("MTD: ", metadata);
 
   if (metadata.file_path === null) {
     // DECRYPTION ERROR
@@ -280,20 +276,17 @@ const handle_remote_add = function(full_file_path) {
       el.file_id === file_name
   );
   if (el === undefined) {
+    // file is added externally (not by me!)
     files_list.push({
       file_path: relative_path,
       file_name: metadata.file_path,
-      file_id: fid_no_ext,
-      policy: _policy[0],
+      file_id: file_ext,
+      policy: metadata.policy,
       status: file_status.remote_change,
     });
     store.set_files(files_list);
     return files_list;
   }
-  //} catch (error) {
-  //  console.log("Decryption failed: " + error);
-  //  return undefined;
-  //}
 };
 
 const handle_local_change = function(file_path) {
@@ -504,23 +497,23 @@ const set_policy = function(data) {
 };
 
 const share_files = function() {
-  console.log(`SHARE_FILES`);
   files_list.forEach((file) => {
     if (file.status == file_status.local_change && file.policy.length != 0) {
       const file_name =
         file.file_path.charAt(0) === "/"
           ? file.file_path.substring(1) + file.file_name
           : file.file_path + file.file_name;
-      console.log(`FILE ${file_name} TO ENCRYPT`);
       const res = core.file_encrypt(
         file_name,
         _conf.local + "/" + file_name,
         _conf.remote + "/" + repo_rel_path,
         file.file_id,
-        file_utils.policy_as_string(file.policy)
+        attribute.policy_as_string(file.policy)
       );
       if (res) file.status = file_status.sync;
-      else console.log("[ERROR] ENCRYPTING LOCAL FILE " + file_name);
+      else {
+        throw Error("Error encrypting local file " + file_name);
+      }
     }
     if (file.status == file_status.remote_change) {
       let enc_file_name = file.file_path + file.file_id;

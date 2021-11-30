@@ -223,6 +223,7 @@ const retrieve_metadata = function(input_metadata_file) {
   const raw_metadata = fs.readFileSync(input_metadata_file, "utf-8");
   // Read metadata
   const { enc_metadata, iv } = JSON.parse(raw_metadata);
+  const policy = JSON.parse(enc_metadata)._policy[0];
   try {
     // Decrypt the encrypted ones
     const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
@@ -232,6 +233,7 @@ const retrieve_metadata = function(input_metadata_file) {
       file_name,
       sym_key,
       iv,
+      policy,
     };
   } catch (error) {
     // TODO Gestire errori di rabe
