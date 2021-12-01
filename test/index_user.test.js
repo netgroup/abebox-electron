@@ -94,7 +94,7 @@ describe("Abebox Tests", () => {
 
     await delay(10000);
     console.log("FILE LIST =", user_abebox.get_files_list());
-    user_abebox.share_files(); // send the token
+    //user_abebox.share_files(); // send the token
   }).timeout(50000);
 });
 

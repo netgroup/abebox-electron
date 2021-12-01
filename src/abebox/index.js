@@ -255,7 +255,7 @@ const handle_local_add = function(file_path) {
 };
 
 //TODO rivedere
-const handle_remote_add = function(full_file_path) {
+const handle_remote_add = async function(full_file_path) {
   try {
     const { original_file_name, relative_path } = file_utils.split_file_path(
       full_file_path,
@@ -285,30 +285,48 @@ const handle_remote_add = function(full_file_path) {
     // fragments.
     if (file_ext != "abebox") return files_list;
 
-    const metadata = core.retrieve_metadata(full_file_path);
+    const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
+      full_file_path
+    );
 
-    console.log("EXTRACTED METADATA = ", metadata);
+    console.log("EXTRACTED METADATA = ", sym_key, iv, file_name);
 
-    if (metadata.file_path === null) {
+    if (file_name === null) {
       // if metadata.file_path is null, decoding was not possible
-      console.log("Decryption failed: " + error);
-      return undefined;
+      throw Error("Metadata file name is empty");
     }
 
     // separate folder and name of the encrypted file
-    const lastSepIndex = metadata.file_name.lastIndexOf("/");
-    const plaintext_file_folder = metadata.file_name.substr(0, lastSepIndex); // myfolder
-    const plaintext_file_name =
-      metadata.file_name.substr(lastSepIndex) + file_ext; // myfolder/foo.txt
+    const last_sep_index = file_name.lastIndexOf(path.sep);
+    const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
+    const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
+    if (!fs.existsSync(`${_conf.local}/${plaintext_file_folder}`))
+      fs.mkdirSync(`${_conf.local}/${plaintext_file_folder}`, {
+        recursive: true,
+      });
     console.log(
       `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
+    );
+    //const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
+    //if (file_name === null) {
+    //  throw Error(`File name not defined`);
+    //}
+    // File content symmetric decryption
+    const encrypted_content_file = core.get_encrypted_content_file_name(
+      full_file_path
+    );
+    await core.retrieve_decrypted_file(
+      encrypted_content_file,
+      _conf.local + "/" + file_name,
+      sym_key,
+      iv
     );
 
     // search if file has been already added in the file list
     const el = files_list.find(
       (el) =>
-        el.file_path === relative_path &&
-        el.file_name === metadata.file_path &&
+        el.file_path === plaintext_file_folder &&
+        el.file_name === plaintext_file_name &&
         el.file_id === file_id
     );
 
@@ -318,7 +336,7 @@ const handle_remote_add = function(full_file_path) {
         file_path: plaintext_file_folder, //relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
         file_name: plaintext_file_name, // metadata.file_path, // ESTRARRE NOME FILE DA FILE PATH
         file_id: file_id,
-        policy: metadata.policy, // TODO DESERIALIZZARE POLICY CON UNIVERSO, ATTR, VERSIONE
+        policy: attribute.policy_from_string(policy), // TODO DESERIALIZZARE POLICY CON UNIVERSO, ATTR, VERSIONE
         status: file_status.remote_change,
       });
       store.set_files(files_list);
@@ -620,15 +638,15 @@ const set_policy = function(data) {
 
 const share_files = function() {
   files_list.forEach((file) => {
+    const file_name =
+      file.file_path.charAt(0) === "/"
+        ? file.file_path.substring(1) + file.file_name
+        : file.file_path + file.file_name;
     if (file.status == file_status.local_change && file.policy.length != 0) {
-      const file_name =
-        file.file_path.charAt(0) === "/"
-          ? file.file_path.substring(1) + file.file_name
-          : file.file_path + file.file_name;
       const res = core.file_encrypt(
         file_name,
-        _conf.local + "/" + file_name,
-        _conf.remote + "/" + repo_rel_path,
+        `${_conf.local}/${file_name}`,
+        `${_conf.remote}/${repo_rel_path}`,
         file.file_id,
         attribute.policy_as_string(file.policy)
       );
@@ -639,12 +657,19 @@ const share_files = function() {
     }
     if (file.status == file_status.remote_change) {
       console.log("SHARE FILES: ", file);
-      let enc_file_name = file.file_path + file.file_id;
-      enc_file_name = enc_file_name.substring(
+      const enc_file_name = `${_conf.remote}/${repo_rel_path}/${file.file_id}`;
+      const enc_file_name_no_ext = enc_file_name.substring(
         0,
         enc_file_name.lastIndexOf(".")
       );
-      const res = core.file_decrypt(enc_file_name);
+      const encrypted_content_file = `${enc_file_name_no_ext}.0`;
+      /*await retrieve_decrypted_file(
+      encrypted_content_file,
+      _conf.local + "/" + file_name,
+      sym_key,
+      iv
+    );*/
+      const res = core.file_decrypt(enc_file_name_no_ext);
       if (res) file.status = file_status.sync;
       else console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
     }

@@ -289,7 +289,7 @@ const _get_metadata_file_name = function(file) {
   return file.substring(0, last_dot_position) + ".abebox";
 };
 
-const _get_encrypted_content_file_name = function(file) {
+const get_encrypted_content_file_name = function(file) {
   const last_dot_position = file.lastIndexOf(".");
   if (last_dot_position >= file.length) return file + ".0";
   return file.substring(0, last_dot_position) + ".0";
@@ -355,7 +355,7 @@ const file_decrypt = async function(abs_ciphertext_file, abs_local_repo_path) {
       throw Error(`File name not defined`);
     }
     // File content symmetric decryption
-    const encrypted_content_file = _get_encrypted_content_file_name(
+    const encrypted_content_file = get_encrypted_content_file_name(
       abs_ciphertext_file
     );
     await retrieve_decrypted_file(
@@ -399,5 +399,6 @@ module.exports = {
   file_encrypt,
   file_decrypt,
   file_reencrypt,
+  get_encrypted_content_file_name,
   _conf,
 };
