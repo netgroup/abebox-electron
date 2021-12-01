@@ -6,7 +6,16 @@ const attributes_file = "attributes_list.json";
 let attributes_file_path;
 
 const _get_attr_id = function(attr) {
-  return `${attr.univ}:${attr.attr}:v${attr.vers}`;
+  return `${attr.univ}:${attr.attr}:${attr.vers}`;
+};
+
+const _get_attr_values = function(attr_id) {
+  const [univ, attr, vers] = attr_id.split(":");
+  return {
+    univ: univ,
+    attr: attr,
+    vers: vers,
+  };
 };
 
 const _save = function(attrs_list) {
@@ -87,6 +96,8 @@ const get_attr_id = function(attr) {
   return _get_attr_id(attr);
 };
 
+// serialize policy
+// transform a policy (array of array of object) in a string
 const policy_as_string = function(policy_array) {
   if (!Array.isArray(policy_array))
     throw Error("Policy must be an array of array of error");
@@ -106,6 +117,22 @@ const policy_as_string = function(policy_array) {
     .join(" AND ");
 };
 
+// de-serialize policy
+// transform from a string to a policy object
+const policy_from_string = function(policy_string) {
+  const attribute_unmap = function(attrs_strings) {
+    return attrs_strings.map((el) => {
+      return _get_attr_values(el.substr(1, el.length - 2));
+    });
+  };
+
+  return policy_string.split(" AND ").map((substring) => {
+    return attribute_unmap(
+      substring.substr(1, substring.length - 2).split(" OR ")
+    );
+  });
+};
+
 module.exports = {
   init,
   get_all,
@@ -115,4 +142,5 @@ module.exports = {
   compress_list,
   get_attr_id,
   policy_as_string,
+  policy_from_string,
 };

@@ -235,7 +235,7 @@ const handle_local_add = function(file_path) {
     file_path,
     _conf.local
   );
-  
+
   console.log(`${file_path} split into ${relative_path}/${original_file_name}`);
 
   const el = files_list.find(
@@ -261,7 +261,9 @@ const handle_remote_add = function(full_file_path) {
       full_file_path,
       _conf.remote
     );
-    console.log(`FILE NAME = ${original_file_name}   REL PATH = ${relative_path}`);
+    console.log(
+      `FILE NAME = ${original_file_name}   REL PATH = ${relative_path}`
+    );
     if (relative_path.includes(pk_dir_rel_path + "/")) {
       if (_conf.isAdmin) {
         retrieve_pub_key(full_file_path, original_file_name);
@@ -277,30 +279,45 @@ const handle_remote_add = function(full_file_path) {
 
     if (!core.is_abe_configured()) return;
 
-    const [file_name, file_ext] = original_file_name.split(".");
-    if (file_ext != "abebox") return files_list; // Capire perché
+    const [file_id, file_ext] = original_file_name.split(".");
+
+    // we discard files without .abebox extensions since they are just
+    // fragments.
+    if (file_ext != "abebox") return files_list;
 
     const metadata = core.retrieve_metadata(full_file_path);
 
-    console.log("EXTRACTED METADATA = ", metadata)
+    console.log("EXTRACTED METADATA = ", metadata);
+
     if (metadata.file_path === null) {
-      // DECRYPTION ERROR
+      // if metadata.file_path is null, decoding was not possible
       console.log("Decryption failed: " + error);
       return undefined;
     }
 
+    // separate folder and name of the encrypted file
+    const lastSepIndex = metadata.file_name.lastIndexOf("/");
+    const plaintext_file_folder = metadata.file_name.substr(0, lastSepIndex); // myfolder
+    const plaintext_file_name =
+      metadata.file_name.substr(lastSepIndex) + file_ext; // myfolder/foo.txt
+    console.log(
+      `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
+    );
+
+    // search if file has been already added in the file list
     const el = files_list.find(
       (el) =>
         el.file_path === relative_path &&
         el.file_name === metadata.file_path &&
-        el.file_id === file_name
+        el.file_id === file_id
     );
+
     if (el === undefined) {
       // file is added externally (not by me!)
       files_list.push({
-        file_path: relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
-        file_name: metadata.file_path, // ESTRARRE NOME FILE DA FILE PATH
-        file_id: file_name,
+        file_path: plaintext_file_folder, //relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
+        file_name: plaintext_file_name, // metadata.file_path, // ESTRARRE NOME FILE DA FILE PATH
+        file_id: file_id,
         policy: metadata.policy, // TODO DESERIALIZZARE POLICY CON UNIVERSO, ATTR, VERSIONE
         status: file_status.remote_change,
       });
