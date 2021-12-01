@@ -146,7 +146,6 @@ const set_abe_sk = function(sk) {
 };
 
 const create_abe_sk = function(attr_list, store_key = true) {
-  console.log("create_abe_sk: ", _conf);
   if (!_conf.abe_init) throw Error("ABE Not initialized");
   if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
 
@@ -157,6 +156,19 @@ const create_abe_sk = function(attr_list, store_key = true) {
   );
 
   if (store_key) _conf.abe_keys.sk = sk;
+  return sk;
+};
+
+const create_user_abe_sk = function(attr_list) {
+  console.log("create_user_abe_sk: ", _conf);
+  if (!_conf.abe_init) throw Error("ABE Not initialized");
+  if (!_conf.abe_admin) throw Error("ABE Not in admin mode");
+
+  const sk = rabe.keygen(
+    _conf.abe_keys.pk,
+    _conf.abe_keys.msk,
+    JSON.stringify(attr_list)
+  );
   return sk;
 };
 
@@ -363,12 +375,17 @@ const file_reencrypt = async function(encrypted_filename, policy) {
   console.log("Encrypt function");
 };
 
+const is_abe_configured = function() {
+  return _conf.abe_init;
+};
 module.exports = {
+  is_abe_configured,
   init_rsa_keys,
   set_rsa_keys,
   get_rsa_keys,
   init_abe_keys, // used by abe admin
   create_abe_sk, //used in abe admin mode
+  create_user_abe_sk,
   set_abe_keys, // used by normal users
   set_abe_sk,
   get_abe_keys,

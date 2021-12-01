@@ -4,6 +4,7 @@ const fs = require("fs");
 const file_utils = require("../src/abebox/file_utils");
 
 const envPaths = require("env-paths");
+const { time } = require("console");
 const paths = envPaths("electron-store");
 
 // paths
@@ -11,6 +12,7 @@ const tmp_dir = `${__dirname}/tmp`;
 const abs_local_repo_path = `${tmp_dir}/repo-local`;
 const abs_remote_repo_path = `${tmp_dir}/repo-shared`;
 const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
+const user_token_file = `${tmp_dir}/user_token.txt`;
 
 const abs_user_local_repo_path = `${tmp_dir}/repo-user-local`;
 
@@ -46,14 +48,6 @@ before(() => {
 
 after(() => {
   // stop abebox!!
-});
-
-// to reload the module as a separate instance
-beforeEach(() => {
-  delete require.cache[require.resolve("../src/abebox/core")];
-  delete require.cache[require.resolve("../src/abebox/index")];
-  delete require.cache[require.resolve("../src/abebox/store")];
-  delete require.cache[require.resolve("chokidar")];
 });
 
 let abe;
@@ -170,7 +164,7 @@ describe("Abebox Tests", () => {
   });
 
   it("add a file in the local repo", async () => {
-    fs.writeFileSync(abs_plaintext_file_path, "ciao");
+    fs.writeFileSync(abs_plaintext_file_path, "ciao" + new Date());
 
     await delay(4000); // wait 4s for watcher file detection
     const file_list = admin_abebox.get_files_list();
@@ -211,65 +205,8 @@ describe("Abebox Tests", () => {
     console.log("user: ", user);
     const invited_user = admin_abebox.invite_user(user);
     invited_user_token = invited_user.token;
+    fs.writeFileSync(user_token_file, invited_user_token);
     assert.equal(invited_user.mail, new_user.mail);
     assert.ok(invited_user_token);
   }).timeout(15000);
-  /*
-  it("stop abebox", () => {
-    admin_abebox.stop();
-    admin_abebox.reset_config();
-  });
-  */
-  it("setup abebox user with token", () => {
-    user_abebox = require("../src/abebox/index");
-
-    user_abebox.boot(cfg_filename_user.split(".")[0]);
-
-    user_conf.token = invited_user_token;
-    // loading new configuration
-    user_abebox.set_config(user_conf);
-
-    user_abebox.send_user_rsa_pk(); // send the token
-    const token_hash = file_utils.get_hash(user_conf.token);
-    const user_rsa_pk_filename = `${
-      user_conf.remote
-    }/pub_keys/${token_hash.toString("hex")}`;
-    assert.ok(fs.existsSync(user_rsa_pk_filename));
-    const user_rsa_file_content = fs.readFileSync(
-      user_rsa_pk_filename,
-      "utf-8"
-    );
-    const user_rsa_obj = JSON.parse(user_rsa_file_content);
-    assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
-    assert.ok(user_rsa_obj.hasOwnProperty("sign"));
-    console.log("Token file: ", user_rsa_obj);
-
-    // admin deve chiamare retrieve_pub_key (tramite watcher)
-    // che crea user sk
-
-    // user imposta la sua chiave sk (tramite watcher e retrieve_abe_secret_key)
-    // NOTA: controllare che il watcher forse ora ignora i path delle chiavi
-
-    // non sono necessarie chiamate a funzioni (fa tutto il watcher)
-  }).timeout(10000);
 });
-
-/*
-stop,
-  OK get_files_list,
-  OK set_policy,
-  OK share_files,
-  OK get_config,
-  OK set_config,
-  N/A reset_config,
-  OK get_attrs,
-  OK new_attr,
-  OK set_attr,
-  OK del_attr,
-  OK get_users,
-  OK new_user,
-  OK set_user,
-  OK del_user,
-  invite_user,
-  test users
-*/

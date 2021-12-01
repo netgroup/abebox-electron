@@ -5,10 +5,11 @@ const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
 
 const file_utils = require("./file_utils"); // TODO Rename
-const core = require("./core");
 const rsa = require("./rsa"); // TODO Remove
 const store = require("./store"); // local storage
 const attribute = require("./attribute");
+const core = require("./core");
+
 const { assert } = require("console");
 const { on } = require("events");
 
@@ -252,53 +253,59 @@ const handle_local_add = function(file_path) {
 
 //TODO rivedere
 const handle_remote_add = function(full_file_path) {
-  const { original_file_name, relative_path } = file_utils.split_file_path(
-    full_file_path,
-    _conf.remote
-  );
-  if (relative_path.includes(pk_dir_rel_path + "/")) {
-    if (_conf.isAdmin) {
-      retrieve_pub_key(full_file_path, original_file_name);
+  try {
+    const { original_file_name, relative_path } = file_utils.split_file_path(
+      full_file_path,
+      _conf.remote
+    );
+    if (relative_path.includes(pk_dir_rel_path + "/")) {
+      if (_conf.isAdmin) {
+        retrieve_pub_key(full_file_path, original_file_name);
+      }
+      return files_list;
     }
-    return files_list;
-  }
-  if (relative_path.includes(keys_dir_rel_path + "/")) {
-    if (!_conf.isAdmin) {
-      retrieve_abe_secret_key(full_file_path);
+    if (relative_path.includes(keys_dir_rel_path + "/")) {
+      if (!_conf.isAdmin) {
+        retrieve_abe_secret_key(full_file_path);
+      }
+      return files_list;
     }
-    return files_list;
-  }
 
-  const [file_name, file_ext] = original_file_name.split(".");
-  if (file_ext != "abebox") return files_list; // Capire perché
+    if (!core.is_abe_configured()) return;
 
-  const metadata = core.retrieve_metadata(
-    _conf.remote + "/repo/" + original_file_name
-  );
+    const [file_name, file_ext] = original_file_name.split(".");
+    if (file_ext != "abebox") return files_list; // Capire perché
 
-  if (metadata.file_path === null) {
-    // DECRYPTION ERROR
-    console.log("Decryption failed: " + error);
-    return undefined;
-  }
+    const metadata = core.retrieve_metadata(
+      _conf.remote + "/repo/" + original_file_name
+    );
 
-  const el = files_list.find(
-    (el) =>
-      el.file_path === relative_path &&
-      el.file_name === metadata.file_path &&
-      el.file_id === file_name
-  );
-  if (el === undefined) {
-    // file is added externally (not by me!)
-    files_list.push({
-      file_path: relative_path,
-      file_name: metadata.file_path,
-      file_id: file_ext,
-      policy: metadata.policy,
-      status: file_status.remote_change,
-    });
-    store.set_files(files_list);
-    return files_list;
+    if (metadata.file_path === null) {
+      // DECRYPTION ERROR
+      console.log("Decryption failed: " + error);
+      return undefined;
+    }
+
+    const el = files_list.find(
+      (el) =>
+        el.file_path === relative_path &&
+        el.file_name === metadata.file_path &&
+        el.file_id === file_name
+    );
+    if (el === undefined) {
+      // file is added externally (not by me!)
+      files_list.push({
+        file_path: relative_path,
+        file_name: metadata.file_path,
+        file_id: file_ext,
+        policy: metadata.policy,
+        status: file_status.remote_change,
+      });
+      store.set_files(files_list);
+      return files_list;
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
 
@@ -516,31 +523,23 @@ const send_abe_user_secret_key = function(
   );
 
   try {
-    console.log("ciao");
-    console.log(debug_core());
-    /// <----
-    const sk = core.create_abe_sk(attr_list, false);
-    console.log("sk: ", sk);
+    const sk = core.create_user_abe_sk(attr_list, false);
     const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
-    console.log("enc_sk: ", enc_sk);
-    const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
-    console.log("abe_enc_sk_jwt: ", abe_enc_sk_jwt);
-    const admin_rsa_pk = core.get_rsa_keys().pk;
 
+    const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
+    const admin_rsa_pk = core.get_rsa_keys().pk;
     const signature = file_utils.get_hmac(user_token, admin_rsa_pk);
+    const data = {
+      admin_rsa_pk: {
+        pk: admin_rsa_pk,
+        sign: signature,
+      },
+      user_abe_sk: abe_enc_sk_jwt,
+    };
+    fs.writeFileSync(file_name, JSON.stringify(data));
   } catch (err) {
     console.log("catched error", err);
   }
-
-  console.log("signature: ", signature);
-  const data = {
-    admin_rsa_pk: {
-      pk: admin_rsa_pk,
-      sign: signature,
-    },
-    user_abe_sk: abe_enc_sk_jwt,
-  };
-  fs.writeFileSync(file_name, JSON.stringify(data));
 };
 
 /**************** FILES *****************/
