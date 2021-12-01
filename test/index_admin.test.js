@@ -164,7 +164,7 @@ describe("Abebox Tests", () => {
   });
 
   it("add a file in the local repo", async () => {
-    fs.writeFileSync(abs_plaintext_file_path, "ciao" + new Date());
+    fs.writeFileSync(abs_plaintext_file_path, "Hello! Here is " + new Date());
 
     await delay(4000); // wait 4s for watcher file detection
     const file_list = admin_abebox.get_files_list();
@@ -194,7 +194,7 @@ describe("Abebox Tests", () => {
   it("invite user", () => {
     const new_user = {
       mail: "user@uniroma2.it",
-      attrs: [attr_data_1, attr_data_2],
+      attrs: [attr_data_1, attr_data_3],
       token: "",
       rsa_pub_key: "",
     };

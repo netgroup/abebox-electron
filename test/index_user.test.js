@@ -67,7 +67,7 @@ const attr_data_2 = { univ: "UN", attr: "B", vers: "1" };
 const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
 
 describe("Abebox Tests", () => {
-  it("setup abebox user with token", () => {
+  it("setup abebox user with token", async () => {
     user_abebox = require("../src/abebox/index");
 
     user_abebox.boot(cfg_filename_user.split(".")[0]);
@@ -92,9 +92,10 @@ describe("Abebox Tests", () => {
     assert.ok(user_rsa_obj.hasOwnProperty("sign"));
     console.log("Token file: ", user_rsa_obj);
 
-    delay(10000);
+    await delay(10000);
+    console.log("FILE LIST =", user_abebox.get_files_list());
     user_abebox.share_files(); // send the token
-  }).timeout(10000);
+  }).timeout(50000);
 });
 
 /*

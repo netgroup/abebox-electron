@@ -258,6 +258,7 @@ const retrieve_decrypted_file = async function(
   sym_key,
   iv
 ) {
+  console.log("RETRIEVE DEC FILE - OUTFILE =", output_file);
   if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
   const input_file_stream = fs.createReadStream(input_file);
   const output_file_stream = fs.createWriteStream(output_file);

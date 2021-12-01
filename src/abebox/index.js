@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 
 const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
@@ -234,6 +235,8 @@ const handle_local_add = function(file_path) {
     file_path,
     _conf.local
   );
+  
+  console.log(`${file_path} split into ${relative_path}/${original_file_name}`);
 
   const el = files_list.find(
     (el) =>
@@ -258,6 +261,7 @@ const handle_remote_add = function(full_file_path) {
       full_file_path,
       _conf.remote
     );
+    console.log(`FILE NAME = ${original_file_name}   REL PATH = ${relative_path}`);
     if (relative_path.includes(pk_dir_rel_path + "/")) {
       if (_conf.isAdmin) {
         retrieve_pub_key(full_file_path, original_file_name);
@@ -276,10 +280,9 @@ const handle_remote_add = function(full_file_path) {
     const [file_name, file_ext] = original_file_name.split(".");
     if (file_ext != "abebox") return files_list; // Capire perché
 
-    const metadata = core.retrieve_metadata(
-      _conf.remote + "/repo/" + original_file_name
-    );
+    const metadata = core.retrieve_metadata(full_file_path);
 
+    console.log("EXTRACTED METADATA = ", metadata)
     if (metadata.file_path === null) {
       // DECRYPTION ERROR
       console.log("Decryption failed: " + error);
@@ -295,10 +298,10 @@ const handle_remote_add = function(full_file_path) {
     if (el === undefined) {
       // file is added externally (not by me!)
       files_list.push({
-        file_path: relative_path,
-        file_name: metadata.file_path,
-        file_id: file_ext,
-        policy: metadata.policy,
+        file_path: relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
+        file_name: metadata.file_path, // ESTRARRE NOME FILE DA FILE PATH
+        file_id: file_name,
+        policy: metadata.policy, // TODO DESERIALIZZARE POLICY CON UNIVERSO, ATTR, VERSIONE
         status: file_status.remote_change,
       });
       store.set_files(files_list);
@@ -414,7 +417,7 @@ const send_user_rsa_pk = function() {
   console.log("SIGNATURE CHECK send_user_rsa_pk: ", rsa_keys.pk + _conf.name);
 
   const data = {
-    rsa_pub_key: rsa_keys.pk.toString("hex"),
+    rsa_pub_key: rsa_keys.pk,
     sign: signature.toString("hex"),
   };
   fs.writeFileSync(
@@ -497,18 +500,32 @@ const retrieve_pub_key = async function(full_file_name, file_name) {
 // user retrieves her ABE SK
 const retrieve_abe_secret_key = function(full_file_name) {
   console.log("RETRIEVING USER ABE SECRET KEY...");
-  const { admin_rsa_pk, user_abe_sk } = JSON.parse(
+  const { admin_keys, user_abe_sk } = JSON.parse(
     fs.readFileSync(full_file_name, "utf-8")
   );
-
-  const computed_signature = file_utils.get_hmac(_conf.token, admin_rsa_pk.pk);
-  if (admin_rsa_pk.sign != computed_signature)
+  const { keys, sign } = admin_keys;
+  const computed_signature = file_utils.get_hmac(
+    _conf.token,
+    JSON.toString(keys)
+  );
+  if (sign != computed_signature.toString("hex"))
     throw Error("Admin RSA PK has not been signed correctly");
 
-  const abe_enc_sk = core.verify_jwt(user_abe_sk, admin_rsa_pk.pk);
+  const abe_enc_sk = core.verify_jwt(user_abe_sk, keys.rsa_pk);
+  console.log("ENC SK", abe_enc_sk);
   //TODO controllo d'errore
-
-  core.set_abe_sk(abe_enc_sk);
+  const abe_sk = rsa
+    .decrypt(JSON.stringify(abe_enc_sk), core.get_rsa_keys().sk)
+    .toString("utf-8");
+  core.set_abe_keys(keys.abe_pk, abe_sk);
+  //core.set_abe_sk(abe_enc_sk);
+  console.log("ABE KEYS =", core.get_abe_keys());
+  // ABE is now configured, we can download files in remote repo
+  const remote_repo_file_list = walk(`${_conf.remote}/${repo_rel_path}`, []);
+  console.log("REPO FILE LIST =", remote_repo_file_list);
+  remote_repo_file_list.forEach((file) => {
+    handle_remote_add(`${_conf.remote}/${repo_rel_path}/${file}`);
+  });
 };
 
 // admin calls this function to send the user ABE sk.
@@ -524,15 +541,22 @@ const send_abe_user_secret_key = function(
 
   try {
     const sk = core.create_user_abe_sk(attr_list, false);
+    console.log("USER SK =", sk);
     const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
 
     const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
-    const admin_rsa_pk = core.get_rsa_keys().pk;
-    const signature = file_utils.get_hmac(user_token, admin_rsa_pk);
+    const admin_keys = {
+      abe_pk: core.get_abe_keys().pk,
+      rsa_pk: core.get_rsa_keys().pk,
+    };
+    const signature = file_utils.get_hmac(
+      user_token,
+      JSON.toString(admin_keys)
+    );
     const data = {
-      admin_rsa_pk: {
-        pk: admin_rsa_pk,
-        sign: signature,
+      admin_keys: {
+        keys: admin_keys,
+        sign: signature.toString("hex"),
       },
       user_abe_sk: abe_enc_sk_jwt,
     };
@@ -540,6 +564,22 @@ const send_abe_user_secret_key = function(
   } catch (err) {
     console.log("catched error", err);
   }
+};
+
+// List all files in a directory in Node.js recursively in a synchronous fashion
+const walk = function(dir, file_list) {
+  if (!fs.statSync(dir).isDirectory()) throw Error(`${dir} is not a folder`);
+  filelist = file_list || [];
+  files = fs.readdirSync(dir);
+  files.forEach(function(file) {
+    const full_path = path.join(dir, file);
+    if (fs.statSync(full_path).isDirectory()) {
+      filelist = walkSync(full_path, filelist);
+    } else {
+      filelist.push(file);
+    }
+  });
+  return filelist;
 };
 
 /**************** FILES *****************/
@@ -555,6 +595,7 @@ const set_policy = function(data) {
   const el = files_list.find((el) => el.file_id === data.file_id);
   if (el !== undefined) {
     el.policy = data.policy;
+    console.log("NEW POL - FILE =", JSON.stringify(el));
   }
   store.set_files(files_list);
   return files_list;
@@ -580,6 +621,7 @@ const share_files = function() {
       }
     }
     if (file.status == file_status.remote_change) {
+      console.log("SHARE FILES: ", file);
       let enc_file_name = file.file_path + file.file_id;
       enc_file_name = enc_file_name.substring(
         0,
