@@ -12,3 +12,77 @@
 3) GESTIRE DSA IN ATTRIBUTI
 
 4) DESERIALIZZARE LA POLICY
+
+
+// Note sulla logica del modulo
+// 1 Il modulo quando parte cerca il file di configurazione
+// - Se non lo trova si mette in attesa di una set_config
+// - Se la trova si avvia ...
+
+// Avvio:
+// - inizializzazione del core
+// - avvio dei listner repo_local e repo_shared
+
+// Operazioni di Base Admin
+// Aggiunta attibuiti
+// 1 Viene aggiunto/modificato/eliminato un attributo
+// - si aggiorna la lista degli attributi
+// - si aggiorna la chiave sk (TBD cosa si fa con i file già cifrati con gli attibuti vecchi???)
+
+// Condivisione di file local
+// 1 viene aggiunto un file in repo_local:
+//   - viene aggiunto alla lista dei file da gestire (si aspetta la policy)
+// 2 viene aggiunta la policy del file
+//   - nel nella lista dei file viene scritta la policy
+// 3 si condivide il file
+//   - si copia il file nel repo_shared
+
+// Ricezione di un file da remote
+// 1 viene aggiunto un file in repo_shared:
+//   - si prova a decodificare i metadati ed eventualmente si aggiunge a repo_local
+
+
+
+[FULL PATH : REPO-LOCAL/MYFOLDER/FILE.TXT]
+
+file_dir: PERCORSO RELATIVO DA REPO LOCAL [ES. MYFOLDER/]
+file_name: NOME FILE [ES. FILE.TXT],
+file_id: UUID,
+policy: [],
+status: {sync: 0, local_change: 1, remote_change: 2}
+
+
+==== SCENARIO: LOCAL ADD
+file_dir
+file_name
+file_id
+status: local_change
+
+set_policy()
+share()
+///AGGIUNTO IN REMOTE REPO (EVENTO REMOTE ADD)
+
+
+==== SCENARIO: REMOTE ADD
+/// SE EVENTO TRIGGERED DA LOCAL ADD -> GIA' IN FILE list (IF STESSO FILE ID && STATUS == LOCAL CHANGE), SETTO STATUS = SYNC
+/// SE EVENTO VERO REMOTE -> DECIFRO FILE, AGGIUNGO IN FILE list, SETTO STATUS A SYNC
+
+
+==== SCENARIO: LOCAL CHANGE
+/// CERCO NELLA LISTA E SETTO STATUS A LOCAL CHANGE
+share()
+/// AGGIUNTO IN REMOTE REPO (EVENTO REMOTE CHANGE)
+
+
+==== SCENARIO: REMOTE CHANGE
+/// SE EVENTO TRIGGERED DA LOCAL ADD -> GIA' IN FILE list (IF STESSO FILE ID && STATUS == LOCAL CHANGE), SETTO STATUS = SYNC
+/// SE EVENTO VERO REMOTE -> DECIFRO FILE, GIA' IN FILE list, SETTO STATUS A SYNC
+
+
+==== SCENARIO: LOCAL DEL
+/// RIMUOVO FILE SU REMOTE REPO ED ELIMINO DALLA FILE LISTA
+
+
+==== SCENARIO: REMOTE DEL
+/// SE EVENTO TRIGGERED DA LOCAL DEL -> NON IN FILE list
+/// SE EVENTO VERO REMOTE -> CERCO IN FILE LIST (FILE ID), RIMUOVO FILE LOCALE E ELEM DA FILE LIST

@@ -235,8 +235,8 @@ const handle_local_add = function(file_path) {
     file_path,
     _conf.local
   );
-
-  console.log(`${file_path} split into ${relative_path}/${original_file_name}`);
+  
+  console.log(`${file_path} split into ${relative_path} ${original_file_name}`);
 
   const el = files_list.find(
     (el) =>
@@ -350,18 +350,24 @@ const handle_remote_add = async function(full_file_path) {
 const handle_local_change = function(file_path) {
   const { original_file_name, relative_path } = file_utils.split_file_path(
     file_path,
-    _conf.local_repo_path
+    _conf.local
   );
   /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
 console.log(file_path, original_file_name);
 const path = file_path.replace(original_file_name, "");
 const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
-  const el = files_list.find(
+  console.log("HANDLE LOCAL CHANGE", file_path);
+  console.log("FILE LIST", files_list);
+  console.log("REL PATH", relative_path);
+  console.log("FILE NAME", original_file_name);
+  const index = files_list.findIndex(
     (el) =>
       el.file_path === relative_path && el.file_name === original_file_name
   );
-  if (el !== undefined) {
-    el.status = file_status.local_change;
+  console.log("ELEM", files_list[index], index);
+  if (index >= 0) {
+    console.log("SO' ENTRATO", index);
+    files_list[index].status = file_status.local_change;
   }
 };
 

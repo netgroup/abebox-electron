@@ -15,13 +15,14 @@ const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
 
 const abs_user_local_repo_path = `${tmp_dir}/repo-user-local`;
 
+
 const cfg_filename_user = "user_config.json";
 
 // plaintext files
 const local_dir = "mytestfolder";
 const plaintext_filename = "hello_index.txt"; // we are creating /mytestfolder/hello.txt file in the local repo
 const rel_plaintext_file_path = `${local_dir}/${plaintext_filename}`;
-const abs_plaintext_file_path = `${abs_local_repo_path}/${rel_plaintext_file_path}`;
+const abs_plaintext_file_path = `${abs_user_local_repo_path}/${rel_plaintext_file_path}`;
 const abs_dec_plaintext_file_path = `${abs_plaintext_file_path}.decripted.txt`;
 
 // remove and create test files
@@ -94,6 +95,10 @@ describe("Abebox Tests", () => {
 
     await delay(10000);
     console.log("FILE LIST =", user_abebox.get_files_list());
+    fs.appendFileSync(abs_plaintext_file_path, "" + new Date());
+    await delay(4000);
+    console.log("FILE LIST =", user_abebox.get_files_list());
+
     //user_abebox.share_files(); // send the token
   }).timeout(50000);
 });

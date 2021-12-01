@@ -138,7 +138,7 @@ const get_file_name = function(full_file_name) {
 const split_file_path = function(file_path, repo_path) {
   const filename = get_file_name(file_path);
   const abs_path = file_path.replace(filename, "");
-  const rel_path = abs_path.replace(repo_path, "");
+  const rel_path = abs_path.replace(repo_path, "").substring(1);
   return {
     original_file_name: filename,
     path: abs_path,
