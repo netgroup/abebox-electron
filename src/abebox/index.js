@@ -508,6 +508,8 @@ const get_token = function(user) {
   // Admin retrieves the user RSA PK and send the ABE SK.
   const retrieve_pub_key = async function(full_file_name, file_name) {
     const users = store.get_users();
+
+    assert(_conf.isAdmin);
     const index = users.findIndex(
       (item) => file_utils.get_hash(item.token).toString("hex") === file_name
     );
@@ -567,7 +569,10 @@ const get_token = function(user) {
       .decrypt(JSON.stringify(abe_enc_sk), core.get_rsa_keys().sk)
       .toString("utf-8");
     core.set_abe_keys(keys.abe_pk, abe_sk);
-    //core.set_abe_sk(abe_enc_sk);
+
+    _conf.keys.abe = core.get_abe_keys();
+    store.set_keys(_conf.keys);
+
     console.log("ABE KEYS =", core.get_abe_keys());
     // ABE is now configured, we can download files in remote repo
     const remote_repo_file_list = walk(`${_conf.remote}/${repo_rel_path}`, []);
@@ -584,6 +589,7 @@ const get_token = function(user) {
     user_token,
     file_name
   ) {
+    assert(_conf.isAdmin);
     console.log(
       `user_rsa_pk: ${user_rsa_pk},attr_list: ${attr_list},user_token: ${user_token},file_name: ${file_name}`
     );
@@ -803,11 +809,11 @@ const get_token = function(user) {
     return users;
   };
 
-  const debug_core = function() {
-    console.log("MY CONF:", core._conf);
+  const debug_get_conf = function() {
+    return _conf;
   };
 
-  _boot;
+  _boot();
 
   return {
     stop,
@@ -827,7 +833,7 @@ const get_token = function(user) {
     invite_user,
     del_user,
     send_user_rsa_pk,
-    debug_core, // DEBUG
+    debug_get_conf, // DEBUG
   };
 };
 
