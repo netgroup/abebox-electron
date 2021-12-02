@@ -4,6 +4,7 @@ const { pipeline } = require("stream/promises");
 const jwt = require("jsonwebtoken");
 
 const fu = require("./file_utils");
+const path = require("path");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
 
@@ -96,7 +97,6 @@ const AbeboxCore = () => {
     policy
   ) {
     if (!_conf.abe_init) throw Error("ABE Not initialized");
-    //const input_file_name = fu.get_file_name(input_file);
     // Group parameters to encrypt
     const metadata_to_enc = {
       sym_key: sym_key,
@@ -138,7 +138,7 @@ const AbeboxCore = () => {
       };
     } catch (error) {
       // TODO Gestire errori di rabe
-      throw Error("ABE Decryption failed - " + error);
+      throw Error(`ABE Decryption failed - ${error}`);
     }
   };
 
@@ -153,10 +153,8 @@ const AbeboxCore = () => {
     // Create symmetric cipher
     const algorithm = "aes-256-cbc";
     const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
-    //console.log(`SYM KEY = ${sym_key}\nIV = ${iv}`);
     // Read data, encrypt it and write the resulting ciphertext
     await pipeline(input_file_stream, cipher, output_file_stream);
-    //console.log(`AFTER PIPELINE SYM KEY = ${sym_key}\nIV = ${iv}`);
     return {
       sym_key: sym_key.toString("hex"),
       iv: iv.toString("hex"),
@@ -169,7 +167,6 @@ const AbeboxCore = () => {
     sym_key,
     iv
   ) {
-    console.log("RETRIEVE DEC FILE - OUTFILE =", output_file);
     if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
     const input_file_stream = fs.createReadStream(input_file);
     const output_file_stream = fs.createWriteStream(output_file);
@@ -196,14 +193,14 @@ const AbeboxCore = () => {
 
   const _get_metadata_file_name = function(file) {
     const last_dot_position = file.lastIndexOf(".");
-    if (last_dot_position >= file.length) return file + ".abebox";
-    return file.substring(0, last_dot_position) + ".abebox";
+    if (last_dot_position >= file.length) return `${file}.abebox"`;
+    return `${file.substring(0, last_dot_position)}.abebox`;
   };
 
   const get_encrypted_content_file_name = function(file) {
     const last_dot_position = file.lastIndexOf(".");
-    if (last_dot_position >= file.length) return file + ".0";
-    return file.substring(0, last_dot_position) + ".0";
+    if (last_dot_position >= file.length) return `${file}.0`;
+    return `${file.substring(0, last_dot_position)}.0`;
   };
 
   const file_encrypt = async function(
@@ -216,30 +213,20 @@ const AbeboxCore = () => {
     if (!fs.existsSync(abs_plaintext_file))
       throw Error(`${abs_plaintext_file} does not exist`);
     try {
-      /*
-    console.log(`rel_plain = ${rel_plaintext_file}`);
-    console.log(`abs_plain = ${abs_plaintext_file}`);
-    console.log(`abs_rem = ${abs_remote_repo_path}`);
-    console.log(`cipher = ${ciphertext_file}`);
-    console.log(`policy = ${policy}`);
-    */
-      //const ciphertext_file = fu.get_random_filename();
-      const metadata_file =
-        abs_remote_repo_path + "/" + ciphertext_file + ".abebox";
-      const encrypted_content_file =
-        abs_remote_repo_path + "/" + ciphertext_file + ".0";
-      //console.log(`meta = ${metadata_file}`);
-      //console.log(`enc = ${encrypted_content_file}`);
-      /*const encrypted_content_file = _get_encrypted_content_file_name(
-      ciphertext_file
-    );*/
+      const metadata_file = `${path.join(
+        abs_remote_repo_path,
+        ciphertext_file
+      )}.abebox`;
+      const encrypted_content_file = `${path.join(
+        abs_remote_repo_path,
+        ciphertext_file
+      )}.0`;
       // File content symmetric encryption
       const { sym_key, iv } = await create_encrypted_file(
         abs_plaintext_file,
         encrypted_content_file
       );
       // Metadata file creation
-      //const metadata_file = _get_metadata_file_name(ciphertext_file);
       create_metadata_file(
         rel_plaintext_file,
         metadata_file,
@@ -274,7 +261,7 @@ const AbeboxCore = () => {
       );
       await retrieve_decrypted_file(
         encrypted_content_file,
-        abs_local_repo_path + "/" + file_name,
+        path.join(abs_local_repo_path, file_name),
         sym_key,
         iv
       );
@@ -287,7 +274,7 @@ const AbeboxCore = () => {
 
   const file_reencrypt = async function(encrypted_filename, policy) {
     // re-encrypt the file according to the new policy
-    console.log("Encrypt function");
+    console.log("Re-encrypt function");
   };
 
   const is_abe_configured = function() {

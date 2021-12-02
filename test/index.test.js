@@ -1,5 +1,6 @@
 const assert = require("assert");
 const fs = require("fs");
+const path = require("path");
 
 const file_utils = require("../src/abebox/file_utils");
 const ABEBox = require("../src/abebox/index");
@@ -9,12 +10,12 @@ const Abebox = require("../src/abebox/index");
 const paths = envPaths("electron-store");
 
 // paths
-const tmp_dir = `${__dirname}/tmp`;
-const abs_local_repo_path = `${tmp_dir}/repo-local`;
-const abs_remote_repo_path = `${tmp_dir}/repo-shared`;
-const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
+const tmp_dir = path.join(__dirname, "tmp");
+const abs_local_repo_path = path.join(tmp_dir, "repo-local");
+const abs_remote_repo_path = path.join(tmp_dir, "repo-shared");
+const abs_remote_repo_repo_path = path.join(abs_remote_repo_path, "repo");
 
-const abs_user_local_repo_path = `${tmp_dir}/repo-user-local`;
+const abs_user_local_repo_path = path.join(tmp_dir, "repo-user-local");
 
 const cfg_filename_admin = "admin_config.json";
 const cfg_filename_user = "user_config.json";
@@ -22,18 +23,27 @@ const cfg_filename_user = "user_config.json";
 // plaintext files
 const local_dir = "mytestfolder";
 const plaintext_filename = "hello_index.txt"; // we are creating /mytestfolder/hello.txt file in the local repo
-const rel_plaintext_file_path = `${local_dir}/${plaintext_filename}`;
-const abs_plaintext_file_path = `${abs_local_repo_path}/${rel_plaintext_file_path}`;
-const abs_plaintext_user_file_path = `${abs_user_local_repo_path}/${rel_plaintext_file_path}`;
-const abs_dec_plaintext_file_path = `${abs_plaintext_file_path}.decripted.txt`;
+const rel_plaintext_file_path = path.join(local_dir, plaintext_filename);
+const abs_plaintext_file_path = path.join(
+  abs_local_repo_path,
+  rel_plaintext_file_path
+);
+const abs_plaintext_user_file_path = path.join(
+  abs_user_local_repo_path,
+  rel_plaintext_file_path
+);
+const abs_dec_plaintext_file_path = path.join(
+  abs_plaintext_file_path,
+  ".decripted.txt"
+);
 
 // remove and create test files
 before(() => {
   // Rename cfg file
-  if (fs.existsSync(paths.config + "/" + cfg_filename_admin))
-    fs.rmSync(paths.config + "/" + cfg_filename_admin);
-  if (fs.existsSync(paths.config + "/" + cfg_filename_user))
-    fs.rmSync(paths.config + "/" + cfg_filename_user);
+  if (fs.existsSync(path.join(paths.config, cfg_filename_admin)))
+    fs.rmSync(path.join(paths.config, cfg_filename_admin));
+  if (fs.existsSync(path.join(paths.config, cfg_filename_user)))
+    fs.rmSync(path.join(paths.config, cfg_filename_user));
 
   // Removing all files in dirs
   if (fs.existsSync(tmp_dir))
@@ -42,8 +52,8 @@ before(() => {
       force: true,
     });
 
-  fs.mkdirSync(`${abs_local_repo_path}/${local_dir}`, { recursive: true });
-  fs.mkdirSync(`${abs_user_local_repo_path}`, { recursive: true });
+  fs.mkdirSync(path.join(abs_local_repo_path, local_dir), { recursive: true });
+  fs.mkdirSync(abs_user_local_repo_path, { recursive: true });
   fs.mkdirSync(abs_remote_repo_repo_path, { recursive: true });
 });
 
@@ -204,10 +214,14 @@ describe("Abebox Tests", () => {
     await delay(4000); // wait 4s for watcher file detection
 
     assert.ok(
-      fs.existsSync(`${abs_remote_repo_repo_path}/${my_file.file_id}.0`)
+      fs.existsSync(
+        `${path.join(abs_remote_repo_repo_path, my_file.file_id)}.0`
+      )
     );
     assert.ok(
-      fs.existsSync(`${abs_remote_repo_repo_path}/${my_file.file_id}.abebox`)
+      fs.existsSync(
+        `${path.join(abs_remote_repo_repo_path, my_file.file_id)}.abebox`
+      )
     );
   }).timeout(15000);
   it("invite user", () => {
@@ -243,9 +257,11 @@ describe("Abebox Tests", () => {
 
     // check if the
     const token_hash = file_utils.get_hash(user_conf.token);
-    const user_rsa_pk_filename = `${
-      user_conf.remote
-    }/pub_keys/${token_hash.toString("hex")}`;
+    const user_rsa_pk_filename = path.join(
+      user_conf.remote,
+      "pub_keys",
+      token_hash.toString("hex")
+    );
 
     assert.ok(fs.existsSync(user_rsa_pk_filename));
     const user_rsa_file_content = fs.readFileSync(

@@ -12,10 +12,8 @@ const AbeboxCore = require("./core");
 const AttributeManager = require("./attribute");
 
 const { assert } = require("console");
-const { on } = require("events");
 
 /* Constants */
-//const attrs_file_rel_path = "attributes/attributes_list.json";
 const attr_rel_path = "attributes";
 const pk_dir_rel_path = "pub_keys";
 const keys_dir_rel_path = "keys";
@@ -74,7 +72,7 @@ const Abebox = (config_name = "config") => {
       _configured = true;
       _conf = store.get_conf();
       console.log("ABEBox booting - Loading Configuration \n", _conf);
-      _init_attribute(_conf.remote + "/" + attr_rel_path);
+      _init_attribute(path.join(_conf.remote, attr_rel_path));
       _start_watchers();
     } else {
       console.log("ABEBox booting - NO Configuration Find");
@@ -88,27 +86,18 @@ const Abebox = (config_name = "config") => {
     _conf = store.get_conf();
     _create_dirs(remote_repo_dirs);
     _init_core();
-    _init_attribute(_conf.remote + "/" + attr_rel_path);
+    _init_attribute(path.join(_conf.remote, attr_rel_path));
     _start_watchers();
   };
-  /*
-const _setup_core = function() {
-  if (!_configured) throw Error("Setup called without configuration");
-};
-*/
 
   const _init_core = function() {
     if (!_configured) throw Error("Setup called without configuration");
+    _conf.keys = {};
     if (_conf.isAdmin) {
-      _conf.keys = {};
-      _conf.keys.rsa = core.init_rsa_keys(); // Admin RSA Keys
-      _conf.keys.abe = core.init_abe_keys(); // Admin ABE Keys
-      store.set_keys(_conf.keys);
-    } else {
-      _conf.keys = {};
-      _conf.keys.rsa = core.init_rsa_keys(); // User RSA Keys
-      store.set_keys(_conf.keys);
+      _conf.keys.abe = core.init_abe_keys();
     }
+    _conf.keys.rsa = core.init_rsa_keys();
+    store.set_keys(_conf.keys);
   };
 
   const _init_attribute = function(attribute_path) {
@@ -126,12 +115,12 @@ const _setup_core = function() {
       awaitWriteFinish: true,
       ignored: [
         // Local
-        _conf.local + "/.*",
-        _conf.local + "/*/.*",
+        path.join(_conf.local, ".*"),
+        path.join(_conf.local, "*", ".*"),
         // Remote
-        _conf.remote + "/" + attr_rel_path + "/*",
-        _conf.remote + "/" + repo_rel_path + ".*",
-        _conf.remote + "/" + repo_rel_path + "/*/.*",
+        path.join(_conf.remote, attr_rel_path, "*"),
+        path.join(_conf.remote, repo_rel_path, ".*"),
+        path.join(_conf.remote,repo_rel_path,"*",".*"),
       ],
     });
 
@@ -185,52 +174,12 @@ const _setup_core = function() {
 
   const _create_dirs = function(dirs) {
     dirs.forEach((dir) => {
-      absolute_dir = _conf.remote + "/" + dir;
+      absolute_dir = path.join(_conf.remote, dir);
       if (!fs.existsSync(absolute_dir)) {
         fs.mkdirSync(absolute_dir, { recursive: true });
       }
     });
   };
-
-  /*const setup = function() {
-  const data = local_store.get("data", {});
-  if (data.length >= 0 && data.isAdmin) {
-    // ADMIN
-    create_dirs(remote_repo_dirs, data.remote);
-    try {
-      core.init_rsa_keys();
-      core.init_abe_keys();
-      const rsa_keys = core.get_rsa_keys();
-      const abe_keys = core.get_abe_keys();
-    } catch {
-      console.log("ERROR during keys creation");
-      // GESTIRE ERRORI
-      return null;
-    }
-    keys = {};
-    keys.rsa_pub_key = rsa_keys.pk;
-    keys.rsa_priv_key = rsa_keys.sk;
-    // keys.abe_pub_key = pk;
-    // keys.abe_msk_key = msk;
-    local_store.set("keys", keys);
-    //SALVA OPPORTUNAMENTE LE CHIAVI
-  } else {
-    //CREA CHIAVI RSA
-    //RECUPERA CHIAVE ABE
-    //SALVA OPPORTUNAMENTE LE CHIAVI
-  }
-};
-
-const init = function() {
-  const data = local_store.get("data", {});
-  if (data.length >= 0 && !data.configured) {
-    console.log("LOADING ABEBOX CONFIGURATION: ", data);
-    files_list = local_store.get("files", []);
-    start_services(data.local, data.remote);
-  } else {
-    console.log("ABEBOX NOT CONFIGURED");
-  }
-};*/
 
   const handle_local_add = function(file_path) {
     const fid = uuidv4();
@@ -238,14 +187,8 @@ const init = function() {
       file_path,
       _conf.local
     );
-
-    console.log(
-      `${file_path} split into ${rel_dir} ${filename}`
-    );
-
     const index = files_list.findIndex(
-      (el) =>
-        el.file_dir === rel_dir && el.file_name === filename
+      (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index < 0) {
       files_list.push({
@@ -257,94 +200,51 @@ const init = function() {
       });
       store.set_files(files_list);
       return files_list;
-    }
-    else throw Error(`Local add error: ${file_path} already exists`);
+    } else throw Error(`Local add error: ${file_path} already exists`);
   };
 
-  //TODO rivedere
-  const handle_remote_add = async function(full_file_path) {
+  const handle_remote_add = async function(file_path) {
     try {
       const { filename, rel_dir } = file_utils.split_file_path(
-        full_file_path,
+        file_path,
         _conf.remote
       );
-      console.log(
-        `FILE NAME = ${filename}   REL DIR = ${rel_dir}`
-      );
-      if (rel_dir.includes(pk_dir_rel_path + "/")) {
-        if (_conf.isAdmin) {
-          retrieve_pub_key(full_file_path, filename);
-        }
-        return files_list;
-      }
-      if (rel_dir.includes(keys_dir_rel_path + "/")) {
-        if (!_conf.isAdmin) {
-          retrieve_abe_secret_key(full_file_path);
-        }
-        return files_list;
-      }
+
+      if (handle_key_files(rel_dir, file_path, filename)) return files_list;
 
       if (!core.is_abe_configured()) return;
-
       const [file_id, file_ext] = filename.split(".");
-
       // we discard files without .abebox extensions since they are just
       // fragments.
       if (file_ext != "abebox") return files_list;
-
       const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
-        full_file_path
+        file_path
       );
-
-      console.log("EXTRACTED METADATA = ", sym_key, iv, file_name);
-
       if (file_name === null) {
         // if metadata.file_path is null, decoding was not possible
         throw Error("Metadata file name is empty");
       }
-
-      // separate folder and name of the encrypted file
-      const last_sep_index = file_name.lastIndexOf(path.sep);
-      const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
-      const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
-      if (!fs.existsSync(`${_conf.local}/${plaintext_file_folder}`))
-        fs.mkdirSync(`${_conf.local}/${plaintext_file_folder}`, {
-          recursive: true,
-        });
-      console.log(
-        `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
-      );
-      //const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
-      //if (file_name === null) {
-      //  throw Error(`File name not defined`);
-      //}
-      // File content symmetric decryption
-      const encrypted_content_file = core.get_encrypted_content_file_name(
-        full_file_path
-      );
-      await core.retrieve_decrypted_file(
-        encrypted_content_file,
-        _conf.local + "/" + file_name,
-        sym_key,
-        iv
-      );
-
       // search if file has been already added in the file list
       const index = files_list.findIndex(
-        (el) =>
-          el.file_id === file_id && el.status === file_status.local_change
+        (el) => el.file_id === file_id && el.status === file_status.local_change
       );
-      if (index < 0) { // REMOTE EVENT
-        // file is added externally (not by me!)
+      if (index < 0) {
+        // REMOTE EVENT
+        const { plaintext_file_folder, plaintext_file_name } = download_file(
+          file_name,
+          file_path,
+          sym_key,
+          iv
+        );
         files_list.push({
-          file_dir: plaintext_file_folder, //relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
-          file_name: plaintext_file_name, // metadata.file_path, // ESTRARRE NOME FILE DA FILE PATH
+          file_dir: plaintext_file_folder,
+          file_name: plaintext_file_name,
           file_id: file_id,
-          policy: attribute.policy_from_string(policy), // TODO DESERIALIZZARE POLICY CON UNIVERSO, ATTR, VERSIONE
+          policy: attribute.policy_from_string(policy),
           status: file_status.sync,
         });
-      }
-      else { // TRIGGERED BY LOCAL ADD
+      } else {
+        // TRIGGERED BY LOCAL ADD
         files_list[index].status = file_status.sync;
       }
       store.set_files(files_list);
@@ -359,50 +259,24 @@ const init = function() {
       file_path,
       _conf.local
     );
-    /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-console.log(file_path, original_file_name);
-const path = file_path.replace(original_file_name, "");
-const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
-    console.log("HANDLE LOCAL CHANGE =", file_path);
-    console.log("FILE LIST =", files_list);
-    console.log("REL DIR =", rel_dir);
-    console.log("FILE NAME =", filename);
     const index = files_list.findIndex(
-      (el) =>
-        el.file_dir === rel_dir && el.file_name === filename
+      (el) => el.file_dir === rel_dir && el.file_name === filename
     );
-    console.log("ELEM", files_list[index], index);
     if (index >= 0) {
-      console.log("SO' ENTRATO", index);
       files_list[index].status = file_status.local_change;
       store.set_files(files_list);
       return files_list;
-    }
-    else throw Error(`Local change error: ${file_path} already exists`);
+    } else throw Error(`Local change error: ${file_path} already exists`);
   };
 
   const handle_remote_change = function(file_path) {
     try {
       const { filename, rel_dir } = file_utils.split_file_path(
-        full_file_path,
+        file_path,
         _conf.remote
       );
-      console.log(
-        `FILE NAME = ${filename}   REL DIR = ${rel_dir}`
-      );
 
-      if (rel_dir.includes(pk_dir_rel_path + "/")) {
-        if (_conf.isAdmin) {
-          retrieve_pub_key(full_file_path, filename);
-        }
-        return files_list;
-      }
-      if (rel_dir.includes(keys_dir_rel_path + "/")) {
-        if (!_conf.isAdmin) {
-          retrieve_abe_secret_key(full_file_path);
-        }
-        return files_list;
-      }
+      if (handle_key_files(rel_dir, file_path, filename)) return files_list;
 
       if (!core.is_abe_configured()) return;
 
@@ -412,50 +286,18 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
       // fragments.
       if (file_ext != "abebox") return files_list;
 
-      const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
-        full_file_path
-      );
-
-      console.log("EXTRACTED METADATA = ", sym_key, iv, file_name);
+      const { file_name, sym_key, iv } = core.retrieve_metadata(file_path);
 
       if (file_name === null) {
         // if metadata.file_path is null, decoding was not possible
         throw Error("Metadata file name is empty");
       }
-
-      // separate folder and name of the encrypted file
-      /* const last_sep_index = file_name.lastIndexOf(path.sep);
-      const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
-      const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
-      if (!fs.existsSync(`${_conf.local}/${plaintext_file_folder}`))
-        fs.mkdirSync(`${_conf.local}/${plaintext_file_folder}`, {
-          recursive: true,
-        });
-      console.log(
-        `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
-      );
-      //const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
-      //if (file_name === null) {
-      //  throw Error(`File name not defined`);
-      //}
-      // File content symmetric decryption
-      const encrypted_content_file = core.get_encrypted_content_file_name(
-        full_file_path
-      );
-      await core.retrieve_decrypted_file(
-        encrypted_content_file,
-        _conf.local + "/" + file_name,
-        sym_key,
-        iv
-      ); */
-
       // search if file has been already added in the file list
-      const index = files_list.findIndex(
-        (el) =>
-          el.file_id === file_id );
+      const index = files_list.findIndex((el) => el.file_id === file_id);
       if (index >= 0) {
-        if ( files_list[index].status != file_status.local_change) // REMOTE EVENT
-          download_file(file_name, full_file_path, sym_key, iv);
+        if (files_list[index].status != file_status.local_change)
+          // REMOTE EVENT
+          download_file(file_name, file_path, sym_key, iv);
       }
       files_list[index].status = file_status.sync;
       store.set_files(files_list);
@@ -463,99 +305,85 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
     } catch (err) {
       console.log(err);
     }
-    /* const { filename, rel_dir } = file_utils.split_file_path(
-      file_path,
-      _conf.remote_repo_path
-    );
-
-    if (relative_path.includes(pk_dir_rel_path + "/")) {
-      if (_conf.isAdmin) {
-        retrieve_pub_key(file_path, original_file_name);
-      }
-      return files_list;
-    }
-    if (relative_path.includes(keys_dir_rel_path + "/")) {
-      if (!_conf.isAdmin) {
-        retrieve_abe_secret_key(file_path);
-      }
-      return files_list;
-    }
-    const fid_no_ext = original_file_name.split(".")[0];
-    /*const fid = file_path.replace(/^.*[\\\/]/, "");
-console.log(file_path, fid);
-const path = file_path.replace(fid, "");
-const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
-    /*const el = files_list.find(
-      (el) => el.file_path === relative_path && el.file_id === fid_no_ext
-    );
-    if (el !== undefined) {
-      el.status = file_status.remote_change;
-    } */
   };
 
   const handle_local_remove = function(file_path) {
-    const { original_file_name, relative_path } = file_utils.split_file_path(
+    const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
-      _conf.local_repo_path
+      _conf.local
     );
-    /*const original_file_name = file_path.replace(/^.*[\\\/]/, "");
-console.log(file_path, original_file_name);
-const path = file_path.replace(original_file_name, "");
-const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
-    const el = files_list.find(
-      (el) =>
-        el.file_path === relative_path && el.file_name === original_file_name
+    const index = files_list.findIndex(
+      (el) => el.file_dir === rel_dir && el.file_name === filename
     );
-    if (el !== undefined) {
-      files_list.pop(el);
+    if (index >= 0) {
+      const rem = files_list.pop(files_list[index]);
       store.set_files(files_list);
+      const remote_file = path.join(_conf.remote, repo_rel_path, rem.fid);
+      const metadata_file = `${remote_file}.abebox`;
+      const encrypted_content_file = `${remote_file}.0`;
+      if (fs.existsSync(metadata_file)) fs.rmSync(metadata_file);
+      if (fs.existsSync(encrypted_content_file))
+        fs.rmSync(encrypted_content_file);
     }
   };
 
   const handle_remote_remove = function(file_path) {
-    const { original_file_name, relative_path } = file_utils.split_file_path(
-      file_path,
-      _conf.remote_repo_path
-    );
-    const fid_no_ext = original_file_name.split(".")[0];
-    /*const fid = file_path.replace(/^.*[\\\/]/, "");
-console.log(file_path, fid);
-const path = file_path.replace(fid, "");
-const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
-    const el = files_list.find(
-      (el) => el.file_path === relative_path && el.file_id === fid_no_ext
-    );
-    if (el !== undefined) {
-      files_list.pop(el);
+    const { filename } = file_utils.split_file_path(file_path, _conf.remote);
+    const fid_no_ext = filename.split(".")[0];
+    const index = files_list.findIndex((el) => el.file_id === fid_no_ext);
+    if (index >= 0) {
+      // REMOTE EVENT
+      const rem = files_list.pop(files_list[index]);
       store.set_files(files_list);
+      const local_file = path.join(
+        _conf.local,
+        rem.file_dir,
+        rem.file_name
+      );
+      if (fs.existsSync(local_file)) fs.rmSync(local_file);
     }
   };
 
-  const download_file = function(file_name, full_file_path, sym_key, iv) {// separate folder and name of the encrypted file
-      const last_sep_index = file_name.lastIndexOf(path.sep);
-      const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
-      const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
-      if (!fs.existsSync(`${_conf.local}/${plaintext_file_folder}`))
-        fs.mkdirSync(`${_conf.local}/${plaintext_file_folder}`, {
-          recursive: true,
-        });
-      console.log(
-        `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
-      );
-      //const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
-      //if (file_name === null) {
-      //  throw Error(`File name not defined`);
-      //}
-      // File content symmetric decryption
-      const encrypted_content_file = core.get_encrypted_content_file_name(
-        full_file_path
-      );
-      await core.retrieve_decrypted_file(
-        encrypted_content_file,
-        _conf.local + "/" + file_name,
-        sym_key,
-        iv
-      );}; 
+  const handle_key_files = function(dir, file_path, filename) {
+    if (dir.includes(`${pk_dir_rel_path}${path.sep}`)) {
+      if (_conf.isAdmin) {
+        retrieve_pub_key(file_path, filename);
+      }
+      return true;
+    }
+    if (dir.includes(`${keys_dir_rel_path}${path.sep}`)) {
+      if (!_conf.isAdmin) {
+        retrieve_abe_secret_key(file_path);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const download_file = async function(file_name, file_path, sym_key, iv) {
+    // separate folder and name of the encrypted file
+    const last_sep_index = file_name.lastIndexOf(path.sep);
+    const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
+    const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
+    if (!fs.existsSync(path.join(_conf.local, plaintext_file_folder)))
+      fs.mkdirSync(path.join(_conf.local, plaintext_file_folder), {
+        recursive: true,
+      });
+    // File content symmetric decryption
+    const encrypted_content_file = core.get_encrypted_content_file_name(
+      file_path
+    );
+    await core.retrieve_decrypted_file(
+      encrypted_content_file,
+      path.join(_conf.local, file_name),
+      sym_key,
+      iv
+    );
+    return {
+      plaintext_file_folder,
+      plaintext_file_name,
+    };
+  };
 
   const send_invite = function(recv) {
     return openurl.mailto([recv.mail], {
@@ -575,47 +403,16 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
       _conf.token,
       rsa_keys.pk + _conf.name
     );
-    console.log("SIGNATURE CHECK send_user_rsa_pk: ", rsa_keys.pk + _conf.name);
 
     const data = {
       rsa_pub_key: rsa_keys.pk,
       sign: signature.toString("hex"),
     };
     fs.writeFileSync(
-      `${_conf.remote}/${pk_dir_rel_path}/${token_hash.toString("hex")}`,
+      path.join(_conf.remote, pk_dir_rel_path, token_hash.toString("hex")),
       JSON.stringify(data)
     );
   };
-  /*
-const get_token = function(user) {
-  const token = user.token;
-  const rsa_keys = core.get_rsa_keys();
-
-  if (token != undefined) {
-    const token_hash = file_utils.get_hash(token);
-    const res = http.get_token(token_hash);
-    const res_token_hash = res.token;
-    if (res != null && res_token_hash.toString("utf8") === token_hash) {
-      const rsa_pk = res.rsa_pub_key.toString("utf8");
-      const sign = res.sign.toString("utf8");
-      if (sign === file_utils.get_hmac(res_token_hash, rsa_pk + user.mail)) {
-        user.rsa_pub_key = rsa_pk;
-        const users = store.get_users();
-        // Check if already exists
-        const index = users.findIndex((item) => item.mail == user.mail);
-        if (index >= 0) {
-          // Remove old
-          const rem = users.splice(index, 1);
-          console.log("Removing:", rem, users);
-        }
-        users.push(user);
-        store.set_users(users);
-        console.log("Adding:", user, users);
-      }
-    }
-  }
-};
-*/
 
   // Admin retrieves the user RSA PK and send the ABE SK.
   const retrieve_pub_key = async function(full_file_name, file_name) {
@@ -643,10 +440,11 @@ const get_token = function(user) {
           .get_hash(users[index].mail)
           .toString("hex");
 
-        const user_abe_sk_path = `${_conf.remote}/${keys_dir_rel_path}/${user_abe_sk_filename}.sk`;
-        //filename: conf.remote_repo_path + "/keys/" + file_name + ".sk",
-        console.log("admin create SK of user at ", user_abe_sk_path);
-        console.log("user attributes: ", users[index].attrs);
+        const user_abe_sk_path = `${path.join(
+          _conf.remote,
+          keys_dir_rel_path,
+          user_abe_sk_filename
+        )}.sk`;
         send_abe_user_secret_key(
           users[index].rsa_pub_key,
           attribute.compress_list(users[index].attrs),
@@ -662,7 +460,6 @@ const get_token = function(user) {
 
   // user retrieves her ABE SK
   const retrieve_abe_secret_key = function(full_file_name) {
-    console.log("RETRIEVING USER ABE SECRET KEY...");
     const { admin_keys, user_abe_sk } = JSON.parse(
       fs.readFileSync(full_file_name, "utf-8")
     );
@@ -675,7 +472,6 @@ const get_token = function(user) {
       throw Error("Admin RSA PK has not been signed correctly");
 
     const abe_enc_sk = core.verify_jwt(user_abe_sk, keys.rsa_pk);
-    console.log("ENC SK", abe_enc_sk);
     //TODO controllo d'errore
     const abe_sk = rsa
       .decrypt(JSON.stringify(abe_enc_sk), core.get_rsa_keys().sk)
@@ -685,12 +481,13 @@ const get_token = function(user) {
     _conf.keys.abe = core.get_abe_keys();
     store.set_keys(_conf.keys);
 
-    console.log("ABE KEYS =", core.get_abe_keys());
     // ABE is now configured, we can download files in remote repo
-    const remote_repo_file_list = walk(`${_conf.remote}/${repo_rel_path}`, []);
-    console.log("REPO FILE LIST =", remote_repo_file_list);
+    const remote_repo_file_list = walk(
+      path.join(_conf.remote, repo_rel_path),
+      []
+    );
     remote_repo_file_list.forEach((file) => {
-      handle_remote_add(`${_conf.remote}/${repo_rel_path}/${file}`);
+      handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
     });
   };
 
@@ -702,13 +499,9 @@ const get_token = function(user) {
     file_name
   ) {
     assert(_conf.isAdmin);
-    console.log(
-      `user_rsa_pk: ${user_rsa_pk},attr_list: ${attr_list},user_token: ${user_token},file_name: ${file_name}`
-    );
 
     try {
       const sk = core.create_user_abe_sk(attr_list, false);
-      console.log("USER SK =", sk);
       const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
 
       const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
@@ -762,7 +555,6 @@ const get_token = function(user) {
     const el = files_list.find((el) => el.file_id === data.file_id);
     if (el !== undefined) {
       el.policy = data.policy;
-      console.log("NEW POL - FILE =", JSON.stringify(el));
     }
     store.set_files(files_list);
     return files_list;
@@ -771,14 +563,14 @@ const get_token = function(user) {
   const share_files = function() {
     files_list.forEach((file) => {
       const file_name =
-        file.file_path.charAt(0) === "/"
-          ? file.file_path.substring(1) + file.file_name
-          : file.file_path + file.file_name;
+        file.file_dir.charAt(0) === path.sep
+          ? file.file_dir.substring(1) + file.file_name
+          : file.file_dir + file.file_name;
       if (file.status == file_status.local_change && file.policy.length != 0) {
         const res = core.file_encrypt(
           file_name,
-          `${_conf.local}/${file_name}`,
-          `${_conf.remote}/${repo_rel_path}`,
+          path.join(_conf.local, file_name),
+          path.join(_conf.remote, repo_rel_path),
           file.file_id,
           attribute.policy_as_string(file.policy)
         );
@@ -788,19 +580,15 @@ const get_token = function(user) {
         }
       }
       if (file.status == file_status.remote_change) {
-        console.log("SHARE FILES: ", file);
-        const enc_file_name = `${_conf.remote}/${repo_rel_path}/${file.file_id}`;
+        const enc_file_name = path.join(
+          _conf.remote,
+          repo_rel_path,
+          file.file_id
+        );
         const enc_file_name_no_ext = enc_file_name.substring(
           0,
           enc_file_name.lastIndexOf(".")
         );
-        const encrypted_content_file = `${enc_file_name_no_ext}.0`;
-        /*await retrieve_decrypted_file(
-      encrypted_content_file,
-      _conf.local + "/" + file_name,
-      sym_key,
-      iv
-    );*/
         const res = core.file_decrypt(enc_file_name_no_ext);
         if (res) file.status = file_status.sync;
         else console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
