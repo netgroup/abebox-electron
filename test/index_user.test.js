@@ -2,6 +2,7 @@ const assert = require("assert");
 const fs = require("fs");
 
 const file_utils = require("../src/abebox/file_utils");
+const Abebox = require("../src/abebox/index");
 
 const envPaths = require("env-paths");
 const paths = envPaths("electron-store");
@@ -14,7 +15,6 @@ const abs_remote_repo_path = `${tmp_dir}/repo-shared`;
 const abs_remote_repo_repo_path = `${abs_remote_repo_path}/repo`;
 
 const abs_user_local_repo_path = `${tmp_dir}/repo-user-local`;
-
 
 const cfg_filename_user = "user_config.json";
 
@@ -69,9 +69,9 @@ const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
 
 describe("Abebox Tests", () => {
   it("setup abebox user with token", async () => {
-    user_abebox = require("../src/abebox/index");
+    user_abebox = Abebox(cfg_filename_user.split(".")[0]);
 
-    user_abebox.boot(cfg_filename_user.split(".")[0]);
+    //user_abebox.boot(cfg_filename_user.split(".")[0]);
 
     user_conf.token = fs.readFileSync(user_token_file, "utf-8");
 

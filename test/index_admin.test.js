@@ -2,9 +2,9 @@ const assert = require("assert");
 const fs = require("fs");
 
 const file_utils = require("../src/abebox/file_utils");
+const Abebox = require("../src/abebox/index");
 
 const envPaths = require("env-paths");
-const { time } = require("console");
 const paths = envPaths("electron-store");
 
 // paths
@@ -91,8 +91,8 @@ const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
 describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
     // setup
-    admin_abebox = require("../src/abebox/index");
-    admin_abebox.boot(cfg_filename_admin.split(".")[0]);
+    admin_abebox = Abebox(cfg_filename_admin.split(".")[0]);
+    //admin_abebox.boot(cfg_filename_admin.split(".")[0]);
     // loading new configuration
     admin_abebox.set_config(conf);
     const retrieved_conf = admin_abebox.get_config();
