@@ -254,10 +254,6 @@ describe("Abebox Tests", () => {
     admin_abebox.reset_config();
   });
   */
-  it("admin user key exchange", () => {
-    // TODO
-    return true;
-  });
   it("setup abebox user with token", async () => {
     // init the abebox index for the user
     user_abebox = Abebox(cfg_filename_user.split(".")[0]);
@@ -300,6 +296,10 @@ describe("Abebox Tests", () => {
     assert.ok(user_abebox.debug_get_conf().keys.hasOwnProperty("abe"));
     assert.ok(user_abebox.debug_get_conf().keys.abe.hasOwnProperty("sk"));
   }).timeout(50000);
+  it("user retrieves his own attributes", () => {
+    const user_attributes = user_abebox.get_attrs();
+    assert.deepEqual(user_attribute, new_user_info.attrs);
+  });
   it("user should decode the shared test file", () => {
     assert.ok(fs.existsSync(abs_plaintext_user_file_path));
     // file content should be equal
@@ -339,17 +339,27 @@ describe("Abebox Tests", () => {
     assert.equal(el_find.status, 0); // file_status.sync
   }).timeout(25000);
   it("user creates and shares a test file", async () => {
+    // create a new file on user local
     const test_content = "Other test file created on " + new Date();
     fs.writeFileSync(abs_plaintext_user_file_path_2, test_content);
 
     await delay(4000); // wait 4s for watcher file detection
     const file_list = user_abebox.get_files_list();
-    assert(file_list.length > 0);
     console.log(file_list);
 
-    const index = file_list.find((el) => el.file_name == plaintext_filename_2);
-    assert.ok(index >= 0);
-    my_file = file_list[my_file];
+    const my_file = file_list.find(
+      (el) => el.file_name == plaintext_filename_2
+    );
+    assert.ok(my_file);
+
+    // assign a policy and share with the admin
+    const admin_attributes = admin_abebox.get_attrs();
+    //const user_attributes = user_abebox.get_attrs();
+    console.log("Admin attributes:");
+    console.log(admin_attributes);
+
+    //console.log("User attributes:");
+    //console.log(user_attributes);
 
     const my_policy = {
       file_id: my_file.file_id,
@@ -361,6 +371,7 @@ describe("Abebox Tests", () => {
 
     await delay(4000); // wait 4s for watcher file detection
 
+    // admin should be able to retrive the content
     const admin_test_file_content = fs.readFileSync(
       abs_plaintext_file_path_2,
       "utf-8"

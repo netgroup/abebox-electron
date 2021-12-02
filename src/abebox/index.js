@@ -200,6 +200,7 @@ const Abebox = (config_name = "config") => {
         policy: [],
         status: file_status.local_change,
       });
+      console.log(`pushing ${filename} into the file list`);
       store.set_files(files_list);
       return files_list;
     }
