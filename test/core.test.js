@@ -41,9 +41,9 @@ before(() => {
 });
 
 // to reload the module as a separate instance
-beforeEach(() => {
+/*beforeEach(() => {
   delete require.cache[require.resolve("../src/abebox/core")];
-});
+});*/
 
 let abe;
 let user_sk;
@@ -53,7 +53,8 @@ let user_core;
 
 describe("Core Basic Tests", () => {
   it("admin keys creation", () => {
-    admin_core = require("../src/abebox/core");
+    const AbeboxCore = require("../src/abebox/core");
+    admin_core = AbeboxCore();
     const rsa = admin_core.init_rsa_keys(); // Admin RSA Keys
     abe = admin_core.init_abe_keys(); // Admin ABE Keys
     const attr_list = ["1", "2"];
@@ -98,7 +99,8 @@ describe("Core Basic Tests", () => {
   }).timeout(10000);
 
   it("user keys", () => {
-    user_core = require("../src/abebox/core");
+    const AbeboxCore = require("../src/abebox/core");
+    user_core = AbeboxCore();
     const rsa = user_core.init_rsa_keys(); //Admin RSA Keys
     user_core.set_abe_keys(abe.pk, user_sk); // User ABE Keys
   }).timeout(10000);

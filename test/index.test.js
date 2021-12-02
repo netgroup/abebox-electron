@@ -2,8 +2,10 @@ const assert = require("assert");
 const fs = require("fs");
 
 const file_utils = require("../src/abebox/file_utils");
+const ABEBox = require("../src/abebox/index");
 
 const envPaths = require("env-paths");
+const Abebox = require("../src/abebox/index");
 const paths = envPaths("electron-store");
 
 // paths
@@ -50,8 +52,6 @@ after(() => {
 
 // to reload the module as a separate instance
 beforeEach(() => {
-  delete require.cache[require.resolve("../src/abebox/core")];
-  delete require.cache[require.resolve("../src/abebox/index")];
   delete require.cache[require.resolve("../src/abebox/store")];
   delete require.cache[require.resolve("chokidar")];
 });
@@ -96,9 +96,7 @@ const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
 
 describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
-    // setup
-    admin_abebox = require("../src/abebox/index");
-    admin_abebox.boot(cfg_filename_admin.split(".")[0]);
+    admin_abebox = Abebox(cfg_filename_admin.split(".")[0]);
     // loading new configuration
     admin_abebox.set_config(conf);
     const retrieved_conf = admin_abebox.get_config();
@@ -221,9 +219,7 @@ describe("Abebox Tests", () => {
   });
   */
   it("setup abebox user with token", () => {
-    user_abebox = require("../src/abebox/index");
-
-    user_abebox.boot(cfg_filename_user.split(".")[0]);
+    user_abebox = Abebox(cfg_filename_user.split(".")[0]);
 
     user_conf.token = invited_user_token;
     // loading new configuration
