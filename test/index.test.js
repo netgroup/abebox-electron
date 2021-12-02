@@ -265,7 +265,6 @@ describe("Abebox Tests", () => {
     const user_list = admin_abebox.new_user(new_user_info);
     const user = user_list[0];
     assert.ok(admin_abebox.get_users().length > 0);
-    console.log("user: ", user);
     const invited_user = admin_abebox.invite_user(user);
     invited_user_token = invited_user.token;
     assert.equal(invited_user.mail, new_user_info.mail);
@@ -356,7 +355,6 @@ describe("Abebox Tests", () => {
 
     assert.equal(admin_test_file_content, updated_content);
     const file_list = user_abebox.get_files_list();
-    console.log("File list of user:", file_list);
     const el_find = file_list.find((el) => el.file_name == plaintext_filename);
     assert.ok(el_find);
     assert.equal(el_find.status, 0); // file_status.sync
@@ -368,7 +366,6 @@ describe("Abebox Tests", () => {
 
     await delay(4000); // wait 4s for watcher file detection
     const file_list = user_abebox.get_files_list();
-    console.log(file_list);
 
     const my_file = file_list.find(
       (el) => el.file_name == plaintext_filename_2
@@ -377,12 +374,6 @@ describe("Abebox Tests", () => {
 
     // assign a policy and share with the admin
     const admin_attributes = admin_abebox.get_attrs();
-    //const user_attributes = user_abebox.get_attrs();
-    console.log("Admin attributes:");
-    console.log(admin_attributes);
-
-    //console.log("User attributes:");
-    //console.log(user_attributes);
 
     const my_policy = {
       file_id: my_file.file_id,
@@ -401,5 +392,14 @@ describe("Abebox Tests", () => {
     );
 
     assert.equal(admin_test_file_content, test_content);
+  }).timeout(20000);
+  it("user deletes a file", async () => {
+    // delete a file on user
+    assert.ok(fs.existsSync(abs_plaintext_file_path_2));
+    fs.rmSync(abs_plaintext_user_file_path_2);
+    //wait
+    await delay(12000);
+    // check if also the admin has such file removed
+    assert.ok(!fs.existsSync(abs_plaintext_file_path_2));
   }).timeout(20000);
 });

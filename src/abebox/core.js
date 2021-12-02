@@ -282,6 +282,7 @@ const AbeboxCore = () => {
   const file_reencrypt = async function(encrypted_filename, policy) {
     // re-encrypt the file according to the new policy
     console.log("Re-encrypt function");
+    throw Error("Not implemented");
   };
 
   const is_abe_configured = function() {

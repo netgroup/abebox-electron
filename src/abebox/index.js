@@ -71,11 +71,11 @@ const Abebox = (config_name = "config") => {
     if (store.is_configured()) {
       _configured = true;
       _conf = store.get_conf();
-      console.log("ABEBox booting - Loading Configuration \n", _conf);
+      //console.log("ABEBox booting - Loading Configuration \n", _conf);
       _init_attribute(path.join(_conf.remote, attr_rel_path));
       _start_watchers();
     } else {
-      console.log("ABEBox booting - NO Configuration Find");
+      //console.log("ABEBox booting - NO Configuration Find");
     }
   };
 
@@ -182,8 +182,6 @@ const Abebox = (config_name = "config") => {
   };
 
   const handle_local_add = function(file_path) {
-    console.log("handle_local_add of admin?" + _conf.isAdmin);
-    console.log(files_list);
     const fid = uuidv4();
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
@@ -200,67 +198,58 @@ const Abebox = (config_name = "config") => {
         policy: [],
         status: file_status.local_change,
       });
-      console.log(`pushing ${filename} into the file list`);
       store.set_files(files_list);
       return files_list;
     }
   };
 
   const handle_remote_add = async function(file_path) {
-    console.log("handle_remote_add of admin?" + _conf.isAdmin);
-    console.log(files_list);
-    try {
-      const { filename, rel_dir } = file_utils.split_file_path(
-        file_path,
-        _conf.remote
-      );
+    const { filename, rel_dir } = file_utils.split_file_path(
+      file_path,
+      _conf.remote
+    );
 
-      if (handle_key_files(rel_dir, file_path, filename)) return files_list;
+    if (handle_key_files(rel_dir, file_path, filename)) return files_list;
 
-      if (!core.is_abe_configured()) return;
-      const [file_id, file_ext] = filename.split(".");
-      // we discard files without .abebox extensions since they are just
-      // fragments.
-      if (file_ext != "abebox") return files_list;
-      const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
-        file_path
-      );
-      if (file_name === null) {
-        // if metadata.file_path is null, decoding was not possible
-        throw Error("Metadata file name is empty");
-      }
-      // search if file has been already added in the file list
-      const index = files_list.findIndex(
-        (el) => el.file_id === file_id && el.status === file_status.local_change
-      );
-      if (index < 0) {
-        // REMOTE EVENT
-        const {
-          plaintext_file_folder,
-          plaintext_file_name,
-        } = await download_file(file_name, file_path, sym_key, iv);
-        assert(plaintext_file_name);
-        files_list.push({
-          file_dir: plaintext_file_folder,
-          file_name: plaintext_file_name,
-          file_id: file_id,
-          policy: attribute.policy_from_string(policy),
-          status: file_status.sync,
-        });
-      } else {
-        // TRIGGERED BY LOCAL ADD
-        files_list[index].status = file_status.sync;
-      }
-      store.set_files(files_list);
-      return files_list;
-    } catch (err) {
-      console.log(err);
+    if (!core.is_abe_configured()) return;
+    const [file_id, file_ext] = filename.split(".");
+    // we discard files without .abebox extensions since they are just
+    // fragments.
+    if (file_ext != "abebox") return files_list;
+    const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
+      file_path
+    );
+    if (file_name === null) {
+      // if metadata.file_path is null, decoding was not possible
+      throw Error("Metadata file name is empty");
     }
+    // search if file has been already added in the file list
+    const index = files_list.findIndex(
+      (el) => el.file_id === file_id && el.status === file_status.local_change
+    );
+    if (index < 0) {
+      // REMOTE EVENT
+      const {
+        plaintext_file_folder,
+        plaintext_file_name,
+      } = await download_file(file_name, file_path, sym_key, iv);
+      assert(plaintext_file_name);
+      files_list.push({
+        file_dir: plaintext_file_folder,
+        file_name: plaintext_file_name,
+        file_id: file_id,
+        policy: attribute.policy_from_string(policy),
+        status: file_status.sync,
+      });
+    } else {
+      // TRIGGERED BY LOCAL ADD
+      files_list[index].status = file_status.sync;
+    }
+    store.set_files(files_list);
+    return files_list;
   };
 
   const handle_local_change = function(file_path) {
-    console.log("handle_local_change of admin?" + _conf.isAdmin);
-    console.log(files_list);
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.local
@@ -276,43 +265,38 @@ const Abebox = (config_name = "config") => {
   };
 
   const handle_remote_change = function(file_path) {
-    console.log("Handle remote change");
-    try {
-      const { filename, rel_dir } = file_utils.split_file_path(
-        file_path,
-        _conf.remote
-      );
+    const { filename, rel_dir } = file_utils.split_file_path(
+      file_path,
+      _conf.remote
+    );
 
-      if (handle_key_files(rel_dir, file_path, filename)) return files_list;
+    if (handle_key_files(rel_dir, file_path, filename)) return files_list;
 
-      if (!core.is_abe_configured()) return;
+    if (!core.is_abe_configured()) return;
 
-      // POSSIBLE BUG e' cambiato il .0 ma non il .abebox?
-      const [file_id, file_ext] = filename.split(".");
+    // POSSIBLE BUG e' cambiato il .0 ma non il .abebox?
+    const [file_id, file_ext] = filename.split(".");
 
-      // we discard files without .abebox extensions since they are just
-      // fragments.
-      if (file_ext != "abebox") return files_list;
+    // we discard files without .abebox extensions since they are just
+    // fragments.
+    if (file_ext != "abebox") return files_list;
 
-      const { file_name, sym_key, iv } = core.retrieve_metadata(file_path);
+    const { file_name, sym_key, iv } = core.retrieve_metadata(file_path);
 
-      if (file_name === null) {
-        // if metadata.file_path is null, decoding was not possible
-        throw Error("Metadata file name is empty");
-      }
-      // search if file has been already added in the file list
-      const index = files_list.findIndex((el) => el.file_id === file_id);
-      if (index >= 0) {
-        if (files_list[index].status != file_status.local_change)
-          // REMOTE EVENT
-          download_file(file_name, file_path, sym_key, iv); // it's an async function
-      }
-      files_list[index].status = file_status.sync; // in all case we are synched.
-      store.set_files(files_list);
-      return files_list;
-    } catch (err) {
-      console.log(err);
+    if (file_name === null) {
+      // if metadata.file_path is null, decoding was not possible
+      throw Error("Metadata file name is empty");
     }
+    // search if file has been already added in the file list
+    const index = files_list.findIndex((el) => el.file_id === file_id);
+    if (index >= 0) {
+      if (files_list[index].status != file_status.local_change)
+        // REMOTE EVENT
+        download_file(file_name, file_path, sym_key, iv); // it's an async function
+    }
+    files_list[index].status = file_status.sync; // in all case we are synched.
+    store.set_files(files_list);
+    return files_list;
   };
 
   const handle_local_remove = function(file_path) {
@@ -324,9 +308,13 @@ const Abebox = (config_name = "config") => {
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index >= 0) {
-      const rem = files_list.pop(files_list[index]);
+      const removed_file = files_list.splice(index, 1)[0];
       store.set_files(files_list);
-      const remote_file = path.join(_conf.remote, repo_rel_path, rem.fid);
+      const remote_file = path.join(
+        _conf.remote,
+        repo_rel_path,
+        removed_file.file_id
+      );
       const metadata_file = `${remote_file}.abebox`;
       const encrypted_content_file = `${remote_file}.0`;
       if (fs.existsSync(metadata_file)) fs.rmSync(metadata_file);
@@ -341,9 +329,13 @@ const Abebox = (config_name = "config") => {
     const index = files_list.findIndex((el) => el.file_id === fid_no_ext);
     if (index >= 0) {
       // REMOTE EVENT
-      const rem = files_list.pop(files_list[index]);
+      const removed_file = files_list.splice(index, 1)[0];
       store.set_files(files_list);
-      const local_file = path.join(_conf.local, rem.file_dir, rem.file_name);
+      const local_file = path.join(
+        _conf.local,
+        removed_file.file_dir,
+        removed_file.file_name
+      );
       if (fs.existsSync(local_file)) fs.rmSync(local_file);
     }
   };
@@ -506,30 +498,26 @@ const Abebox = (config_name = "config") => {
   ) {
     assert(_conf.isAdmin);
 
-    try {
-      const sk = core.create_user_abe_sk(attr_list, false);
-      const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
+    const sk = core.create_user_abe_sk(attr_list, false);
+    const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
 
-      const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
-      const admin_keys = {
-        abe_pk: core.get_abe_keys().pk,
-        rsa_pk: core.get_rsa_keys().pk,
-      };
-      const signature = file_utils.get_hmac(
-        user_token,
-        JSON.toString(admin_keys)
-      );
-      const data = {
-        admin_keys: {
-          keys: admin_keys,
-          sign: signature.toString("hex"),
-        },
-        user_abe_sk: abe_enc_sk_jwt,
-      };
-      fs.writeFileSync(file_name, JSON.stringify(data));
-    } catch (err) {
-      console.log("catched error", err);
-    }
+    const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
+    const admin_keys = {
+      abe_pk: core.get_abe_keys().pk,
+      rsa_pk: core.get_rsa_keys().pk,
+    };
+    const signature = file_utils.get_hmac(
+      user_token,
+      JSON.toString(admin_keys)
+    );
+    const data = {
+      admin_keys: {
+        keys: admin_keys,
+        sign: signature.toString("hex"),
+      },
+      user_abe_sk: abe_enc_sk_jwt,
+    };
+    fs.writeFileSync(file_name, JSON.stringify(data));
   };
 
   // List all files in a directory in Node.js recursively in a synchronous fashion
@@ -550,14 +538,11 @@ const Abebox = (config_name = "config") => {
 
   /**************** FILES *****************/
   const get_files_list = function() {
-    //console.log(`GET_FILES_LIST`);
     files_list = store.get_files();
     return files_list;
   };
 
   const set_policy = function(data) {
-    //console.log(`SET_POLICY ${data.toString()}`);
-    //console.log("SET POLICY", data.file_id, data.policy);
     const el = files_list.find((el) => el.file_id === data.file_id);
     if (el !== undefined) {
       el.policy = data.policy;
@@ -567,7 +552,6 @@ const Abebox = (config_name = "config") => {
   };
 
   const share_files = function() {
-    console.log("SHARE FILES: ", files_list);
     files_list.forEach((file) => {
       assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
       const relative_file_path = file.file_dir + file.file_name;
@@ -576,7 +560,6 @@ const Abebox = (config_name = "config") => {
 
       // Encrypt the local files and copy in the remote repo
       if (file.status == file_status.local_change && file.policy.length != 0) {
-        console.log("Share file, local file to share: " + relative_file_path);
         core
           .file_encrypt(
             relative_file_path,
@@ -585,15 +568,8 @@ const Abebox = (config_name = "config") => {
             file.file_id,
             attribute.policy_as_string(file.policy)
           )
-          .then(() => {
-            //file.status = file_status.sync;
-            //store.set_files(files_list);
-            // setting file status is done by handle remote change
-            console.log("SHARE FILE SET SYNCH for LOCAL FILE");
-            //console.log(files_list);
-          })
           .catch((err) => {
-            console.log("SHARE FILE ERROR in SYNC LOCAL FILE");
+            console.log("share_files error in synching local file");
             throw Error(
               `Error ${err} encrypting local file ${relative_file_path}`
             );
@@ -602,7 +578,6 @@ const Abebox = (config_name = "config") => {
 
       // Decrypt remote files and copy in the local repo
       if (file.status == file_status.remote_change) {
-        console.log("Share file, remote file to share: " + relative_file_path);
         const enc_file_name = path.join(
           _conf.remote,
           repo_rel_path,
@@ -617,7 +592,6 @@ const Abebox = (config_name = "config") => {
           .then(() => {
             file.status = file_status.sync;
             store.set_files(files_list);
-            console.log("SHARE FILE SET SYNCH for REMOTE FILE");
           })
           .catch((err) => {
             console.log("SHARE FILE ERROR in SYNC REMOTE FILE");
