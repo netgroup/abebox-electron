@@ -136,13 +136,13 @@ const get_file_name = function(full_file_name) {
 };
 
 const split_file_path = function(file_path, repo_path) {
-  const filename = get_file_name(file_path);
-  const abs_path = file_path.replace(filename, "");
+  const file_name = get_file_name(file_path);
+  const abs_path = file_path.replace(file_name, "");
   const rel_path = abs_path.replace(repo_path, "").substring(1);
   return {
-    original_file_name: filename,
-    path: abs_path,
-    relative_path: rel_path,
+    filename: file_name,
+    abs_dir: abs_path,
+    rel_dir: rel_path,
   };
 };
 

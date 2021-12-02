@@ -234,48 +234,50 @@ const init = function() {
 
   const handle_local_add = function(file_path) {
     const fid = uuidv4();
-    const { original_file_name, relative_path } = file_utils.split_file_path(
+    const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.local
     );
 
     console.log(
-      `${file_path} split into ${relative_path} ${original_file_name}`
+      `${file_path} split into ${rel_dir} ${filename}`
     );
 
-    const el = files_list.find(
+    const index = files_list.findIndex(
       (el) =>
-        el.file_path === relative_path && el.file_name === original_file_name
+        el.file_dir === rel_dir && el.file_name === filename
     );
-    if (el === undefined) {
+    if (index < 0) {
       files_list.push({
-        file_path: relative_path,
-        file_name: original_file_name,
+        file_dir: rel_dir,
+        file_name: filename,
         file_id: fid,
         policy: [],
         status: file_status.local_change,
       });
       store.set_files(files_list);
+      return files_list;
     }
+    else throw Error(`Local add error: ${file_path} already exists`);
   };
 
   //TODO rivedere
   const handle_remote_add = async function(full_file_path) {
     try {
-      const { original_file_name, relative_path } = file_utils.split_file_path(
+      const { filename, rel_dir } = file_utils.split_file_path(
         full_file_path,
         _conf.remote
       );
       console.log(
-        `FILE NAME = ${original_file_name}   REL PATH = ${relative_path}`
+        `FILE NAME = ${filename}   REL DIR = ${rel_dir}`
       );
-      if (relative_path.includes(pk_dir_rel_path + "/")) {
+      if (rel_dir.includes(pk_dir_rel_path + "/")) {
         if (_conf.isAdmin) {
-          retrieve_pub_key(full_file_path, original_file_name);
+          retrieve_pub_key(full_file_path, filename);
         }
         return files_list;
       }
-      if (relative_path.includes(keys_dir_rel_path + "/")) {
+      if (rel_dir.includes(keys_dir_rel_path + "/")) {
         if (!_conf.isAdmin) {
           retrieve_abe_secret_key(full_file_path);
         }
@@ -284,7 +286,7 @@ const init = function() {
 
       if (!core.is_abe_configured()) return;
 
-      const [file_id, file_ext] = original_file_name.split(".");
+      const [file_id, file_ext] = filename.split(".");
 
       // we discard files without .abebox extensions since they are just
       // fragments.
@@ -328,32 +330,32 @@ const init = function() {
       );
 
       // search if file has been already added in the file list
-      const el = files_list.find(
+      const index = files_list.findIndex(
         (el) =>
-          el.file_path === plaintext_file_folder &&
-          el.file_name === plaintext_file_name &&
-          el.file_id === file_id
+          el.file_id === file_id && el.status === file_status.local_change
       );
-
-      if (el === undefined) {
+      if (index < 0) { // REMOTE EVENT
         // file is added externally (not by me!)
         files_list.push({
-          file_path: plaintext_file_folder, //relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
+          file_dir: plaintext_file_folder, //relative_path, // ESTRARRE PATH RELATIVO DA FILE PATH, VERIFICARE SE SERVE / INIZIALE
           file_name: plaintext_file_name, // metadata.file_path, // ESTRARRE NOME FILE DA FILE PATH
           file_id: file_id,
           policy: attribute.policy_from_string(policy), // TODO DESERIALIZZARE POLICY CON UNIVERSO, ATTR, VERSIONE
-          status: file_status.remote_change,
+          status: file_status.sync,
         });
-        store.set_files(files_list);
-        return files_list;
       }
+      else { // TRIGGERED BY LOCAL ADD
+        files_list[index].status = file_status.sync;
+      }
+      store.set_files(files_list);
+      return files_list;
     } catch (err) {
       console.log(err);
     }
   };
 
   const handle_local_change = function(file_path) {
-    const { original_file_name, relative_path } = file_utils.split_file_path(
+    const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.local
     );
@@ -361,23 +363,107 @@ const init = function() {
 console.log(file_path, original_file_name);
 const path = file_path.replace(original_file_name, "");
 const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
-    console.log("HANDLE LOCAL CHANGE", file_path);
-    console.log("FILE LIST", files_list);
-    console.log("REL PATH", relative_path);
-    console.log("FILE NAME", original_file_name);
+    console.log("HANDLE LOCAL CHANGE =", file_path);
+    console.log("FILE LIST =", files_list);
+    console.log("REL DIR =", rel_dir);
+    console.log("FILE NAME =", filename);
     const index = files_list.findIndex(
       (el) =>
-        el.file_path === relative_path && el.file_name === original_file_name
+        el.file_dir === rel_dir && el.file_name === filename
     );
     console.log("ELEM", files_list[index], index);
     if (index >= 0) {
       console.log("SO' ENTRATO", index);
       files_list[index].status = file_status.local_change;
+      store.set_files(files_list);
+      return files_list;
     }
+    else throw Error(`Local change error: ${file_path} already exists`);
   };
 
   const handle_remote_change = function(file_path) {
-    const { original_file_name, relative_path } = file_utils.split_file_path(
+    try {
+      const { filename, rel_dir } = file_utils.split_file_path(
+        full_file_path,
+        _conf.remote
+      );
+      console.log(
+        `FILE NAME = ${filename}   REL DIR = ${rel_dir}`
+      );
+
+      if (rel_dir.includes(pk_dir_rel_path + "/")) {
+        if (_conf.isAdmin) {
+          retrieve_pub_key(full_file_path, filename);
+        }
+        return files_list;
+      }
+      if (rel_dir.includes(keys_dir_rel_path + "/")) {
+        if (!_conf.isAdmin) {
+          retrieve_abe_secret_key(full_file_path);
+        }
+        return files_list;
+      }
+
+      if (!core.is_abe_configured()) return;
+
+      const [file_id, file_ext] = filename.split(".");
+
+      // we discard files without .abebox extensions since they are just
+      // fragments.
+      if (file_ext != "abebox") return files_list;
+
+      const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
+        full_file_path
+      );
+
+      console.log("EXTRACTED METADATA = ", sym_key, iv, file_name);
+
+      if (file_name === null) {
+        // if metadata.file_path is null, decoding was not possible
+        throw Error("Metadata file name is empty");
+      }
+
+      // separate folder and name of the encrypted file
+      /* const last_sep_index = file_name.lastIndexOf(path.sep);
+      const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
+      const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
+      if (!fs.existsSync(`${_conf.local}/${plaintext_file_folder}`))
+        fs.mkdirSync(`${_conf.local}/${plaintext_file_folder}`, {
+          recursive: true,
+        });
+      console.log(
+        `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
+      );
+      //const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
+      //if (file_name === null) {
+      //  throw Error(`File name not defined`);
+      //}
+      // File content symmetric decryption
+      const encrypted_content_file = core.get_encrypted_content_file_name(
+        full_file_path
+      );
+      await core.retrieve_decrypted_file(
+        encrypted_content_file,
+        _conf.local + "/" + file_name,
+        sym_key,
+        iv
+      ); */
+
+      // search if file has been already added in the file list
+      const index = files_list.findIndex(
+        (el) =>
+          el.file_id === file_id );
+      if (index >= 0) {
+        if ( files_list[index].status != file_status.local_change) // REMOTE EVENT
+          download_file(file_name, full_file_path, sym_key, iv);
+      }
+      files_list[index].status = file_status.sync;
+      store.set_files(files_list);
+      return files_list;
+    } catch (err) {
+      console.log(err);
+    }
+    /* const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.remote_repo_path
     );
@@ -399,12 +485,12 @@ const relative_path = path.replace(abebox_repo.local_repo_path, "");*/
 console.log(file_path, fid);
 const path = file_path.replace(fid, "");
 const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
-    const el = files_list.find(
+    /*const el = files_list.find(
       (el) => el.file_path === relative_path && el.file_id === fid_no_ext
     );
     if (el !== undefined) {
       el.status = file_status.remote_change;
-    }
+    } */
   };
 
   const handle_local_remove = function(file_path) {
@@ -444,6 +530,32 @@ const relative_path = path.replace(abebox_repo.remote_repo_path, "");*/
       store.set_files(files_list);
     }
   };
+
+  const download_file = function(file_name, full_file_path, sym_key, iv) {// separate folder and name of the encrypted file
+      const last_sep_index = file_name.lastIndexOf(path.sep);
+      const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
+      const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
+      if (!fs.existsSync(`${_conf.local}/${plaintext_file_folder}`))
+        fs.mkdirSync(`${_conf.local}/${plaintext_file_folder}`, {
+          recursive: true,
+        });
+      console.log(
+        `plaintext_file_name=${plaintext_file_name} plaintext_file_folder=${plaintext_file_folder}`
+      );
+      //const { sym_key, iv, file_name } = retrieve_metadata(metadata_file);
+      //if (file_name === null) {
+      //  throw Error(`File name not defined`);
+      //}
+      // File content symmetric decryption
+      const encrypted_content_file = core.get_encrypted_content_file_name(
+        full_file_path
+      );
+      await core.retrieve_decrypted_file(
+        encrypted_content_file,
+        _conf.local + "/" + file_name,
+        sym_key,
+        iv
+      );}; 
 
   const send_invite = function(recv) {
     return openurl.mailto([recv.mail], {
