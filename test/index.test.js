@@ -301,4 +301,23 @@ describe("Abebox Tests", () => {
 
     assert.equal(user_test_file_content, admin_test_file_content);
   });
+  it("user modifies a shared test file", async () => {
+    const user_test_file_content = fs.readFileSync(
+      abs_plaintext_user_file_path,
+      "utf-8"
+    );
+    const new_content = "\nFile edited on " + new Date();
+    const updated_content = user_test_file_content + new_content;
+    fs.appendFileSync(abs_plaintext_user_file_path, new_content);
+
+    await delay(4000);
+    user_abebox.share_files();
+    await delay(10000);
+    const admin_test_file_content = fs.readFileSync(
+      abs_plaintext_file_path,
+      "utf-8"
+    );
+
+    assert.equal(admin_test_file_content, updated_content);
+  }).timeout(25000);
 });

@@ -120,7 +120,7 @@ const Abebox = (config_name = "config") => {
         // Remote
         path.join(_conf.remote, attr_rel_path, "*"),
         path.join(_conf.remote, repo_rel_path, ".*"),
-        path.join(_conf.remote,repo_rel_path,"*",".*"),
+        path.join(_conf.remote, repo_rel_path, "*", ".*"),
       ],
     });
 
@@ -182,6 +182,8 @@ const Abebox = (config_name = "config") => {
   };
 
   const handle_local_add = function(file_path) {
+    console.log("handle_local_add of admin?" + _conf.isAdmin);
+    console.log(files_list);
     const fid = uuidv4();
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
@@ -200,10 +202,12 @@ const Abebox = (config_name = "config") => {
       });
       store.set_files(files_list);
       return files_list;
-    } else throw Error(`Local add error: ${file_path} already exists`);
+    }
   };
 
   const handle_remote_add = async function(file_path) {
+    console.log("handle_remote_add of admin?" + _conf.isAdmin);
+    console.log(files_list);
     try {
       const { filename, rel_dir } = file_utils.split_file_path(
         file_path,
@@ -230,12 +234,11 @@ const Abebox = (config_name = "config") => {
       );
       if (index < 0) {
         // REMOTE EVENT
-        const { plaintext_file_folder, plaintext_file_name } = download_file(
-          file_name,
-          file_path,
-          sym_key,
-          iv
-        );
+        const {
+          plaintext_file_folder,
+          plaintext_file_name,
+        } = await download_file(file_name, file_path, sym_key, iv);
+        assert(plaintext_file_name);
         files_list.push({
           file_dir: plaintext_file_folder,
           file_name: plaintext_file_name,
@@ -255,16 +258,22 @@ const Abebox = (config_name = "config") => {
   };
 
   const handle_local_change = function(file_path) {
+    console.log("handle_local_change of admin?" + _conf.isAdmin);
+    console.log(files_list);
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.local
     );
+    console.log(`rel_dir: ${rel_dir} filename: ${filename}`);
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
+    console.log("index = ", index);
     if (index >= 0) {
       files_list[index].status = file_status.local_change;
       store.set_files(files_list);
+      console.log("after change: ");
+      console.log(files_list);
       return files_list;
     } else throw Error(`Local change error: ${file_path} already exists`);
   };
@@ -297,7 +306,7 @@ const Abebox = (config_name = "config") => {
       if (index >= 0) {
         if (files_list[index].status != file_status.local_change)
           // REMOTE EVENT
-          download_file(file_name, file_path, sym_key, iv);
+          download_file(file_name, file_path, sym_key, iv); // it's async
       }
       files_list[index].status = file_status.sync;
       store.set_files(files_list);
@@ -335,11 +344,7 @@ const Abebox = (config_name = "config") => {
       // REMOTE EVENT
       const rem = files_list.pop(files_list[index]);
       store.set_files(files_list);
-      const local_file = path.join(
-        _conf.local,
-        rem.file_dir,
-        rem.file_name
-      );
+      const local_file = path.join(_conf.local, rem.file_dir, rem.file_name);
       if (fs.existsSync(local_file)) fs.rmSync(local_file);
     }
   };
@@ -561,6 +566,7 @@ const Abebox = (config_name = "config") => {
   };
 
   const share_files = function() {
+    console.log(files_list);
     files_list.forEach((file) => {
       const file_name =
         file.file_dir.charAt(0) === path.sep
