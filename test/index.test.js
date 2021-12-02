@@ -24,6 +24,7 @@ const local_dir = "mytestfolder";
 const plaintext_filename = "hello_index.txt"; // we are creating /mytestfolder/hello.txt file in the local repo
 const rel_plaintext_file_path = `${local_dir}/${plaintext_filename}`;
 const abs_plaintext_file_path = `${abs_local_repo_path}/${rel_plaintext_file_path}`;
+const abs_plaintext_user_file_path = `${abs_user_local_repo_path}/${rel_plaintext_file_path}`;
 const abs_dec_plaintext_file_path = `${abs_plaintext_file_path}.decripted.txt`;
 
 // remove and create test files
@@ -66,6 +67,12 @@ const sym_key = "sym_key";
 const iv = "iv";
 let invited_user_token = "";
 
+// attributes
+const attr_data_1 = { univ: "UN", attr: "A", vers: "1" };
+const attr_data_2 = { univ: "UN", attr: "B", vers: "1" };
+const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
+
+// configuration used by admin
 const conf = {
   configured: true,
   isAdmin: true,
@@ -75,6 +82,7 @@ const conf = {
   token: "",
 };
 
+// configuration used by user
 const user_conf = {
   configured: true,
   isAdmin: false,
@@ -84,15 +92,19 @@ const user_conf = {
   token: "",
 };
 
+// information set by admin about a new user invited in abebox
+const new_user_info = {
+  mail: user_conf.name,
+  attrs: [attr_data_1, attr_data_3],
+  token: "",
+  rsa_pub_key: "",
+};
+
 function delay(t, v) {
   return new Promise(function(resolve) {
     setTimeout(resolve.bind(null, v), t);
   });
 }
-
-const attr_data_1 = { univ: "UN", attr: "A", vers: "1" };
-const attr_data_2 = { univ: "UN", attr: "B", vers: "1" };
-const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
 
 describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
@@ -168,7 +180,10 @@ describe("Abebox Tests", () => {
   });
 
   it("add a file in the local repo", async () => {
-    fs.writeFileSync(abs_plaintext_file_path, "ciao");
+    fs.writeFileSync(
+      abs_plaintext_file_path,
+      "Test file created on " + new Date()
+    );
 
     await delay(4000); // wait 4s for watcher file detection
     const file_list = admin_abebox.get_files_list();
@@ -196,20 +211,14 @@ describe("Abebox Tests", () => {
     );
   }).timeout(15000);
   it("invite user", () => {
-    const new_user = {
-      mail: "user@uniroma2.it",
-      attrs: [attr_data_1, attr_data_2],
-      token: "",
-      rsa_pub_key: "",
-    };
     //add the new user to the list
-    const user_list = admin_abebox.new_user(new_user);
+    const user_list = admin_abebox.new_user(new_user_info);
     const user = user_list[0];
     assert.ok(admin_abebox.get_users().length > 0);
     console.log("user: ", user);
     const invited_user = admin_abebox.invite_user(user);
     invited_user_token = invited_user.token;
-    assert.equal(invited_user.mail, new_user.mail);
+    assert.equal(invited_user.mail, new_user_info.mail);
     assert.ok(invited_user_token);
   }).timeout(15000);
   /*
@@ -218,18 +227,26 @@ describe("Abebox Tests", () => {
     admin_abebox.reset_config();
   });
   */
-  it("setup abebox user with token", () => {
+  it("admin user key exchange", () => {
+    // TODO
+    return true;
+  });
+  it("setup abebox user with token", async () => {
+    // init the abebox index for the user
     user_abebox = Abebox(cfg_filename_user.split(".")[0]);
 
     user_conf.token = invited_user_token;
     // loading new configuration
     user_abebox.set_config(user_conf);
 
-    user_abebox.send_user_rsa_pk(); // send the token
+    user_abebox.send_user_rsa_pk(); // send the user RSA pubkey to admin
+
+    // check if the
     const token_hash = file_utils.get_hash(user_conf.token);
     const user_rsa_pk_filename = `${
       user_conf.remote
     }/pub_keys/${token_hash.toString("hex")}`;
+
     assert.ok(fs.existsSync(user_rsa_pk_filename));
     const user_rsa_file_content = fs.readFileSync(
       user_rsa_pk_filename,
@@ -238,34 +255,34 @@ describe("Abebox Tests", () => {
     const user_rsa_obj = JSON.parse(user_rsa_file_content);
     assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
     assert.ok(user_rsa_obj.hasOwnProperty("sign"));
-    console.log("Token file: ", user_rsa_obj);
 
-    // admin deve chiamare retrieve_pub_key (tramite watcher)
-    // che crea user sk
+    await delay(15000);
 
-    // user imposta la sua chiave sk (tramite watcher e retrieve_abe_secret_key)
-    // NOTA: controllare che il watcher forse ora ignora i path delle chiavi
+    // admin received the RSA pub key of the user
+    // this is done by retrieve_pub_key called by the watcher
+    const user = admin_abebox
+      .get_users()
+      .find((el) => el.mail == new_user_info.mail);
+    assert.equal(user.rsa_pub_key, user_rsa_obj.rsa_pub_key);
 
-    // non sono necessarie chiamate a funzioni (fa tutto il watcher)
-  }).timeout(10000);
+    // then admin sends the SK to the user
+
+    // user receives the sk and should set his SK
+    assert.ok(user_abebox.debug_get_conf().keys.hasOwnProperty("abe"));
+    assert.ok(user_abebox.debug_get_conf().keys.abe.hasOwnProperty("sk"));
+  }).timeout(50000);
+  it("user should decode the shared test file", () => {
+    assert.ok(fs.existsSync(abs_plaintext_user_file_path));
+    // file content should be equal
+    const user_test_file_content = fs.readFileSync(
+      abs_plaintext_user_file_path,
+      "utf-8"
+    );
+    const admin_test_file_content = fs.readFileSync(
+      abs_plaintext_file_path,
+      "utf-8"
+    );
+
+    assert.equal(user_test_file_content, admin_test_file_content);
+  });
 });
-
-/*
-stop,
-  OK get_files_list,
-  OK set_policy,
-  OK share_files,
-  OK get_config,
-  OK set_config,
-  N/A reset_config,
-  OK get_attrs,
-  OK new_attr,
-  OK set_attr,
-  OK del_attr,
-  OK get_users,
-  OK new_user,
-  OK set_user,
-  OK del_user,
-  invite_user,
-  test users
-*/

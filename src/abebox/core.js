@@ -8,7 +8,7 @@ const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
 
 const AbeboxCore = () => {
-  _conf = {
+  const _conf = {
     rsa_init: false,
     abe_init: false,
     abe_admin: false,
