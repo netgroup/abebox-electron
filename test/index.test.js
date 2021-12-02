@@ -37,6 +37,19 @@ const abs_dec_plaintext_file_path = path.join(
   ".decripted.txt"
 );
 
+// other file (#2) for the tests
+const plaintext_filename_2 = "hello_index2.txt"; // we are creating /mytestfolder/hello.txt file in the local repo
+const rel_plaintext_file_path_2 = path.join(local_dir, plaintext_filename_2);
+const abs_plaintext_file_path_2 = path.join(
+  abs_local_repo_path,
+  rel_plaintext_file_path_2
+);
+
+const abs_plaintext_user_file_path_2 = path.join(
+  abs_user_local_repo_path,
+  rel_plaintext_file_path_2
+);
+
 // remove and create test files
 before(() => {
   // Rename cfg file
@@ -319,5 +332,40 @@ describe("Abebox Tests", () => {
     );
 
     assert.equal(admin_test_file_content, updated_content);
+    const file_list = user_abebox.get_files_list();
+    console.log("File list of user:", file_list);
+    const el_find = file_list.find((el) => el.file_name == plaintext_filename);
+    assert.ok(el_find);
+    assert.equal(el_find.status, 0); // file_status.sync
   }).timeout(25000);
+  it("user creates and shares a test file", async () => {
+    const test_content = "Other test file created on " + new Date();
+    fs.writeFileSync(abs_plaintext_user_file_path_2, test_content);
+
+    await delay(4000); // wait 4s for watcher file detection
+    const file_list = user_abebox.get_files_list();
+    assert(file_list.length > 0);
+    console.log(file_list);
+
+    const index = file_list.find((el) => el.file_name == plaintext_filename_2);
+    assert.ok(index >= 0);
+    my_file = file_list[my_file];
+
+    const my_policy = {
+      file_id: my_file.file_id,
+      policy: [[attr_data_1]],
+    };
+    user_abebox.set_policy(my_policy);
+
+    user_abebox.share_files();
+
+    await delay(4000); // wait 4s for watcher file detection
+
+    const admin_test_file_content = fs.readFileSync(
+      abs_plaintext_file_path_2,
+      "utf-8"
+    );
+
+    assert.equal(admin_test_file_content, test_content);
+  }).timeout(12000);
 });

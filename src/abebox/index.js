@@ -264,21 +264,18 @@ const Abebox = (config_name = "config") => {
       file_path,
       _conf.local
     );
-    console.log(`rel_dir: ${rel_dir} filename: ${filename}`);
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
-    console.log("index = ", index);
     if (index >= 0) {
       files_list[index].status = file_status.local_change;
       store.set_files(files_list);
-      console.log("after change: ");
-      console.log(files_list);
       return files_list;
     } else throw Error(`Local change error: ${file_path} already exists`);
   };
 
   const handle_remote_change = function(file_path) {
+    console.log("Handle remote change");
     try {
       const { filename, rel_dir } = file_utils.split_file_path(
         file_path,
@@ -289,6 +286,7 @@ const Abebox = (config_name = "config") => {
 
       if (!core.is_abe_configured()) return;
 
+      // POSSIBLE BUG e' cambiato il .0 ma non il .abebox?
       const [file_id, file_ext] = filename.split(".");
 
       // we discard files without .abebox extensions since they are just
@@ -306,9 +304,9 @@ const Abebox = (config_name = "config") => {
       if (index >= 0) {
         if (files_list[index].status != file_status.local_change)
           // REMOTE EVENT
-          download_file(file_name, file_path, sym_key, iv); // it's async
+          download_file(file_name, file_path, sym_key, iv); // it's an async function
       }
-      files_list[index].status = file_status.sync;
+      files_list[index].status = file_status.sync; // in all case we are synched.
       store.set_files(files_list);
       return files_list;
     } catch (err) {
@@ -566,26 +564,42 @@ const Abebox = (config_name = "config") => {
   };
 
   const share_files = function() {
-    console.log(files_list);
+    console.log("SHARE FILES: ", files_list);
     files_list.forEach((file) => {
-      const file_name =
-        file.file_dir.charAt(0) === path.sep
-          ? file.file_dir.substring(1) + file.file_name
-          : file.file_dir + file.file_name;
+      assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
+      const relative_file_path = file.file_dir + file.file_name;
+      const abs_local_file_path = path.join(_conf.local, relative_file_path);
+      const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
+
+      // Encrypt the local files and copy in the remote repo
       if (file.status == file_status.local_change && file.policy.length != 0) {
-        const res = core.file_encrypt(
-          file_name,
-          path.join(_conf.local, file_name),
-          path.join(_conf.remote, repo_rel_path),
-          file.file_id,
-          attribute.policy_as_string(file.policy)
-        );
-        if (res) file.status = file_status.sync;
-        else {
-          throw Error("Error encrypting local file " + file_name);
-        }
+        console.log("Share file, local file to share: " + relative_file_path);
+        core
+          .file_encrypt(
+            relative_file_path,
+            abs_local_file_path,
+            abs_remote_file_path,
+            file.file_id,
+            attribute.policy_as_string(file.policy)
+          )
+          .then(() => {
+            //file.status = file_status.sync;
+            //store.set_files(files_list);
+            // setting file status is done by handle remote change
+            console.log("SHARE FILE SET SYNCH for LOCAL FILE");
+            //console.log(files_list);
+          })
+          .catch((err) => {
+            console.log("SHARE FILE ERROR in SYNC LOCAL FILE");
+            throw Error(
+              `Error ${err} encrypting local file ${relative_file_path}`
+            );
+          });
       }
+
+      // Decrypt remote files and copy in the local repo
       if (file.status == file_status.remote_change) {
+        console.log("Share file, remote file to share: " + relative_file_path);
         const enc_file_name = path.join(
           _conf.remote,
           repo_rel_path,
@@ -595,9 +609,17 @@ const Abebox = (config_name = "config") => {
           0,
           enc_file_name.lastIndexOf(".")
         );
-        const res = core.file_decrypt(enc_file_name_no_ext);
-        if (res) file.status = file_status.sync;
-        else console.log("[ERROR] DECRYPTING REMOTE FILE " + enc_file_name);
+        core
+          .file_decrypt(enc_file_name_no_ext)
+          .then(() => {
+            file.status = file_status.sync;
+            store.set_files(files_list);
+            console.log("SHARE FILE SET SYNCH for REMOTE FILE");
+          })
+          .catch((err) => {
+            console.log("SHARE FILE ERROR in SYNC REMOTE FILE");
+            throw Error(`Error ${err} decrypting remote file ${file.file_id}`);
+          });
       }
     });
     return files_list;
