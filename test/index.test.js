@@ -363,13 +363,13 @@ describe("Abebox Tests", () => {
 
     const my_policy = {
       file_id: my_file.file_id,
-      policy: [[attr_data_1]],
+      policy: [[attr_data_3]],
     };
     user_abebox.set_policy(my_policy);
 
     user_abebox.share_files();
 
-    await delay(4000); // wait 4s for watcher file detection
+    await delay(8000); // wait 4s for watcher file detection
 
     // admin should be able to retrive the content
     const admin_test_file_content = fs.readFileSync(
@@ -378,5 +378,5 @@ describe("Abebox Tests", () => {
     );
 
     assert.equal(admin_test_file_content, test_content);
-  }).timeout(12000);
+  }).timeout(20000);
 });
