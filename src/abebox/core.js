@@ -15,6 +15,7 @@ const AbeboxCore = () => {
     abe_admin: false,
     rsa_keys: {},
     abe_keys: {},
+    rsa_admin_pk: null,
   };
 
   const init_rsa_keys = function() {
@@ -35,6 +36,10 @@ const AbeboxCore = () => {
   const get_rsa_keys = function() {
     if (!_conf.rsa_init) throw Error("RSA Not initialized");
     return _conf.rsa_keys;
+  };
+
+  const set_admin_rsa_pk = function(pk) {
+    _conf.rsa_admin_pk = pk;
   };
 
   const init_abe_keys = function() {
@@ -186,8 +191,10 @@ const AbeboxCore = () => {
     return jwt.sign(data, _conf.rsa_keys.sk, { algorithm: "RS256" });
   };
 
-  const verify_jwt = function(token, pk = _conf.rsa_keys.pk) {
+  const verify_jwt = function(token, pk = null) {
     if (!_conf.rsa_init) throw Error("RSA Not initialized");
+    // if pk is not provided, use my rsa pk if I'm an admin, otherwise use the admin rsa pk
+    if (!pk) pk = _conf.abe_admin ? _conf.rsa_keys.pk : _conf.rsa_admin_pk;
     return jwt.verify(token, pk);
   };
 
@@ -291,6 +298,7 @@ const AbeboxCore = () => {
     set_abe_keys, // used by normal users
     set_abe_sk,
     get_abe_keys,
+    set_admin_rsa_pk,
     create_metadata_file,
     create_encrypted_file,
     retrieve_metadata,

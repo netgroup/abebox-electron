@@ -157,11 +157,34 @@ describe("Abebox Tests", () => {
   });
 
   it("modify an attribute", () => {
-    const attr_list_get = admin_abebox.get_attrs();
-    const old_obj = attr_list_get[0];
-    const new_obj = { univ: "UN", attr: "A", vers: "2" };
-    const attr_list = admin_abebox.set_attr(old_obj, new_obj);
-    assert.equal(attr_list[0].vers, "2");
+    let attr_list_get = admin_abebox.get_attrs();
+    let old_obj = attr_list_get[0];
+    let new_obj = { univ: "UN", attr: "A", vers: "2" };
+    let attr_list = admin_abebox.set_attr(old_obj, new_obj);
+    let modified_attr = admin_abebox
+      .get_attrs()
+      .find(
+        (el) =>
+          el.univ == new_obj.univ &&
+          el.attr == new_obj.attr &&
+          el.vers == new_obj.vers
+      );
+
+    assert.ok(modified_attr);
+    assert.equal(modified_attr.vers, "2");
+
+    assert.ok(old_obj);
+    const restored_obj = { univ: "UN", attr: "A", vers: "1" };
+    attr_list = admin_abebox.set_attr(modified_attr, restored_obj);
+    modified_attr = admin_abebox
+      .get_attrs()
+      .find(
+        (el) =>
+          el.univ == restored_obj.univ &&
+          el.attr == restored_obj.attr &&
+          el.vers == restored_obj.vers
+      );
+    assert.equal(modified_attr.vers, "1");
   });
   it("delete an attribute", () => {
     const attr_list_get_initial = admin_abebox.get_attrs();
@@ -298,7 +321,7 @@ describe("Abebox Tests", () => {
   }).timeout(50000);
   it("user retrieves his own attributes", () => {
     const user_attributes = user_abebox.get_attrs();
-    assert.deepEqual(user_attribute, new_user_info.attrs);
+    assert.deepEqual(user_attributes, new_user_info.attrs);
   });
   it("user should decode the shared test file", () => {
     assert.ok(fs.existsSync(abs_plaintext_user_file_path));

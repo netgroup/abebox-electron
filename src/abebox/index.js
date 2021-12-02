@@ -483,6 +483,8 @@ const Abebox = (config_name = "config") => {
     core.set_abe_keys(keys.abe_pk, abe_sk);
 
     _conf.keys.abe = core.get_abe_keys();
+    core.set_admin_rsa_pk(keys.rsa_pk);
+    _conf.keys.admin_rsa_pk = keys.rsa_pk;
     store.set_keys(_conf.keys);
 
     // ABE is now configured, we can download files in remote repo
