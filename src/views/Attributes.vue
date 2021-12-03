@@ -104,11 +104,11 @@ export default {
     search: "",
     attached: false,
     headers: [
-      {
+      /*{
         text: "ID",
         align: "start",
         value: "id",
-      },
+      },*/
       { text: "Universe", value: "univ" },
       { text: "Attribute", value: "attr" },
       { text: "Version", value: "vers" },
@@ -116,14 +116,13 @@ export default {
     ],
     attributeList: [],
     editedIndex: -1,
+    oldItem: null,
     editedItem: {
-      id: "",
       univ: "",
       attr: "",
       vers: "",
     },
     defaultItem: {
-      id: "",
       univ: "",
       attr: "",
       vers: "",
@@ -159,6 +158,7 @@ export default {
     editItem(item) {
       this.editedIndex = this.attributeList.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      this.oldItem = item;
       this.dialog = true;
     },
 
@@ -169,7 +169,7 @@ export default {
     },
 
     deleteItemConfirm() {
-      this.delAttr(this.editedItem.id);
+      this.delAttr(this.editedItem);
       this.closeDelete();
     },
 
@@ -191,7 +191,7 @@ export default {
       if (this.editedIndex < 0) {
         this.newAttr(Object.assign({}, this.editedItem));
       } else {
-        this.setAttr(Object.assign({}, this.editedItem));
+        this.setAttr(this.oldItem, Object.assign({}, this.editedItem));
       }
       this.close();
     },
@@ -200,9 +200,13 @@ export default {
       const list = await ipcRenderer.invoke("list-attrs", "");
       this.attributeList = list;
     },
-    async setAttr(attr) {
+    async setAttr(old_attr, attr) {
       console.log("setAttr", attr);
-      const new_attrs_list = await ipcRenderer.invoke("set-attr", attr);
+      const new_attrs_list = await ipcRenderer.invoke(
+        "set-attr",
+        old_attr,
+        attr
+      );
       this.attributeList = new_attrs_list;
     },
     async newAttr(attr) {
@@ -210,9 +214,9 @@ export default {
       const new_attrs_list = await ipcRenderer.invoke("new-attr", attr);
       this.attributeList = new_attrs_list;
     },
-    async delAttr(id) {
-      console.log("delAttr", id);
-      const new_attrs_list = await ipcRenderer.invoke("del-attr", id);
+    async delAttr(attr) {
+      console.log("delAttr", attr);
+      const new_attrs_list = await ipcRenderer.invoke("del-attr", attr);
       this.attributeList = new_attrs_list;
     },
   },

@@ -40,37 +40,28 @@ const Abebox = (config_name = "config") => {
   let watcher;
   let _conf = {};
   let _configured = false;
-  // Note sulla logica del modulo
-  // 1 Il modulo quando parte cerca il file di configurazione
-  // - Se non lo trova si mette in attesa di una set_config
-  // - Se la trova si avvia ...
-
-  // Avvio:
-  // - inizializzazione del core
-  // - avvio dei listner repo_local e repo_shared
-
-  // Operazioni di Base Admin
-  // Aggiunta attibuiti
-  // 1 Viene aggiunto/modificato/eliminato un attributo
-  // - si aggiorna la lista degli attributi
-  // - si aggiorna la chiave sk (TBD cosa si fa con i file già cifrati con gli attibuti vecchi???)
-
-  // Condivisione di file local
-  // 1 viene aggiunto un file in repo_local:
-  //   - viene aggiunto alla lista dei file da gestire (si aspetta la policy)
-  // 2 viene aggiunta la policy del file
-  //   - nel nella lista dei file viene scritta la policy
-  // 3 si condivide il file
-  //   - si copia il file nel repo_shared
-
-  // Ricezione di un file da remote
-  // 1 viene aggiunto un file in repo_shared:
-  //   - si prova a decodificare i metadati ed eventualmente si aggiunge a repo_local
 
   const _boot = function() {
     if (store.is_configured()) {
       _configured = true;
       _conf = store.get_conf();
+      _conf.keys = store.get_keys();
+      core.set_rsa_keys(_conf.keys.rsa.pk, _conf.keys.rsa.sk);
+
+      if (_conf.isAdmin) {
+        core.set_admin_abe_keys(
+          _conf.keys.abe.pk,
+          _conf.keys.abe.msk,
+          _conf.keys.abe.sk
+        );
+      } else {
+        throw Error("not implemented");
+        // TODO per user abe potrebbe essere vuoto
+        if (Object.keys(_conf.keys.abe).length > 0)
+          core.set_abe_keys(_conf.keys.abe.pk, _conf.keys.abe.sk);
+
+        //TODO se sono user manca la pk abe dell'admin (forse)
+      }
       //console.log("ABEBox booting - Loading Configuration \n", _conf);
       _init_attribute(path.join(_conf.remote, attr_rel_path));
       _start_watchers();

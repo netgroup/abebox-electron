@@ -2,7 +2,7 @@ import { ipcMain } from "electron";
 
 //import { get_files_list, set_config, get_config, set_policy } from ".";
 
-import {
+/*import {
   get_files_list,
   set_policy,
   share_files,
@@ -18,7 +18,9 @@ import {
   set_user,
   del_user,
   invite_user,
-} from "."; //"./dummy";
+} from "."; //"./dummy";*/
+
+const abebox = require(".")();
 
 /* HELPER FUNCTIONS */
 
@@ -42,59 +44,59 @@ export default {
     console.log("ABEBox Starting IPC API");
     /*  FILE API */
     ipcMain.handle("list-files", async (event, data) => {
-      return await get_files_list(); // return file list
+      return await abebox.get_files_list(); // return file list
     });
 
     ipcMain.handle("set-policy", async (event, data) => {
-      return await set_policy(data); // return file list
+      return await abebox.set_policy(data); // return file list
     });
 
     ipcMain.handle("share-files", async (event, data) => {
-      return await share_files(data); // return file list
+      return await abebox.share_files(data); // return file list
     });
 
     /* CONF API */
     ipcMain.handle("get-conf", async (event) => {
-      return await get_config();
+      return await abebox.get_config();
     });
 
     ipcMain.handle("reset-conf", async (event) => {
-      return await reset_conf();
+      return await abebox.reset_conf();
     });
 
     ipcMain.handle("set-conf", async (event, conf) => {
-      return await set_config(conf);
+      return await abebox.set_config(conf);
     });
 
     /*  ATTRIBUTES API */
     ipcMain.handle("list-attrs", async (event) => {
-      return await get_attrs();
+      return await abebox.get_attrs();
     });
     ipcMain.handle("new-attr", async (event, n_attr) => {
-      return await new_attr(n_attr);
+      return await abebox.new_attr(n_attr);
     });
-    ipcMain.handle("set-attr", async (event, ed_attr) => {
-      return await set_attr(ed_attr);
+    ipcMain.handle("set-attr", async (event, old_attr, ed_attr) => {
+      return await abebox.set_attr(old_attr, ed_attr);
     });
-    ipcMain.handle("del-attr", async (event, id_attr) => {
-      return await del_attr(id_attr);
+    ipcMain.handle("del-attr", async (event, d_attr) => {
+      return await abebox.del_attr(d_attr);
     });
 
     /*  USER API */
     ipcMain.handle("list-users", async (event) => {
-      return await get_users();
+      return await abebox.get_users();
     });
     ipcMain.handle("new-user", async (event, n_user) => {
-      return await new_user(n_user);
+      return await abebox.new_user(n_user);
     });
     ipcMain.handle("set-user", async (event, ed_user) => {
-      return await set_user(ed_user);
+      return await abebox.set_user(ed_user);
     });
     ipcMain.handle("del-user", async (event, id_user) => {
-      return await del_user(id_user);
+      return await abebox.el_user(id_user);
     });
     ipcMain.handle("invite-user", async (event, user_mail) => {
-      return await invite_user(user_mail);
+      return await abebox.invite_user(user_mail);
     });
 
     /* UTILITY API */

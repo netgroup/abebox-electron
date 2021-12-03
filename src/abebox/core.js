@@ -51,6 +51,13 @@ const AbeboxCore = () => {
     return _conf.abe_keys;
   };
 
+  const set_admin_abe_keys = function(pk, msk, sk) {
+    if (_conf.abe_init) throw Error("ABE Already initialized");
+    _conf.abe_keys = { pk: pk, msk: msk, sk: sk };
+    _conf.abe_init = true;
+    _conf.abe_admin = true;
+  };
+
   const set_abe_keys = function(pk, sk) {
     if (_conf.abe_init) throw Error("ABE Already initialized");
     _conf.abe_keys = { pk: pk, sk: sk };
@@ -297,6 +304,7 @@ const AbeboxCore = () => {
     create_abe_sk, //used in abe admin mode
     create_user_abe_sk,
     set_abe_keys, // used by normal users
+    set_admin_abe_keys,
     set_abe_sk,
     get_abe_keys,
     set_admin_rsa_pk,

@@ -225,7 +225,9 @@ export default {
       const list = await ipcRenderer.invoke("list-attrs", "");
       this.attrs = await Promise.all(
         list.map((el) => {
-          return Object.assign(el, { slug: `${el.univ}_${el.attr}` });
+          return Object.assign(el, {
+            slug: `${el.univ}:${el.attr}:${el.vers}`,
+          });
         })
       );
       console.log("getAttrsList:", this.attrs);
