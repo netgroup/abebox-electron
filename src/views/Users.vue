@@ -46,11 +46,9 @@
                 <v-row class="m-0">
                   <v-col cols="12" sm="12" md="12">
                     <v-select
-                      :items="attrs"
+                      :items="items"
                       label="Attributes"
                       v-model="editedItem.attrs"
-                      item-text="slug"
-                      item-value="id"
                       multiple
                       chips
                       persistent-hint
@@ -102,6 +100,9 @@
         mdi-share
       </v-icon>
     </template>
+    <template v-slot:item.attributes="{ item }">
+      <span v-for="(att, index) in item.attrs" :key="index">{{ att.univ }}:{{ att.attr }}:{{ att.vers }} </span>
+    </template>
   </v-data-table>
 </template>
 <script>
@@ -120,11 +121,12 @@ export default {
         text: "Email",
         value: "mail",
       },
-      { text: "Attributes", value: "attrs" },
+      { text: "Attributes", value: "attributes"}, //${el.univ}:${el.attr}:${el.vers}
       { text: "Actions", value: "actions", sortable: false },
     ],
     users: [],
     attrs: [],
+    items: [],
     editedIndex: -1,
     editedItem: {
       mail: "",
@@ -170,6 +172,8 @@ export default {
     },
 
     editItem(item) {
+      this.items = this.attrs.map((el) => {return {text: `${el.univ}:${el.attr}:${el.vers}`, value: el};});
+
       this.editedIndex = this.users.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
@@ -222,7 +226,9 @@ export default {
       this.users = list;
     },
     async getAttrsList() {
-      const list = await ipcRenderer.invoke("list-attrs", "");
+      this.attrs = await ipcRenderer.invoke("list-attrs", "");
+
+      /*
       this.attrs = await Promise.all(
         list.map((el) => {
           return Object.assign(el, {
@@ -231,6 +237,7 @@ export default {
         })
       );
       console.log("getAttrsList:", this.attrs);
+      */
     },
     async newUser(user) {
       console.log("newUser", user);
@@ -252,3 +259,5 @@ export default {
   },
 };
 </script>
+
+
