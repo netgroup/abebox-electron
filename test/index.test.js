@@ -94,6 +94,8 @@ let invited_user_token = "";
 const attr_data_1 = { univ: "UN", attr: "A", vers: "1" };
 const attr_data_2 = { univ: "UN", attr: "B", vers: "1" };
 const attr_data_3 = { univ: "UN", attr: "C", vers: "1" };
+const attr_data_4 = { univ: "UN", attr: "D", vers: "1" };
+const attr_data_5 = { univ: "UN", attr: "E", vers: "1" };
 
 // configuration used by admin
 const conf = {
@@ -223,6 +225,51 @@ describe("Abebox Tests", () => {
     admin_abebox.del_user(new_user.mail);
     const after_del_user_list = admin_abebox.get_users();
     assert.equal(after_del_user_list.length + 1, after_add_user_list.length);
+  });
+
+  it("attribute set/del, user attributes cascade", () => {
+    // get users list
+    const pre_add_user_list = admin_abebox.get_users();
+    const pre_add_attr_list = admin_abebox.get_attrs();
+
+    // add the attribute
+    admin_abebox.new_attr(attr_data_4);
+    const post_add_attr_list = admin_abebox.get_attrs();
+    assert.equal(pre_add_attr_list.length, post_add_attr_list.length - 1);
+    assert.deepEqual(post_add_attr_list[post_add_attr_list.length - 1], attr_data_4);
+
+    // add new user
+    const new_user = {
+      mail: "pippo@uniroma2.it",
+      attrs: [attr_data_4],
+      token: "",
+      rsa_pub_key: "",
+    };
+    const post_add_user_list = admin_abebox.new_user(new_user);
+    assert.equal(pre_add_user_list.length, post_add_user_list.length - 1);
+    assert.deepEqual(post_add_user_list[post_add_user_list.length - 1], new_user);
+
+    // change the attribute
+    const post_set_attr_list = admin_abebox.set_attr(attr_data_4, attr_data_5);
+    assert.equal(post_add_attr_list.length, post_set_attr_list.length);
+    assert.deepEqual(
+      post_set_attr_list[post_set_attr_list.length - 1],
+      attr_data_5
+    );
+    const post_set_user_list = admin_abebox.get_users();
+
+    const index = post_set_user_list.findIndex(
+      (item) => item.mail == new_user.mail
+    );
+    assert.deepEqual(post_set_user_list[index].attrs[0], attr_data_5);
+
+    // delete the attribute
+    const post_del_attr_list = admin_abebox.del_attr(attr_data_5);
+    assert.equal(post_set_attr_list.length, post_del_attr_list.length + 1);
+
+    // delete the user
+    const post_del_user_list = admin_abebox.del_user(new_user.mail);
+    assert.equal(post_del_user_list.length + 1, post_add_user_list.length);
   });
 
   it("add a file in the local repo", async () => {
