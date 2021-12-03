@@ -527,6 +527,35 @@ const Abebox = (config_name = "config") => {
     return filelist;
   };
 
+  const _update_users_attr = function(old_attr, new_attr) {
+    const users = get_users();
+    users.forEach((user) => {
+      const index = user.attrs.findIndex((attr) => 
+        attr.univ == old_attr.univ &&
+          attr.attr == old_attr.attr &&
+          attr.vers == old_attr.vers);
+      if (index >= 0) {
+        user.attrs[index] = new_attr;
+      }
+    });
+    store.set_users(users);
+  };
+
+  const _del_users_attr = function(del_attr) {
+    const users = get_users();
+    users.forEach((user) => {
+      const index = user.attrs.findIndex((attr) =>
+        attr.univ == del_attr.univ &&
+          attr.attr == del_attr.attr &&
+          attr.vers == del_attr.vers
+      );
+      if (index >= 0) {
+        user.attrs.splice(index, 1);
+      }
+    });
+    store.set_users(users);
+  };
+
   /**************** FILES *****************/
   const get_files_list = function() {
     files_list = store.get_files();
@@ -623,6 +652,7 @@ const Abebox = (config_name = "config") => {
     if (!_conf.configured) throw Error("ABEBox not configured");
     if (!_conf.isAdmin) throw Error("To Add an Attribute need to be admin");
     const attrs = attribute.add(new_obj);
+    // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
     _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
     return attrs;
@@ -632,15 +662,21 @@ const Abebox = (config_name = "config") => {
     if (!_conf.configured) throw Error("ABEBox not configured");
     if (!_conf.isAdmin) throw Error("To Modify an Attribute need to be admin");
     const attrs = attribute.set(old_obj, new_obj);
+    // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
     _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
+    // Update users attributes
+    _update_users_attr(old_obj, new_obj);
     return attrs;
   };
 
-  const del_attr = function(obj_del) {
-    const attrs = attribute.del(obj_del);
+  const del_attr = function(del_obj) {
+    const attrs = attribute.del(del_obj);
+    // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
     _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
+    // Delete users attributes
+    _del_users_attr(del_obj);
     return attrs;
   };
 
