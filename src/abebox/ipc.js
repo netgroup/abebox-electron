@@ -93,7 +93,7 @@ export default {
       return await abebox.set_user(ed_user);
     });
     ipcMain.handle("del-user", async (event, id_user) => {
-      return await abebox.el_user(id_user);
+      return await abebox.del_user(id_user);
     });
     ipcMain.handle("invite-user", async (event, user_mail) => {
       return await abebox.invite_user(user_mail);
