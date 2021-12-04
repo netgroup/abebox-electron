@@ -236,7 +236,10 @@ describe("Abebox Tests", () => {
     admin_abebox.new_attr(attr_data_4);
     const post_add_attr_list = admin_abebox.get_attrs();
     assert.equal(pre_add_attr_list.length, post_add_attr_list.length - 1);
-    assert.deepEqual(post_add_attr_list[post_add_attr_list.length - 1], attr_data_4);
+    assert.deepEqual(
+      post_add_attr_list[post_add_attr_list.length - 1],
+      attr_data_4
+    );
 
     // add new user
     const new_user = {
@@ -247,7 +250,10 @@ describe("Abebox Tests", () => {
     };
     const post_add_user_list = admin_abebox.new_user(new_user);
     assert.equal(pre_add_user_list.length, post_add_user_list.length - 1);
-    assert.deepEqual(post_add_user_list[post_add_user_list.length - 1], new_user);
+    assert.deepEqual(
+      post_add_user_list[post_add_user_list.length - 1],
+      new_user
+    );
 
     // change the attribute
     const post_set_attr_list = admin_abebox.set_attr(attr_data_4, attr_data_5);
@@ -331,7 +337,7 @@ describe("Abebox Tests", () => {
     // loading new configuration
     user_abebox.set_config(user_conf);
 
-    user_abebox.send_user_rsa_pk(); // send the user RSA pubkey to admin
+    //user_abebox.send_user_rsa_pk(); // send the user RSA pubkey to admin
 
     // check if the
     const token_hash = file_utils.get_hash(user_conf.token);

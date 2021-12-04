@@ -87,10 +87,12 @@ const Abebox = (config_name = "config") => {
   const _init_core = function() {
     if (!_configured) throw Error("Setup called without configuration");
     _conf.keys = {};
+    _conf.keys.rsa = core.init_rsa_keys();
     if (_conf.isAdmin) {
       _conf.keys.abe = core.init_abe_keys();
+    } else {
+      send_user_rsa_pk();
     }
-    _conf.keys.rsa = core.init_rsa_keys();
     store.set_keys(_conf.keys);
   };
 
@@ -729,10 +731,11 @@ const Abebox = (config_name = "config") => {
     if (index < 0) {
       throw Error("User not present");
     } else {
-      const token = file_utils.get_random(32).toString("hex");
-      users[index].token = token;
-      store.set_users(users);
-      // send_invite(users[index]); // ==> to open the email
+      if (users[index].token == "") {
+        const token = file_utils.get_random(32).toString("hex");
+        users[index].token = token;
+        store.set_users(users);
+      }
       return users[index];
     }
   };
