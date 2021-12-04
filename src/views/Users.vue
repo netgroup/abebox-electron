@@ -101,7 +101,9 @@
       </v-icon>
     </template>
     <template v-slot:item.attributes="{ item }">
-      <span v-for="(att, index) in item.attrs" :key="index">{{ att.univ }}:{{ att.attr }}:{{ att.vers }} </span>
+      <span v-for="(att, index) in item.attrs" :key="index"
+        >{{ att.univ }}:{{ att.attr }}:{{ att.vers }}
+      </span>
     </template>
   </v-data-table>
 </template>
@@ -121,7 +123,7 @@ export default {
         text: "Email",
         value: "mail",
       },
-      { text: "Attributes", value: "attributes"}, //${el.univ}:${el.attr}:${el.vers}
+      { text: "Attributes", value: "attributes" }, //${el.univ}:${el.attr}:${el.vers}
       { text: "Actions", value: "actions", sortable: false },
     ],
     users: [],
@@ -172,8 +174,6 @@ export default {
     },
 
     editItem(item) {
-      this.items = this.attrs.map((el) => {return {text: `${el.univ}:${el.attr}:${el.vers}`, value: el};});
-
       this.editedIndex = this.users.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
@@ -227,17 +227,9 @@ export default {
     },
     async getAttrsList() {
       this.attrs = await ipcRenderer.invoke("list-attrs", "");
-
-      /*
-      this.attrs = await Promise.all(
-        list.map((el) => {
-          return Object.assign(el, {
-            slug: `${el.univ}:${el.attr}:${el.vers}`,
-          });
-        })
-      );
-      console.log("getAttrsList:", this.attrs);
-      */
+      this.items = this.attrs.map((el) => {
+        return { text: `${el.univ}:${el.attr}:${el.vers}`, value: el };
+      });
     },
     async newUser(user) {
       console.log("newUser", user);
@@ -259,5 +251,3 @@ export default {
   },
 };
 </script>
-
-

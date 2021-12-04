@@ -11,11 +11,9 @@
               <v-row align="center">
                 <v-col cols="12" sm="10">
                   <v-select
-                    :items="attrs"
+                    :items="all_items_attrs"
                     label="AND Attributes Group"
                     v-model="element.and_list"
-                    item-text="slug"
-                    item-value="id"
                     multiple
                     chips
                     persistent-hint
@@ -145,6 +143,7 @@ export default {
     },
     items: [], // visualized in the tree
     fileItems: [], // flat file list
+    all_items_attrs: [], // list of attributes and slugs
     attrs: [], // list of valid attributes
   }),
   watch: {
@@ -229,10 +228,10 @@ export default {
       console.log("getFileList", this.fileItems, this.items);
     },
     async getAttrsList() {
-      const list = await ipcRenderer.invoke("list-attrs", "");
-      this.attrs = await Promise.all(
-        list.map((el) => {
-          return Object.assign(el, { slug: `${el.univ}_${el.attr}` });
+      this.attrs = await ipcRenderer.invoke("list-attrs", "");
+      this.all_items_attrs = await Promise.all(
+        this.attrs.map((el) => {
+          return { text: `${el.univ}:${el.attr}:${el.vers}`, value: el };
         })
       );
       console.log("getAttrsList:", this.attrs);

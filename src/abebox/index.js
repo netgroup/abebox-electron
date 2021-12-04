@@ -47,13 +47,18 @@ const Abebox = (config_name = "config") => {
       _conf = store.get_conf();
       _conf.keys = store.get_keys();
       core.set_rsa_keys(_conf.keys.rsa.pk, _conf.keys.rsa.sk);
-
+      _init_attribute(path.join(_conf.remote, attr_rel_path));
       if (_conf.isAdmin) {
         core.set_admin_abe_keys(
           _conf.keys.abe.pk,
           _conf.keys.abe.msk,
           _conf.keys.abe.sk
         );
+        /*        const attributes = attribute.get_all();
+        if (attributes.length > 0) {
+          core.create_abe_sk(attributes);
+
+        }*/
       } else {
         throw Error("not implemented");
         // TODO per user abe potrebbe essere vuoto
@@ -62,8 +67,6 @@ const Abebox = (config_name = "config") => {
 
         //TODO se sono user manca la pk abe dell'admin (forse)
       }
-      //console.log("ABEBox booting - Loading Configuration \n", _conf);
-      _init_attribute(path.join(_conf.remote, attr_rel_path));
       _start_watchers();
     } else {
       //console.log("ABEBox booting - NO Configuration Find");
@@ -160,6 +163,7 @@ const Abebox = (config_name = "config") => {
   };
 
   const stop = async function() {
+    //TODO save conf
     await _stop_watchers();
   };
 
@@ -530,10 +534,12 @@ const Abebox = (config_name = "config") => {
   const _update_users_attr = function(old_attr, new_attr) {
     const users = get_users();
     users.forEach((user) => {
-      const index = user.attrs.findIndex((attr) => 
-        attr.univ == old_attr.univ &&
+      const index = user.attrs.findIndex(
+        (attr) =>
+          attr.univ == old_attr.univ &&
           attr.attr == old_attr.attr &&
-          attr.vers == old_attr.vers);
+          attr.vers == old_attr.vers
+      );
       if (index >= 0) {
         user.attrs[index] = new_attr;
       }
@@ -544,8 +550,9 @@ const Abebox = (config_name = "config") => {
   const _del_users_attr = function(del_attr) {
     const users = get_users();
     users.forEach((user) => {
-      const index = user.attrs.findIndex((attr) =>
-        attr.univ == del_attr.univ &&
+      const index = user.attrs.findIndex(
+        (attr) =>
+          attr.univ == del_attr.univ &&
           attr.attr == del_attr.attr &&
           attr.vers == del_attr.vers
       );
@@ -655,6 +662,7 @@ const Abebox = (config_name = "config") => {
     // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
     _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
+    store.set_keys(_conf.keys);
     return attrs;
   };
 
@@ -665,6 +673,7 @@ const Abebox = (config_name = "config") => {
     // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
     _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
+    store.set_keys(_conf.keys);
     // Update users attributes
     _update_users_attr(old_obj, new_obj);
     return attrs;
@@ -675,6 +684,7 @@ const Abebox = (config_name = "config") => {
     // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
     _conf.keys.abe.sk = core.create_abe_sk(attrs_comp);
+    store.set_keys(_conf.keys);
     // Delete users attributes
     _del_users_attr(del_obj);
     return attrs;
