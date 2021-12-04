@@ -49,12 +49,17 @@
         label="Search"
         single-line
         hide-details
-      ></v-text-field>
+      ></v-text-field
+      ><v-spacer></v-spacer>
+      <v-btn color="primary" dark class="mb-2" @click="getFileList">
+        Refresh List
+      </v-btn>
     </v-card-title>
     <v-row style="height:100%">
       <v-col class="col-12">
         <v-treeview
           :items="items"
+          item-key="id"
           activatable
           color="warning"
           rounded
@@ -118,8 +123,10 @@ export default {
   name: "Repository",
   data: () => ({
     active: [],
+    open: ["dir1  "],
     search: "",
     dialog: false,
+    editedIndex: -1,
     editedItem: {
       file_name: "",
       file_id: "",
@@ -155,17 +162,12 @@ export default {
     },
   },
   mounted() {
-    if (!this.attrs || this.attrs.length === 0) {
-      this.getAttrsList();
-    }
-
-    if (this.items == undefined || this.items.length === 0) {
-      this.getFileList();
-    }
+    this.getAttrsList();
+    this.getFileList();
   },
   methods: {
     editItem(item) {
-      //this.editedIndex = this.attributeList.indexOf(item);
+      this.editedIndex = 1;
       this.editedItem = Object.assign({}, item);
       this.editedAttrs = [];
       for (val in item.policy) {
@@ -223,6 +225,7 @@ export default {
       console.log(item);
     },
     async getFileList() {
+      if (this.dialog) return;
       this.fileItems = await ipcRenderer.invoke("list-files", "");
       this.items = await get_tree(this.fileItems);
       console.log("getFileList", this.fileItems, this.items);
