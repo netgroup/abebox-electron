@@ -54,17 +54,13 @@ const Abebox = (config_name = "config") => {
           _conf.keys.abe.msk,
           _conf.keys.abe.sk
         );
-        /*        const attributes = attribute.get_all();
-        if (attributes.length > 0) {
-          core.create_abe_sk(attributes);
-
-        }*/
       } else {
-        throw Error("not implemented");
         // TODO per user abe potrebbe essere vuoto
         if (Object.keys(_conf.keys.abe).length > 0)
           core.set_abe_keys(_conf.keys.abe.pk, _conf.keys.abe.sk);
-
+        if (_conf.keys.admin_rsa_pk) {
+          core.set_admin_rsa_pk(_conf.keys.admin_rsa_pk);
+        }
         //TODO se sono user manca la pk abe dell'admin (forse)
       }
       _start_watchers();
