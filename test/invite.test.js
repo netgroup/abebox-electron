@@ -147,11 +147,18 @@ describe("Abebox Tests", () => {
 
   it("stop and reload", async () => {
     await admin_abebox_init.stop();
-    await delay(20000);
+    await delay(3000);
     admin_abebox = Abebox(cfg_filename_admin.split(".")[0], "ADMIN ");
     admin_abebox.new_attr(attr_data_4);
     const attr_list = admin_abebox.new_attr(attr_data_5);
     assert.equal(attr_list.length, 5);
+    fs.writeFileSync(
+      abs_plaintext_file_path,
+      "Test file created on " + new Date()
+    );
+    await delay(3000);
+    const file_list = admin_abebox.get_files_list();
+    console.log(file_list.length);
   }).timeout(55000);
 
   it("invite user", () => {
@@ -190,7 +197,7 @@ describe("Abebox Tests", () => {
     assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
     assert.ok(user_rsa_obj.hasOwnProperty("sign"));
 
-    await delay(20000);
+    await delay(5000);
 
     // admin received the RSA pub key of the user
     // this is done by retrieve_pub_key called by the watcher
