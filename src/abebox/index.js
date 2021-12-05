@@ -6,6 +6,8 @@ const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
 const log = require("electron-log");
 
+log.transports.console.level = false;
+
 const file_utils = require("./file_utils"); // TODO Rename
 const rsa = require("./rsa"); // TODO Remove
 const AbeboxStore = require("./store"); // local storage
@@ -32,7 +34,7 @@ const file_status = {
   remote_change: 2,
 };
 
-const Abebox = (config_name = "config") => {
+const Abebox = (config_name = "config", name = "") => {
   const store = AbeboxStore(config_name);
   const core = AbeboxCore();
   const attribute = AttributeManager(core);
@@ -40,16 +42,20 @@ const Abebox = (config_name = "config") => {
   let files_list = [];
   let watcher;
   let _conf = {};
-  let _configured = false;
-  let _configured_user_abe = false;
+  let _configured = false; // conf and rsa ok
+  let _configured_user_abe = false; // abe ok
 
   const _boot = function() {
+    if (name != "") {
+      log.transports.file.format = `[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] [${name}] - {text}`;
+    }
     if (store.is_configured()) {
       _configured = true;
       _conf = store.get_conf();
       log.debug("BOOT WINF CONF: " + JSON.stringify(_conf));
       _conf.keys = store.get_keys();
       core.set_rsa_keys(_conf.keys.rsa.pk, _conf.keys.rsa.sk);
+
       _init_attribute(path.join(_conf.remote, attr_rel_path));
       if (_conf.isAdmin) {
         core.set_admin_abe_keys(
@@ -78,7 +84,7 @@ const Abebox = (config_name = "config") => {
     if (_configured) throw Error("ABEBox already configured - no setup needed");
     _configured = true;
     _conf = store.get_conf();
-    _create_dirs(remote_repo_dirs);
+    _create_dirs(remote_repo_dirs); // potrebbero essere piene admin - potrebbero non esistere
     _init_core();
     _init_attribute(path.join(_conf.remote, attr_rel_path));
     _start_watchers();
@@ -90,8 +96,9 @@ const Abebox = (config_name = "config") => {
     _conf.keys = {};
     _conf.keys.rsa = core.init_rsa_keys();
     if (_conf.isAdmin) {
-      _conf.keys.abe = core.init_abe_keys();
+      _conf.keys.abe = core.init_abe_keys(); // non crei sk
     } else {
+      _conf.keys.abe = {};
       send_user_rsa_pk();
     }
     store.set_keys(_conf.keys);

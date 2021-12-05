@@ -84,6 +84,8 @@ let user_sk;
 
 let admin_abebox;
 let user_abebox;
+let admin_abebox_init;
+let user_abebox_init;
 
 const sym_key = "sym_key";
 const iv = "iv";
@@ -132,7 +134,7 @@ function delay(t, v) {
 
 describe("Abebox Tests", () => {
   it("admin setup", async () => {
-    admin_abebox_init = Abebox(cfg_filename_admin.split(".")[0]);
+    admin_abebox_init = Abebox(cfg_filename_admin.split(".")[0], "ADMIN INIT");
     admin_abebox_init.set_config(conf);
     const retrieved_conf = admin_abebox_init.get_config();
     assert.deepEqual(conf, retrieved_conf);
@@ -140,19 +142,72 @@ describe("Abebox Tests", () => {
     admin_abebox_init.new_attr(attr_data_2);
     const attr_list = admin_abebox_init.new_attr(attr_data_3);
     assert.equal(attr_list.length, 3);
-    const after_add_user_list = admin_abebox_init.new_user(new_user_info);
-    assert.deepEqual(after_add_user_list[0].attrs, new_user_info.attrs);
   }).timeout(15000);
 
   it("stop and reload", () => {
     admin_abebox_init.stop();
-    admin_abebox = Abebox(cfg_filename_admin.split(".")[0]);
+    admin_abebox = Abebox(cfg_filename_admin.split(".")[0], "ADMIN ");
     admin_abebox.new_attr(attr_data_4);
     const attr_list = admin_abebox.new_attr(attr_data_5);
     assert.equal(attr_list.length, 5);
-    admin_abebox.stop();
-  });
+  }).timeout(15000);
 
+  it("invite user", () => {
+    //add the new user to the list
+    const user_list = admin_abebox.new_user(new_user_info);
+    const user = user_list[0];
+    assert.ok(admin_abebox.get_users().length > 0);
+    const invited_user = admin_abebox.invite_user(user);
+    invited_user_token = invited_user.token;
+    assert.equal(invited_user.mail, new_user_info.mail);
+    assert.ok(invited_user_token);
+  }).timeout(15000);
+
+  it("setup abebox user with token", async () => {
+    // init the abebox index for the user
+    user_abebox_init = Abebox(cfg_filename_user.split(".")[0], "USER INIT");
+    user_conf.token = invited_user_token;
+    // loading new configuration
+    user_abebox_init.set_config(user_conf);
+    user_abebox_init.send_user_rsa_pk(); // send the user RSA pubkey to admin
+
+    // check if the
+    const token_hash = file_utils.get_hash(user_conf.token);
+    const user_rsa_pk_filename = path.join(
+      user_conf.remote,
+      "pub_keys",
+      token_hash.toString("hex")
+    );
+
+    assert.ok(fs.existsSync(user_rsa_pk_filename));
+    const user_rsa_file_content = fs.readFileSync(
+      user_rsa_pk_filename,
+      "utf-8"
+    );
+    const user_rsa_obj = JSON.parse(user_rsa_file_content);
+    assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
+    assert.ok(user_rsa_obj.hasOwnProperty("sign"));
+
+    await delay(15000);
+
+    // admin received the RSA pub key of the user
+    // this is done by retrieve_pub_key called by the watcher
+    const user = admin_abebox
+      .get_users()
+      .find((el) => el.mail == new_user_info.mail);
+    assert.equal(user.rsa_pub_key, user_rsa_obj.rsa_pub_key);
+
+    // then admin sends the SK to the user
+
+    // user receives the sk and should set his SK
+    assert.ok(user_abebox_init.debug_get_conf().keys.hasOwnProperty("abe"));
+    assert.ok(user_abebox_init.debug_get_conf().keys.abe.hasOwnProperty("sk"));
+  }).timeout(50000);
+
+  it("stop and reload user", () => {
+    user_abebox_init.stop();
+    user_abebox = Abebox(cfg_filename_admin.split(".")[0], "USER");
+  }).timeout(15000);
   /*it("add a file in the local repo", async () => {
     fs.writeFileSync(
       abs_plaintext_file_path,
@@ -188,16 +243,7 @@ describe("Abebox Tests", () => {
       )
     );
   }).timeout(15000);
-  it("invite user", () => {
-    //add the new user to the list
-    const user_list = admin_abebox.new_user(new_user_info);
-    const user = user_list[0];
-    assert.ok(admin_abebox.get_users().length > 0);
-    const invited_user = admin_abebox.invite_user(user);
-    invited_user_token = invited_user.token;
-    assert.equal(invited_user.mail, new_user_info.mail);
-    assert.ok(invited_user_token);
-  }).timeout(15000);
+
   
   it("stop abebox", () => {
     admin_abebox.stop();
