@@ -1,3 +1,5 @@
+"use strict";
+
 const crypto = require("crypto");
 const fs = require("fs");
 const { pipeline } = require("stream/promises");
@@ -60,15 +62,15 @@ const AbeboxCore = () => {
 
   const set_abe_keys = function(pk, sk) {
     if (_conf.abe_init) {
-      if(pk===_conf.abe_keys.pk){
-      _conf.abe_keys.sk = sk ;
-      } else{
+      if (pk === _conf.abe_keys.pk) {
+        _conf.abe_keys.sk = sk;
+      } else {
         throw Error("ABE Already initialized");
       }
-    }else{
+    } else {
       _conf.abe_keys = { pk: pk, sk: sk };
-    _conf.abe_init = true;
-    }  
+      _conf.abe_init = true;
+    }
   };
 
   const set_abe_sk = function(sk) {
@@ -149,7 +151,7 @@ const AbeboxCore = () => {
       const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
       // Extract and return parameters
       const { sym_key, file_name } = JSON.parse(dec_metadata);
-      console.log("RET MET: ",file_name);
+      console.log("RET MET: ", file_name);
       return {
         file_name,
         sym_key,

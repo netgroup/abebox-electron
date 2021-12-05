@@ -1,3 +1,4 @@
+"use strict";
 import { ipcMain } from "electron";
 
 //import { get_files_list, set_config, get_config, set_policy } from ".";

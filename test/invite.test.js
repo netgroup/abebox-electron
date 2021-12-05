@@ -1,3 +1,4 @@
+"use strict";
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
@@ -144,13 +145,14 @@ describe("Abebox Tests", () => {
     assert.equal(attr_list.length, 3);
   }).timeout(15000);
 
-  it("stop and reload", () => {
-    admin_abebox_init.stop();
+  it("stop and reload", async () => {
+    await admin_abebox_init.stop();
+    await delay(20000);
     admin_abebox = Abebox(cfg_filename_admin.split(".")[0], "ADMIN ");
     admin_abebox.new_attr(attr_data_4);
     const attr_list = admin_abebox.new_attr(attr_data_5);
     assert.equal(attr_list.length, 5);
-  }).timeout(15000);
+  }).timeout(55000);
 
   it("invite user", () => {
     //add the new user to the list
@@ -188,13 +190,14 @@ describe("Abebox Tests", () => {
     assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
     assert.ok(user_rsa_obj.hasOwnProperty("sign"));
 
-    await delay(15000);
+    await delay(20000);
 
     // admin received the RSA pub key of the user
     // this is done by retrieve_pub_key called by the watcher
     const user = admin_abebox
       .get_users()
       .find((el) => el.mail == new_user_info.mail);
+    // does ADMIN receive the RSA Pub key of the user?
     assert.equal(user.rsa_pub_key, user_rsa_obj.rsa_pub_key);
 
     // then admin sends the SK to the user
@@ -203,11 +206,47 @@ describe("Abebox Tests", () => {
     assert.ok(user_abebox_init.debug_get_conf().keys.hasOwnProperty("abe"));
     assert.ok(user_abebox_init.debug_get_conf().keys.abe.hasOwnProperty("sk"));
   }).timeout(50000);
-
+  /*
   it("stop and reload user", () => {
     user_abebox_init.stop();
     user_abebox = Abebox(cfg_filename_admin.split(".")[0], "USER");
   }).timeout(15000);
+  it("user creates and shares a test file", async () => {
+    // create a new file on user local
+    const test_content = "Other test file created on " + new Date();
+    fs.writeFileSync(abs_plaintext_file_path_2, test_content);
+
+    await delay(4000); // wait 4s for watcher file detection
+    const file_list = admin_abebox.get_files_list();
+
+    const my_file = file_list.find(
+      (el) => el.file_name == plaintext_filename_2
+    );
+    assert.ok(my_file);
+
+    // assign a policy and share with the admin
+    const admin_attributes = admin_abebox.get_attrs();
+
+    const my_policy = {
+      file_id: my_file.file_id,
+      policy: [[attr_data_3]],
+    };
+    user_abebox.set_policy(my_policy);
+
+    user_abebox.share_files();
+
+    await delay(8000); // wait 4s for watcher file detection
+
+    // user should be able to retrive the content
+    const user_test_file_content = fs.readFileSync(
+      abs_plaintext_user_file_path_2,
+      "utf-8"
+    );
+
+    assert.equal(user_test_file_content, test_content);
+  }).timeout(20000);
+  */
+
   /*it("add a file in the local repo", async () => {
     fs.writeFileSync(
       abs_plaintext_file_path,
@@ -333,40 +372,7 @@ describe("Abebox Tests", () => {
     assert.ok(el_find);
     assert.equal(el_find.status, 0); // file_status.sync
   }).timeout(25000);
-  it("user creates and shares a test file", async () => {
-    // create a new file on user local
-    const test_content = "Other test file created on " + new Date();
-    fs.writeFileSync(abs_plaintext_user_file_path_2, test_content);
-
-    await delay(4000); // wait 4s for watcher file detection
-    const file_list = user_abebox.get_files_list();
-
-    const my_file = file_list.find(
-      (el) => el.file_name == plaintext_filename_2
-    );
-    assert.ok(my_file);
-
-    // assign a policy and share with the admin
-    const admin_attributes = admin_abebox.get_attrs();
-
-    const my_policy = {
-      file_id: my_file.file_id,
-      policy: [[attr_data_3]],
-    };
-    user_abebox.set_policy(my_policy);
-
-    user_abebox.share_files();
-
-    await delay(8000); // wait 4s for watcher file detection
-
-    // admin should be able to retrive the content
-    const admin_test_file_content = fs.readFileSync(
-      abs_plaintext_file_path_2,
-      "utf-8"
-    );
-
-    assert.equal(admin_test_file_content, test_content);
-  }).timeout(20000);
+  
   it("user deletes a file", async () => {
     // delete a file on user
     assert.ok(fs.existsSync(abs_plaintext_file_path_2));

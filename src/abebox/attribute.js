@@ -1,3 +1,5 @@
+"use strict";
+
 const { assert } = require("console");
 const fs = require("fs");
 

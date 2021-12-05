@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require("fs");
 const path = require("path");
 
@@ -52,7 +54,7 @@ const Abebox = (config_name = "config", name = "") => {
     if (store.is_configured()) {
       _configured = true;
       _conf = store.get_conf();
-      log.debug("BOOT WINF CONF: " + JSON.stringify(_conf));
+      log.debug("BOOT WITH CONF: " + JSON.stringify(_conf));
       _conf.keys = store.get_keys();
       core.set_rsa_keys(_conf.keys.rsa.pk, _conf.keys.rsa.sk);
 
@@ -64,11 +66,15 @@ const Abebox = (config_name = "config", name = "") => {
           _conf.keys.abe.sk
         );
       } else {
+        // User section
         // TODO per user abe potrebbe essere vuoto
         if (Object.keys(_conf.keys.abe).length > 0) {
           core.set_abe_keys(_conf.keys.abe.pk, _conf.keys.abe.sk);
           core.set_admin_rsa_pk(_conf.keys.admin_rsa_pk);
           _configured_user_abe = true;
+        } else {
+          // if the abe keys are not found, send the RSA key to the admin
+          send_user_rsa_pk();
         }
       }
       files_list = store.get_files(); // locading the cached file list important!!!
@@ -112,7 +118,8 @@ const Abebox = (config_name = "config", name = "") => {
     if (!_configured)
       throw Error("Start Watchers called without configuration");
 
-    watch_paths = [_conf.local, _conf.remote];
+    log.debug("Starting watchers");
+    const watch_paths = [_conf.local, _conf.remote];
     //console.log("_start_watchers \n", watch_paths);
 
     watcher = chokidar.watch(watch_paths, {
@@ -174,17 +181,17 @@ const Abebox = (config_name = "config", name = "") => {
 
   const _stop_watchers = async function() {
     log.debug(`STOP WATCHERS`);
-    await watcher.close();
+    return await watcher.close();
   };
 
   const stop = async function() {
     //TODO save conf
-    await _stop_watchers();
+    return await _stop_watchers();
   };
 
   const _create_dirs = function(dirs) {
     dirs.forEach((dir) => {
-      absolute_dir = path.join(_conf.remote, dir);
+      const absolute_dir = path.join(_conf.remote, dir);
       if (!fs.existsSync(absolute_dir)) {
         fs.mkdirSync(absolute_dir, { recursive: true });
       }
@@ -422,10 +429,15 @@ const Abebox = (config_name = "config", name = "") => {
       rsa_pub_key: rsa_keys.pk,
       sign: signature.toString("hex"),
     };
-    fs.writeFileSync(
-      path.join(_conf.remote, pk_dir_rel_path, token_hash.toString("hex")),
-      JSON.stringify(data)
+    const key_filename = path.join(
+      _conf.remote,
+      pk_dir_rel_path,
+      token_hash.toString("hex")
     );
+    log.debug(
+      `send_user_rsa_pk: writing ${key_filename} for token ${_conf.token}`
+    );
+    fs.writeFileSync(key_filename, JSON.stringify(data));
   };
 
   // Admin retrieves the user RSA PK and send the ABE SK.

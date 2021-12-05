@@ -1,3 +1,4 @@
+"use strict";
 const Store = require("electron-store");
 const { v4: uuidv4 } = require("uuid");
 
