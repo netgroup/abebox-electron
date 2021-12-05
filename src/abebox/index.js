@@ -4,6 +4,7 @@ const path = require("path");
 const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
+const log = require("electron-log");
 
 const file_utils = require("./file_utils"); // TODO Rename
 const rsa = require("./rsa"); // TODO Remove
@@ -40,11 +41,13 @@ const Abebox = (config_name = "config") => {
   let watcher;
   let _conf = {};
   let _configured = false;
+  let _configured_user_abe = false;
 
   const _boot = function() {
     if (store.is_configured()) {
       _configured = true;
       _conf = store.get_conf();
+      log.debug("BOOT WINF CONF: " + JSON.stringify(_conf));
       _conf.keys = store.get_keys();
       core.set_rsa_keys(_conf.keys.rsa.pk, _conf.keys.rsa.sk);
       _init_attribute(path.join(_conf.remote, attr_rel_path));
@@ -56,21 +59,22 @@ const Abebox = (config_name = "config") => {
         );
       } else {
         // TODO per user abe potrebbe essere vuoto
-        if (Object.keys(_conf.keys.abe).length > 0)
+        if (Object.keys(_conf.keys.abe).length > 0) {
           core.set_abe_keys(_conf.keys.abe.pk, _conf.keys.abe.sk);
-        if (_conf.keys.admin_rsa_pk) {
           core.set_admin_rsa_pk(_conf.keys.admin_rsa_pk);
+          _configured_user_abe = true;
         }
-        //TODO se sono user manca la pk abe dell'admin (forse)
       }
+      files_list = store.get_files(); // locading the cached file list important!!!
       _start_watchers();
     } else {
-      //console.log("ABEBox booting - NO Configuration Find");
+      log.debug("BOOTING NO CONF");
     }
   };
 
   // called when a new configuration is set
   const _setup = function() {
+    log.debug("Abebox Setup");
     if (_configured) throw Error("ABEBox already configured - no setup needed");
     _configured = true;
     _conf = store.get_conf();
@@ -81,6 +85,7 @@ const Abebox = (config_name = "config") => {
   };
 
   const _init_core = function() {
+    log.debug("Abebox InitCore");
     if (!_configured) throw Error("Setup called without configuration");
     _conf.keys = {};
     _conf.keys.rsa = core.init_rsa_keys();
@@ -118,26 +123,28 @@ const Abebox = (config_name = "config") => {
 
     watcher
       .on("add", (file_path) => {
-        console.log(`File ${file_path} has been added`);
         if (file_path.includes(watch_paths[0])) {
           // New local file
+          log.debug(`ADD LOCAL ${file_path}`);
           handle_local_add(file_path);
         } else {
           // New remote file
           try {
+            log.debug(`ADD REMOTE ${file_path}`);
             handle_remote_add(file_path);
           } catch (err) {
-            console.log("Catched chokidar: " + String(err));
+            log.debug("Catched chokidar: " + String(err));
           }
         }
       })
       .on("change", (file_path) => {
-        console.log(`File ${file_path} has been modified`);
         if (file_path.includes(watch_paths[0])) {
           // Change on local file
+          log.debug(`CHANGE LOCAL ${file_path}`);
           handle_local_change(file_path);
         } else {
           // Change on remote file
+          log.debug(`CHANGE REMOTE ${file_path}`);
           handle_remote_change(file_path);
         }
       })
@@ -145,9 +152,11 @@ const Abebox = (config_name = "config") => {
         console.log(`File ${file_path} has been removed`);
         if (file_path.includes(watch_paths[0])) {
           // Remove local file
+          log.debug(`REM LOCAL ${file_path}`);
           handle_local_remove(file_path);
         } else {
           // Remove remote file
+          log.debug(`REM REMOTE ${file_path}`);
           handle_remote_remove(file_path);
         }
       })
@@ -157,6 +166,7 @@ const Abebox = (config_name = "config") => {
   };
 
   const _stop_watchers = async function() {
+    log.debug(`STOP WATCHERS`);
     await watcher.close();
   };
 
@@ -192,6 +202,7 @@ const Abebox = (config_name = "config") => {
         status: file_status.local_change,
       });
       store.set_files(files_list);
+      log.debug(`UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       return files_list;
     }
   };
@@ -202,9 +213,14 @@ const Abebox = (config_name = "config") => {
       _conf.remote
     );
 
-    if (handle_key_files(rel_dir, file_path, filename)) return files_list;
+    if (handle_key_files(rel_dir, file_path, filename)) {
+      return;
+    }
 
-    if (!core.is_abe_configured()) return;
+    if (!core.is_abe_configured()) {
+      log.debug(`ABEBOX NOT CONFIGURED`);
+      return;
+    }
     const [file_id, file_ext] = filename.split(".");
     // we discard files without .abebox extensions since they are just
     // fragments.
@@ -335,12 +351,14 @@ const Abebox = (config_name = "config") => {
 
   const handle_key_files = function(dir, file_path, filename) {
     if (dir.includes(`${pk_dir_rel_path}${path.sep}`)) {
+      log.debug(`DETECTED PUB KEY FILE`);
       if (_conf.isAdmin) {
         retrieve_pub_key(file_path, filename);
       }
       return true;
     }
     if (dir.includes(`${keys_dir_rel_path}${path.sep}`)) {
+      log.debug(`DETECTED ABE USER KEY FILE`);
       if (!_conf.isAdmin) {
         retrieve_abe_secret_key(file_path);
       }
@@ -412,6 +430,7 @@ const Abebox = (config_name = "config") => {
       (item) => file_utils.get_hash(item.token).toString("hex") === file_name
     );
     if (index >= 0) {
+      log.debug(`GET PUB KEY OF ${users[index].mail}`);
       // Test sign
       const data = JSON.parse(fs.readFileSync(full_file_name, "utf-8"));
       const rsa_pk = data.rsa_pub_key;
@@ -441,9 +460,11 @@ const Abebox = (config_name = "config") => {
           user_abe_sk_path
         );
       } else {
-        console.log("Invalid signature");
+        log.debug(`INVALID SIGNATURE PUB KEY OF ${users[index].mail}`);
         throw Error("Invalid signature on retrieve_pub_key");
       }
+    } else {
+      log.debug(`NO USER MATCHING`);
     }
   };
 
@@ -457,9 +478,12 @@ const Abebox = (config_name = "config") => {
       _conf.token,
       JSON.toString(keys)
     );
-    if (sign != computed_signature.toString("hex"))
-      throw Error("Admin RSA PK has not been signed correctly");
+    log.debug(`USER ABE PK RETIEVED` + JSON.stringify(keys.abe_pk));
 
+    if (sign != computed_signature.toString("hex")) {
+      log.debug(`ERROR RSA SIGN ERROR`);
+      throw Error("Admin RSA PK has not been signed correctly");
+    }
     const abe_enc_sk = core.verify_jwt(user_abe_sk, keys.rsa_pk);
     //TODO controllo d'errore
     const abe_sk = rsa
@@ -471,6 +495,8 @@ const Abebox = (config_name = "config") => {
     core.set_admin_rsa_pk(keys.rsa_pk);
     _conf.keys.admin_rsa_pk = keys.rsa_pk;
     store.set_keys(_conf.keys);
+
+    log.debug(`USER ABE SK RETIEVED` + JSON.stringify(abe_sk));
 
     // ABE is now configured, we can download files in remote repo
     const remote_repo_file_list = walk(
@@ -511,6 +537,7 @@ const Abebox = (config_name = "config") => {
       user_abe_sk: abe_enc_sk_jwt,
     };
     fs.writeFileSync(file_name, JSON.stringify(data));
+    log.debug(`ABE SK SENT WITH TOKEN  ${user_token}`);
   };
 
   // List all files in a directory in Node.js recursively in a synchronous fashion
@@ -572,6 +599,11 @@ const Abebox = (config_name = "config") => {
     if (el !== undefined) {
       el.policy = data.policy;
     }
+    log.debug(
+      `SET POLICY TO ${data.file_id} DATA: ${attribute.policy_as_string(
+        data.policy
+      )}`
+    );
     store.set_files(files_list);
     return files_list;
   };
@@ -585,6 +617,7 @@ const Abebox = (config_name = "config") => {
 
       // Encrypt the local files and copy in the remote repo
       if (file.status == file_status.local_change && file.policy.length != 0) {
+        log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
         core
           .file_encrypt(
             relative_file_path,
@@ -594,7 +627,7 @@ const Abebox = (config_name = "config") => {
             attribute.policy_as_string(file.policy)
           )
           .catch((err) => {
-            console.log("share_files error in synching local file");
+            log.debug("ERROR IN SYNC LOCAL FILE");
             throw Error(
               `Error ${err} encrypting local file ${relative_file_path}`
             );
@@ -603,6 +636,7 @@ const Abebox = (config_name = "config") => {
 
       // Decrypt remote files and copy in the local repo
       if (file.status == file_status.remote_change) {
+        log.debug(`SHARE REMOTE FILE  ${relative_file_path}`);
         const enc_file_name = path.join(
           _conf.remote,
           repo_rel_path,
@@ -619,7 +653,7 @@ const Abebox = (config_name = "config") => {
             store.set_files(files_list);
           })
           .catch((err) => {
-            console.log("SHARE FILE ERROR in SYNC REMOTE FILE");
+            log.debug("ERROR IN SYNC REMOTE FILE");
             throw Error(`Error ${err} decrypting remote file ${file.file_id}`);
           });
       }
