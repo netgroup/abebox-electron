@@ -779,10 +779,12 @@ const Abebox = (config_name = "config", name = "") => {
     const users = store.get_users();
     // Check if already exists
     const index = users.findIndex((el) => el.mail == user.mail);
+
     if (index < 0) {
       throw Error("User not present");
     } else {
-      if (users[index].token == "") {
+      console.log("users[index].token", users[index].token);
+      if (!users[index].token) {
         const token = file_utils.get_random(32).toString("hex");
         users[index].token = token;
         store.set_users(users);
