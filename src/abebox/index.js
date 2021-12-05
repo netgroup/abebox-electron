@@ -165,7 +165,6 @@ const Abebox = (config_name = "config", name = "") => {
         }
       })
       .on("unlink", (file_path) => {
-        console.log(`File ${file_path} has been removed`);
         if (file_path.includes(watch_paths[0])) {
           // Remove local file
           log.debug(`REM LOCAL ${file_path}`);
@@ -224,8 +223,6 @@ const Abebox = (config_name = "config", name = "") => {
   };
 
   const handle_remote_add = async function(file_path) {
-    log.debug("handle_remote_add " + file_path);
-    console.log("handle_remote_add " + file_path);
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.remote
@@ -526,8 +523,6 @@ const Abebox = (config_name = "config", name = "") => {
       path.join(_conf.remote, repo_rel_path),
       []
     );
-    log.debug("walk " + JSON.stringify(remote_repo_file_list));
-    console.log("walk " + JSON.stringify(remote_repo_file_list));
     // rescan the whole repo now that we have the right key
     remote_repo_file_list.forEach((file) => {
       handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
@@ -569,8 +564,8 @@ const Abebox = (config_name = "config", name = "") => {
   // List all files in a directory in Node.js recursively in a synchronous fashion
   const walk = function(dir, file_list) {
     if (!fs.statSync(dir).isDirectory()) throw Error(`${dir} is not a folder`);
-    filelist = file_list || [];
-    files = fs.readdirSync(dir);
+    let filelist = file_list || [];
+    let files = fs.readdirSync(dir);
     files.forEach(function(file) {
       const full_path = path.join(dir, file);
       if (fs.statSync(full_path).isDirectory()) {

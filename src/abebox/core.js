@@ -9,7 +9,6 @@ const fu = require("./file_utils");
 const path = require("path");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
-const { assert } = require("console");
 
 const AbeboxCore = (log) => {
   const _conf = {
@@ -244,7 +243,6 @@ const AbeboxCore = (log) => {
       abs_plaintext_file,
       encrypted_content_file
     );
-    assert(sym_key);
     // Metadata file creation
     create_metadata_file(
       rel_plaintext_file,
