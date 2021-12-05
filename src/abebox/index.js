@@ -783,7 +783,6 @@ const Abebox = (config_name = "config", name = "") => {
     if (index < 0) {
       throw Error("User not present");
     } else {
-      console.log("users[index].token", users[index].token);
       if (!users[index].token) {
         const token = file_utils.get_random(32).toString("hex");
         users[index].token = token;
