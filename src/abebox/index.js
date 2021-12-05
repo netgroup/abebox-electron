@@ -6,9 +6,8 @@ const path = require("path");
 const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
-const log = require("electron-log");
-
-log.transports.console.level = false;
+const electronLog = require("electron-log");
+const envPaths = require("env-paths");
 
 const file_utils = require("./file_utils"); // TODO Rename
 const rsa = require("./rsa"); // TODO Remove
@@ -37,8 +36,14 @@ const file_status = {
 };
 
 const Abebox = (config_name = "config", name = "") => {
+  // setup logfile
+  const log = electronLog.create(`log_${name}`);
+  log.transports.console.level = false;
+  log.transports.file.resolvePath = () =>
+    path.join(__dirname, "log", `${name}.log`);
+
   const store = AbeboxStore(config_name);
-  const core = AbeboxCore();
+  const core = AbeboxCore(log);
   const attribute = AttributeManager(core);
 
   let files_list = [];
@@ -48,9 +53,6 @@ const Abebox = (config_name = "config", name = "") => {
   let _configured_user_abe = false; // abe ok
 
   const _boot = function() {
-    if (name != "") {
-      log.transports.file.format = `[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] [${name}] - {text}`;
-    }
     if (store.is_configured()) {
       _configured = true;
       _conf = store.get_conf();
@@ -222,6 +224,8 @@ const Abebox = (config_name = "config", name = "") => {
   };
 
   const handle_remote_add = async function(file_path) {
+    log.debug("handle_remote_add " + file_path);
+    console.log("handle_remote_add " + file_path);
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.remote
@@ -522,6 +526,9 @@ const Abebox = (config_name = "config", name = "") => {
       path.join(_conf.remote, repo_rel_path),
       []
     );
+    log.debug("walk " + JSON.stringify(remote_repo_file_list));
+    console.log("walk " + JSON.stringify(remote_repo_file_list));
+    // rescan the whole repo now that we have the right key
     remote_repo_file_list.forEach((file) => {
       handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
     });
@@ -646,7 +653,7 @@ const Abebox = (config_name = "config", name = "") => {
             attribute.policy_as_string(file.policy)
           )
           .catch((err) => {
-            log.debug("ERROR IN SYNC LOCAL FILE");
+            log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
             throw Error(
               `Error ${err} encrypting local file ${relative_file_path}`
             );

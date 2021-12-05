@@ -135,7 +135,7 @@ function delay(t, v) {
 
 describe("Abebox Tests", () => {
   it("admin abebox init create config", async () => {
-    admin_abebox = Abebox(cfg_filename_admin.split(".")[0]);
+    admin_abebox = Abebox(cfg_filename_admin.split(".")[0], "ADMIN");
     // loading new configuration
     admin_abebox.set_config(conf);
     const retrieved_conf = admin_abebox.get_config();
@@ -189,7 +189,7 @@ describe("Abebox Tests", () => {
           el.vers == restored_obj.vers
       );
     assert.equal(modified_attr.vers, "1");
-  });
+  }).timeout(10000);
   it("delete an attribute", () => {
     const attr_list_get_initial = admin_abebox.get_attrs();
     const attr_list_get_final = admin_abebox.del_attr(attr_list_get_initial[1]);
@@ -333,7 +333,7 @@ describe("Abebox Tests", () => {
   */
   it("setup abebox user with token", async () => {
     // init the abebox index for the user
-    user_abebox = Abebox(cfg_filename_user.split(".")[0]);
+    user_abebox = Abebox(cfg_filename_user.split(".")[0], "USER");
 
     user_conf.token = invited_user_token;
     // loading new configuration

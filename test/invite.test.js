@@ -51,6 +51,8 @@ const abs_plaintext_user_file_path_2 = path.join(
   rel_plaintext_file_path_2
 );
 
+let user_keys;
+
 // remove and create test files
 before(() => {
   // Rename cfg file
@@ -158,7 +160,7 @@ describe("Abebox Tests", () => {
     );
     await delay(3000);
     const file_list = admin_abebox.get_files_list();
-    console.log(file_list.length);
+    assert.equal(file_list.length, 1);
   }).timeout(55000);
 
   it("invite user", () => {
@@ -197,7 +199,7 @@ describe("Abebox Tests", () => {
     assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
     assert.ok(user_rsa_obj.hasOwnProperty("sign"));
 
-    await delay(5000);
+    await delay(20000);
 
     // admin received the RSA pub key of the user
     // this is done by retrieve_pub_key called by the watcher
@@ -212,13 +214,36 @@ describe("Abebox Tests", () => {
     // user receives the sk and should set his SK
     assert.ok(user_abebox_init.debug_get_conf().keys.hasOwnProperty("abe"));
     assert.ok(user_abebox_init.debug_get_conf().keys.abe.hasOwnProperty("sk"));
+    user_keys = user_abebox_init.debug_get_conf().keys;
   }).timeout(50000);
-  /*
-  it("stop and reload user", () => {
-    user_abebox_init.stop();
-    user_abebox = Abebox(cfg_filename_admin.split(".")[0], "USER");
+  it("stop and reload user", async () => {
+    await user_abebox_init.stop();
+    await delay(3000);
+    user_abebox = Abebox(cfg_filename_user.split(".")[0], "USER");
+    assert.deepEqual(
+      user_abebox.debug_get_conf().keys.rsa_pub_key,
+      user_keys.rsa_pub_key
+    );
+    assert.deepEqual(
+      user_abebox.debug_get_conf().keys.rsa.pk,
+      user_keys.rsa.pk
+    );
+    assert.deepEqual(
+      user_abebox.debug_get_conf().keys.abe.pk,
+      user_keys.abe.pk
+    );
+    assert.deepEqual(
+      user_abebox.debug_get_conf().keys.abe.sk,
+      user_keys.abe.sk
+    );
+    assert.deepEqual(
+      user_abebox.debug_get_conf().keys.rsa.sk,
+      user_keys.rsa.sk
+    );
+
+    assert.deepEqual(user_abebox.debug_get_conf().keys, user_keys);
   }).timeout(15000);
-  it("user creates and shares a test file", async () => {
+  it("admin creates and shares a test file", async () => {
     // create a new file on user local
     const test_content = "Other test file created on " + new Date();
     fs.writeFileSync(abs_plaintext_file_path_2, test_content);
@@ -231,16 +256,13 @@ describe("Abebox Tests", () => {
     );
     assert.ok(my_file);
 
-    // assign a policy and share with the admin
-    const admin_attributes = admin_abebox.get_attrs();
-
     const my_policy = {
       file_id: my_file.file_id,
       policy: [[attr_data_3]],
     };
-    user_abebox.set_policy(my_policy);
+    admin_abebox.set_policy(my_policy);
 
-    user_abebox.share_files();
+    admin_abebox.share_files();
 
     await delay(8000); // wait 4s for watcher file detection
 
@@ -251,8 +273,7 @@ describe("Abebox Tests", () => {
     );
 
     assert.equal(user_test_file_content, test_content);
-  }).timeout(20000);
-  */
+  }).timeout(200000);
 
   /*it("add a file in the local repo", async () => {
     fs.writeFileSync(
