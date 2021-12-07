@@ -8,10 +8,6 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-//import rabe from "./abebox-core/rabejs/rabejs.node";
-//console.log(rabe.setup());
-//console.log(app.getPath("userData"));
-
 import abeboxIpc from "./abebox/ipc";
 abeboxIpc.startIpcServices();
 
@@ -19,6 +15,7 @@ let win = undefined; // referencce to the app main window
 let tray = null;
 
 console.log(process.env.WEBPACK_DEV_SERVER_URL);
+
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } },
@@ -28,7 +25,8 @@ async function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
     width: 900,
-    height: 600,
+    height: 500,
+    resizable: false,
     icon: __dirname + "/assets/abebox.icns",
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone

@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="abebox-app">
     <v-navigation-drawer
       v-if="configured"
       v-model="drawer"
@@ -7,20 +7,7 @@
       permanent
       mini-variant
     >
-      <!--<v-list-item class="px-2">
-        <v-list-item-avatar>
-          <v-img :src="require('./assets/gb.jpg')"></v-img>
-        </v-list-item-avatar>
-
-        <v-list-item-title>{{ configuration.name }}</v-list-item-title>
-
-        <v-btn icon @click.stop="mini = !mini">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-      </v-list-item>-->
-
       <v-divider></v-divider>
-
       <v-list dense>
         <v-list-item
           v-for="item in items"
@@ -40,9 +27,7 @@
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <v-container fluid>
-        <router-view></router-view>
-      </v-container>
+      <router-view></router-view>
     </v-main>
   </v-app>
 </template>
@@ -100,3 +85,6 @@ export default {
   },
 };
 </script>
+<style>
+@import "./assets/styles/main.css";
+</style>

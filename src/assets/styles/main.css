@@ -1,0 +1,42 @@
+body {
+  height: 100% !important;
+}
+
+body .v-application,
+body .v-application .display-1,
+body .v-application .display-2 {
+  font-family: Nunito, sans-serif !important;
+}
+
+body .v-application .v-btn {
+  text-transform: none !important;
+}
+
+.abebox-app {
+  font: "Nunito", san-serif;
+  color: white !important;
+  width: 900px;
+  height: 100%;
+  font-family: Nunito, sans-serif;
+  background: url("../img/bg.png") #2046d1 !important;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.hello-page {
+  height: 100%;
+  position: relative;
+  background-image: url("../img/home.svg");
+  background-repeat: no-repeat;
+  background-position: top 80px right 30px;
+  background-size: 320px;
+}
+.admin-step-1 {
+  height: 100%;
+  position: relative;
+}
+
+.text-my-blue {
+  color: #2046d1 !important;
+}
