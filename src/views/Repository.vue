@@ -166,7 +166,7 @@ export default {
     this.getFileList();
   },
   methods: {
-    editItem(item) {
+    /*editItem(item) {
       this.editedIndex = 1;
       this.editedItem = Object.assign({}, item);
       this.editedAttrs = [];
@@ -174,7 +174,7 @@ export default {
         this.editedAttrs.push({ and_list: val });
       }
       this.dialog = true;
-    },
+    },*/
     close() {
       this.dialog = false;
       console.log("close");
@@ -192,13 +192,15 @@ export default {
       });
     },
     async save() {
-      console.log("ED ATTR: ", this.editedAttrs);
+      console.log("ALL ATTR: ", JSON.stringify(this.all_items_attrs));
+      console.log("ED IT: ", JSON.stringify(this.editedItem));
+      console.log("ED ATTR: ", JSON.stringify(this.editedAttrs));
       const new_pol = [];
       for (el of this.editedAttrs) {
         console.log("EL:", el, el.and_list);
         new_pol.push(el.and_list);
       }
-      await this.submitPolicy(new_pol);
+      //await this.submitPolicy(new_pol);
       this.close();
     },
     handleActive() {

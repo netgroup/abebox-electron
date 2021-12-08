@@ -2,8 +2,50 @@
   <v-container class="main-page">
     <v-row>
       <v-col cols="12"><h1>Documents</h1></v-col>
-      <v-col cols="12"
-        ><v-data-table
+      <v-col cols="12">
+        <v-dialog v-model="dialog" persistent max-width="600px">
+          <v-card>
+            <v-card-title>
+              <span class="text-h6  ">{{ editedItem.file_name }}</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <div v-for="(element, index) in editedAttrs" :key="index">
+                  <v-row align="center">
+                    <v-col cols="12" sm="10">
+                      <v-select
+                        :items="all_items_attrs"
+                        label="AND Attributes Group"
+                        v-model="element.and_list"
+                        multiple
+                        chips
+                        persistent-hint
+                      ></v-select>
+                    </v-col>
+                    <v-col cols="12" sm="2">
+                      <v-icon class="mr-2" @click="addValutazione">
+                        mdi-plus
+                      </v-icon>
+                      <v-icon @click="remValutazione(index)">
+                        mdi-delete
+                      </v-icon>
+                    </v-col>
+                  </v-row>
+                </div>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="close">
+                Cancel
+              </v-btn>
+              <v-btn color="blue darken-1" text @click="save">
+                Save
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-data-table
           :headers="headers"
           :items="items"
           sort-by="id"
@@ -23,7 +65,7 @@
             <v-icon v-else color="red">mdi-close-circle-outline</v-icon>
           </template>
           <template v-slot:[`item.actions`]="{ item }">
-            <v-btn color="primary" @click="handleShare(item)">SHARE</v-btn>
+            <v-btn color="primary" @click="handleShare(item.id)">SHARE</v-btn>
           </template>
         </v-data-table>
       </v-col>
@@ -46,6 +88,14 @@ export default {
     fileItems: [], // flat file list
     all_items_attrs: [], // list of attributes and slugs
     attrs: [], // list of valid attributes
+    dialog: false,
+    editedIndex: -1,
+    editedItem: {
+      file_name: "",
+      file_id: "",
+      policy: [],
+    },
+    editedAttrs: [],
   }),
   watch: {
     dialog(val) {
@@ -57,7 +107,7 @@ export default {
     this.getFileList();
   },
   methods: {
-    editItem(item) {
+    /*editItem(item) {
       this.editedIndex = 1;
       this.editedItem = Object.assign({}, item);
       this.editedAttrs = [];
@@ -65,7 +115,7 @@ export default {
         this.editedAttrs.push({ and_list: val });
       }
       this.dialog = true;
-    },
+    },*/
     close() {
       this.dialog = false;
       console.log("close");
@@ -83,24 +133,20 @@ export default {
       });
     },
     async save() {
-      console.log("ED ATTR: ", this.editedAttrs);
+      console.log("ALL ATTR: ", JSON.stringify(this.all_items_attrs));
+      console.log("ED IT: ", JSON.stringify(this.editedItem));
+      console.log("ED ATTR: ", JSON.stringify(this.editedAttrs));
       const new_pol = [];
-      for (el of this.editedAttrs) {
+      for (let el of this.editedAttrs) {
         console.log("EL:", el, el.and_list);
         new_pol.push(el.and_list);
       }
       await this.submitPolicy(new_pol);
       this.close();
     },
-    handleShare(item) {
-      console.log("SHARE ", item);
-    },
-    handleActive() {
-      if (!this.active) return;
-      console.log(this.active[0]);
-      const item_sel = this.fileItems.find(
-        (el) => el.file_id === this.active[0]
-      );
+    handleShare(item_id) {
+      console.log("SHARE ", item_id);
+      const item_sel = this.fileItems.find((el) => el.file_id === item_id);
       if (!item_sel) {
         return;
       }
@@ -121,14 +167,13 @@ export default {
     async getFileList() {
       if (this.dialog) return;
       this.fileItems = await ipcRenderer.invoke("list-files", "");
-      this.fileItems[1].policy = ["ciao"];
       this.items = await Promise.all(
         this.fileItems.map((el) => {
           return {
             file: el.file_name,
-            policy: el.file_dir,
             dir: "/" + el.file_dir,
             pol_ok: el.policy.length > 0 ? true : false,
+            id: el.file_id,
           };
         })
       );
@@ -154,9 +199,9 @@ export default {
         policy: new_pol,
       };
       this.fileItems = await ipcRenderer.invoke("set-policy", data);
+      await ipcRenderer.invoke("share-single", this.editedItem.file_id);
       console.log("SUB:", data);
       console.log(this.fileItems);
-      this.items = await get_tree(this.fileItems);
     },
     addValutazione() {
       this.editedAttrs.push({ and_list: [] });

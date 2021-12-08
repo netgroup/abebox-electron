@@ -4,6 +4,7 @@ import Home from "../views/Home.vue";
 import Users from "../views/Users.vue";
 import Attributes from "../views/Attributes.vue";
 import Documents from "../views/Documents.vue";
+import Repository from "../views/Repository.vue";
 
 Vue.use(VueRouter);
 
