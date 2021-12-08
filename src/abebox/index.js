@@ -519,7 +519,7 @@ const Abebox = (config_name = "config", name = "") => {
     log.debug(`USER ABE SK RETIEVED` + JSON.stringify(abe_sk));
 
     // ABE is now configured, we can download files in remote repo
-    const remote_repo_file_list = walk(
+    const remote_repo_file_list = _walk(
       path.join(_conf.remote, repo_rel_path),
       []
     );
@@ -562,14 +562,14 @@ const Abebox = (config_name = "config", name = "") => {
   };
 
   // List all files in a directory in Node.js recursively in a synchronous fashion
-  const walk = function(dir, file_list) {
+  const _walk = function(dir, file_list) {
     if (!fs.statSync(dir).isDirectory()) throw Error(`${dir} is not a folder`);
     let filelist = file_list || [];
     let files = fs.readdirSync(dir);
     files.forEach(function(file) {
       const full_path = path.join(dir, file);
       if (fs.statSync(full_path).isDirectory()) {
-        filelist = walkSync(full_path, filelist);
+        filelist = _walk(full_path, filelist);
       } else {
         filelist.push(file);
       }
@@ -629,55 +629,59 @@ const Abebox = (config_name = "config", name = "") => {
     return files_list;
   };
 
+  const share_local_file = function(file) {
+    if (!fs.existsSync(path.join(_conf.local, file.file_dir, file.file_name)))
+      throw Error(`File does not exist`);
+    if (!file.policy) throw Error(`Policy is undefined`);
+    const relative_file_path = path.join(file.file_dir, file.file_name);
+    const abs_local_file_path = path.join(_conf.local, relative_file_path);
+    const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
+    log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
+    core
+      .file_encrypt(
+        relative_file_path,
+        abs_local_file_path,
+        abs_remote_file_path,
+        file.file_id,
+        attribute.policy_as_string(file.policy)
+      )
+      .catch((err) => {
+        log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
+        throw Error(`Error ${err} encrypting local file ${relative_file_path}`);
+      });
+  };
+
   const share_files = function() {
     files_list.forEach((file) => {
       assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
-      const relative_file_path = file.file_dir + file.file_name;
-      const abs_local_file_path = path.join(_conf.local, relative_file_path);
-      const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
-
       // Encrypt the local files and copy in the remote repo
       if (file.status == file_status.local_change && file.policy.length != 0) {
-        log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
-        core
-          .file_encrypt(
-            relative_file_path,
-            abs_local_file_path,
-            abs_remote_file_path,
-            file.file_id,
-            attribute.policy_as_string(file.policy)
-          )
-          .catch((err) => {
-            log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
-            throw Error(
-              `Error ${err} encrypting local file ${relative_file_path}`
-            );
-          });
+        share_local_file(file);
       }
-
-      // Decrypt remote files and copy in the local repo
-      if (file.status == file_status.remote_change) {
-        log.debug(`SHARE REMOTE FILE  ${relative_file_path}`);
-        const enc_file_name = path.join(
-          _conf.remote,
-          repo_rel_path,
-          file.file_id
-        );
-        const enc_file_name_no_ext = enc_file_name.substring(
-          0,
-          enc_file_name.lastIndexOf(".")
-        );
-        core
-          .file_decrypt(enc_file_name_no_ext)
-          .then(() => {
-            file.status = file_status.sync;
-            store.set_files(files_list);
-          })
-          .catch((err) => {
-            log.debug("ERROR IN SYNC REMOTE FILE");
-            throw Error(`Error ${err} decrypting remote file ${file.file_id}`);
-          });
-      }
+      // // Decrypt remote files and copy in the local repo
+      // if (file.status == file_status.remote_change) {
+      //   const relative_file_path = file.file_dir + file.file_name;
+      //   log.debug(`SHARE REMOTE FILE  ${relative_file_path}`);
+      //   const enc_file_name = path.join(
+      //     _conf.remote,
+      //     repo_rel_path,
+      //     file.file_id
+      //   );
+      //   const enc_file_name_no_ext = enc_file_name.substring(
+      //     0,
+      //     enc_file_name.lastIndexOf(".")
+      //   );
+      //   core
+      //     .file_decrypt(enc_file_name_no_ext)
+      //     .then(() => {
+      //       file.status = file_status.sync;
+      //       store.set_files(files_list);
+      //     })
+      //     .catch((err) => {
+      //       log.debug("ERROR IN SYNC REMOTE FILE");
+      //       throw Error(`Error ${err} decrypting remote file ${file.file_id}`);
+      //     });
+      // }
     });
     return files_list;
   };
@@ -816,6 +820,7 @@ const Abebox = (config_name = "config", name = "") => {
     stop,
     get_files_list,
     set_policy,
+    share_local_file,
     share_files,
     get_config,
     set_config,
