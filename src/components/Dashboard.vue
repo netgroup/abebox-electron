@@ -1,16 +1,17 @@
 <template>
-  <v-card>
-    <user-info v-bind:info="info" v-if="configured" />
-    <login-user v-on:submit="handleSubmit" v-else />
-  </v-card>
+  <div class="main-page">
+    <user-dashboard v-if="!isAdmin"></user-dashboard>
+    <admin-dashboard v-else></admin-dashboard>
+  </div>
 </template>
 
 <script>
-import LoginUser from "./LoginUser.vue";
-import UserInfo from "./UserInfo.vue";
+import UserDashboard from "./UserDashboard.vue";
+import AdminDashboard from "./AdminDashboard.vue";
 const { ipcRenderer } = window.require("electron");
 
 export default {
+  props: ["isAdmin"],
   data: () => ({
     configured: false,
     info: {},
@@ -20,8 +21,8 @@ export default {
     event: "configured",
   },
   components: {
-    LoginUser,
-    UserInfo,
+    UserDashboard,
+    AdminDashboard,
   },
   created() {
     console.log("APP: CREATED");

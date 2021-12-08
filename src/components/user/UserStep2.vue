@@ -15,37 +15,52 @@
       </v-col>
     </v-row>
     <v-row class="mt-0">
-      <v-col cols="6" offset="3">
+      <v-col cols="8" offset="2">
         <v-card color="white" class="pa-10 mt-5">
           <v-row>
             <v-col offset="2" cols="8" class="mb-0 mt-0 pb-0"
-              ><v-btn style="width: 100%" class="mb-5" dense
-                ><span v-if="!rs">Select shared folder</span
+              ><v-btn dense style="width: 100%" @click="selectLocal()"
+                ><span v-if="folder_local_name == ''">Select local folder</span
                 ><span v-else>
-                  <v-icon left> mdi-folder </v-icon> {{ rsn }}</span
-                ></v-btn
-              ></v-col
-            ><v-col cols="2" class="mb-0 pl-0"
-              ><v-btn class="px-0'" icon>
-                <v-icon dark v-if="!rs"> mdi-information-outline </v-icon>
-                <v-icon dark v-else> mdi-close </v-icon>
-              </v-btn></v-col
-            >
-            <v-col offset="2" cols="8" class="mb-0 mt-0 pb-0"
-              ><v-btn dense style="width: 100%"
-                ><span v-if="!ls">Select local folder</span
-                ><span v-else>
-                  <v-icon left> mdi-folder </v-icon> {{ lsn }}</span
+                  <v-icon left> mdi-folder </v-icon>
+                  {{ folder_local_name }}</span
                 ></v-btn
               ></v-col
             ><v-col cols="2" class="mb-0 pl-0">
-              <v-btn class="px-0" icon>
-                <v-icon dark v-if="!ls"> mdi-information-outline </v-icon>
+              <v-btn class="px-0" icon @click="folder_local = ''">
+                <v-icon dark v-if="folder_local == ''">
+                  mdi-information-outline
+                </v-icon>
                 <v-icon dark v-else> mdi-close </v-icon>
               </v-btn>
             </v-col>
+            <v-col offset="2" cols="8" class="mb-0 mt-0 pb-0"
+              ><v-btn
+                style="width: 100%"
+                class="mb-5"
+                dense
+                @click="selectRemote()"
+                ><span v-if="folder_shared == ''">Select shared folder</span
+                ><span v-else>
+                  <v-icon left> mdi-folder </v-icon>
+                  {{ folder_shared_name }}</span
+                ></v-btn
+              ></v-col
+            ><v-col cols="2" class="mb-0 pl-0"
+              ><v-btn class="px-0'" icon @click="folder_shared = ''">
+                <v-icon dark v-if="folder_shared == ''">
+                  mdi-information-outline
+                </v-icon>
+                <v-icon dark v-else> mdi-close </v-icon>
+              </v-btn></v-col
+            >
             <v-col offset="2" cols="8" class="mb-0 mt-5 pt-0"
-              ><v-btn dark dense style="width: 100%" color="#2046d1"
+              ><v-btn
+                dark
+                dense
+                style="width: 100%"
+                color="#2046d1"
+                @click="done"
                 >Done</v-btn
               ></v-col
             >
@@ -110,16 +125,51 @@
 </template>
 
 <script>
+const { ipcRenderer } = window.require("electron");
+
 export default {
   name: "UserStep2",
 
   data: () => ({
-    name: "",
-    email: "",
+    folder_shared: "",
+    folder_local: "",
     rs: true,
-    rsn: "App Repo",
     ls: true,
-    lsn: "Local Folder",
   }),
+  computed: {
+    folder_shared_name: function() {
+      if (this.folder_shared)
+        return this.folder_shared.match(/([^\/]*)\/*$/)[1];
+      else return "";
+    },
+    folder_local_name: function() {
+      if (this.folder_local) return this.folder_local.match(/([^\/]*)\/*$/)[1];
+      else return "";
+    },
+  },
+  methods: {
+    done() {
+      console.log("USERSTEP2: ", this.folder_local, this.folder_shared);
+      if (!this.folder_local || !this.folder_shared) {
+        console.log("USERSTEP2: ERROR"); //TODO
+        return;
+      }
+      const data = {
+        remote: this.folder_shared,
+        local: this.folder_local,
+      };
+      this.$emit("next", data);
+    },
+    async selectRemote() {
+      const folder = await ipcRenderer.invoke("select-folder");
+      console.log(folder);
+      if (!folder.canceled) this.folder_shared = folder.filePaths[0];
+    },
+    async selectLocal() {
+      const folder = await ipcRenderer.invoke("select-folder");
+      console.log(folder);
+      if (!folder.canceled) this.folder_local = folder.filePaths[0];
+    },
+  },
 };
 </script>

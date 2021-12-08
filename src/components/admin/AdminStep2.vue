@@ -133,9 +133,7 @@ export default {
     folder_shared: "",
     folder_local: "",
     rs: true,
-    rsn: "App Repo",
     ls: true,
-    lsn: "Local Folder",
   }),
   computed: {
     folder_shared_name: function() {
@@ -150,21 +148,26 @@ export default {
   },
   methods: {
     done() {
+      console.log("ADMINSTEP2: ", this.folder_local, this.folder_shared);
+      if (!this.folder_local || !this.folder_shared) {
+        console.log("ADMINSTEP2: ERROR"); //TODO
+        return;
+      }
       const data = {
         remote: this.folder_shared,
         local: this.folder_local,
       };
-      this.$emit("submit", data);
+      this.$emit("next", data);
     },
     async selectRemote() {
       const folder = await ipcRenderer.invoke("select-folder");
       console.log(folder);
-      this.folder_shared = folder.filePaths[0];
+      if (!folder.canceled) this.folder_shared = folder.filePaths[0];
     },
     async selectLocal() {
       const folder = await ipcRenderer.invoke("select-folder");
       console.log(folder);
-      this.folder_local = folder.filePaths[0];
+      if (!folder.canceled) this.folder_local = folder.filePaths[0];
     },
   },
 };

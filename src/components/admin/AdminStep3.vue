@@ -121,7 +121,7 @@ export default {
         attr: this.attr,
         univ: this.univ,
       };
-      this.$emit("submit", data);
+      this.$emit("next", data);
     },
     reset() {
       this.$emit("reset", data);

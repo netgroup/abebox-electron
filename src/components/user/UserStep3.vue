@@ -20,22 +20,31 @@
           <v-row>
             <v-col ocols="12" class="pa-0 mb-0"
               ><p class="caption mb-0">Name:</p>
-              <p class="font-weight-bold mb-2">Pierpaolo</p></v-col
+              <p class="font-weight-bold mb-2">{{ saveddata.name }}</p></v-col
             >
             <v-col cols="12" class="pa-0 mb-0"
               ><p class="caption mb-0">Email:</p>
-              <p class="font-weight-bold mb-2">pierpaolo.loreti@pp.it</p></v-col
+              <p class="font-weight-bold mb-2">{{ saveddata.email }}</p></v-col
             >
             <v-col cols="12" class="pa-0"
               ><p class="caption mb-0">Key Code:</p>
               <p class="font-weight-bold mb-5">
-                29cf50c7e4a0c01d4f0a4f6a2cc9f3a9368ed4f41c9ac3e5c9f284a226840db1
+                {{ saveddata.token }}
               </p></v-col
             >
             <v-col cols="12" class="pl-0"
-              ><v-btn style="width: 50%" color="#2046d1" dark class="ml-0 mr-5"
+              ><v-btn
+                style="width: 50%"
+                color="#2046d1"
+                dark
+                class="ml-0 mr-5"
+                @click="$emit('next')"
                 >Submit</v-btn
-              ><v-btn style="width: 20%" primary class="ml-10"
+              ><v-btn
+                style="width: 20%"
+                primary
+                class="ml-10"
+                @click="$emit('reset')"
                 >Reset</v-btn
               ></v-col
             >
@@ -102,7 +111,7 @@
 <script>
 export default {
   name: "UserStep3",
-
+  props: ["saveddata"],
   data: () => ({
     name: "",
     email: "",

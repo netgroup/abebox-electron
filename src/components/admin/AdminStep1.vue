@@ -109,7 +109,6 @@
 <script>
 export default {
   name: "AdminStep1",
-  props: ["indata"],
   data: () => ({
     name: "",
     email: "",
@@ -126,7 +125,7 @@ export default {
       if (this.email) {
         const data = { email: this.email, name: this.name };
         console.log(data);
-        this.$emit("submit", data);
+        this.$emit("next", data);
       }
     },
     back() {

@@ -1,5 +1,5 @@
 <template>
-  <v-container class="admin-step-1 pb-0 mt-5">
+  <v-container class="admin-step-1 pb-0 mt-0">
     <v-row class="text-center">
       <!--<v-col cols="12">
         <v-img :src="require('../assets/img/logo.png')" contain height="65" />
@@ -17,7 +17,7 @@
       </v-col>
     </v-row>
     <v-row class="mt-0">
-      <v-col class="pb-0 pt-0 mb-0" cols="4" offset="4">
+      <v-col class="pb-0 pt-0 mb-0" cols="6" offset="3">
         <v-text-field
           v-model="name"
           class="ma-0"
@@ -30,7 +30,7 @@
           dark
         ></v-text-field>
       </v-col>
-      <v-col class="pb-0 pt-0 mb-0 mt-0" cols="4" offset="4">
+      <v-col class="pb-0 pt-0 mb-0 mt-0" cols="6" offset="3">
         <v-text-field
           v-model="email"
           label="Email Address"
@@ -43,7 +43,7 @@
           dark
         ></v-text-field>
       </v-col>
-      <v-col class="pb-0 pt-0 mb-0 mt-0" cols="4" offset="4">
+      <v-col class="pb-0 pt-0 mb-0 mt-0" cols="6" offset="3">
         <v-text-field
           v-model="token"
           label="Key Code"
@@ -60,7 +60,9 @@
         ><span class="caption">I agree on terms and conditions</span>
       </v-col>
       <v-col offset="4" cols="4" sm="4"
-        ><v-btn style="width: 100%; height: 40px; margin: 0; padding: 0"
+        ><v-btn
+          style="width: 100%; height: 40px; margin: 0; padding: 0"
+          @click="signin"
           >Sign In</v-btn
         ></v-col
       >
@@ -73,7 +75,6 @@
         height: 60px;
         width: 100%;
         margin-left: -12px;
-        margin-bottom: 30px;
       "
     >
       <v-container>
@@ -125,15 +126,41 @@
 <script>
 export default {
   name: "UserStep1",
+
   data: () => ({
     name: "",
     email: "",
     token: "",
+    valid: false,
+    emailRules: [
+      (v) =>
+        !v ||
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) ||
+        "E-mail must be valid",
+    ],
   }),
+  methods: {
+    signin() {
+      console.log("signin");
+      if (this.email && this.token) {
+        const data = { email: this.email, name: this.name, token: this.token };
+        console.log(data);
+        this.$emit("next", data);
+      }
+    },
+    back() {
+      this.$emit("back");
+    },
+  },
 };
 </script>
 <style scoped>
 .v-text-field--outlined >>> fieldset {
   border-color: transparent;
+}
+
+body .v-application .error--text {
+  color: darkorange !important;
+  caret-color: yellow !important;
 }
 </style>

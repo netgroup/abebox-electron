@@ -1,18 +1,18 @@
 <template>
   <div style="position: relative; height: 100vh;">
     <admin-step-1
-      @submit="handleSubmit"
+      @next="handleNext"
       @back="handleBack"
       v-model="formdata"
       v-if="step == 1"
     ></admin-step-1>
     <admin-step-2
-      @submit="handleSubmit"
+      @next="handleNext"
       @back="handleBack"
       v-else-if="step == 2"
     ></admin-step-2>
     <admin-step-3
-      @submit="handleSubmit"
+      @next="handleNext"
       @back="handleBack"
       v-else-if="step == 3"
     ></admin-step-3>
@@ -35,16 +35,23 @@ export default {
     step: 1,
     formdata: {},
   }),
+  created: function() {
+    this.step = 1;
+    this.formdata = {};
+  },
   methods: {
-    handleSubmit: function(data) {
-      console.log("handleSubmit ", data);
+    handleNext: function(data) {
       if (this.step == 1) {
         this.formdata = Object.assign(this.formdata, data);
         this.step = 2;
       } else if (this.step == 2) {
         this.formdata = Object.assign(this.formdata, data);
         this.step = 3;
+      } else if (this.step == 3) {
+        const all_data = Object.assign(this.formdata, data);
+        this.$emit("done", all_data);
       }
+      console.log("handleSubmit ", data);
     },
     handleBack: function(data) {
       if (this.step == 1) {

@@ -22,7 +22,7 @@
             primary
             style="width: 300px"
             class="text-my-blue"
-            @click="$emit('select', 'user')"
+            @click="$emit('onpath', 'user')"
           >
             <v-icon left dark> mdi-account </v-icon>
             Create user
@@ -34,7 +34,7 @@
           primary
           style="width: 300px"
           class="text-my-blue"
-          @click="$emit('select', 'admin')"
+          @click="$emit('onpath', 'admin')"
         >
           <v-icon left dark> mdi-account </v-icon>
           Create admin user
