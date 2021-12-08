@@ -651,6 +651,22 @@ const Abebox = (config_name = "config", name = "") => {
       });
   };
 
+  const share_single_file = function(file_id) {
+    const index = files_list.findIndex((el) => el.file_id === file_id);
+    if (index < 0) {
+      return { status: "error", message: "file non trovato" };
+    } else {
+      if (files_list[index].status == file_status.local_change) {
+        share_local_file(files_list[index]);
+      } else {
+        return {
+          status: "error",
+          message: "wrong status " + String(files_list[index].status),
+        };
+      }
+    }
+  };
+
   const share_files = function() {
     files_list.forEach((file) => {
       assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
@@ -820,7 +836,7 @@ const Abebox = (config_name = "config", name = "") => {
     stop,
     get_files_list,
     set_policy,
-    share_local_file,
+    share_single_file,
     share_files,
     get_config,
     set_config,

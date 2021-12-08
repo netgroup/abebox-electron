@@ -56,7 +56,7 @@ export default {
       return await abebox.share_files(data); // return file list
     });
     ipcMain.handle("share-single", async (event, file_id) => {
-      return await abebox.share_files(data); // return file list
+      return await abebox.share_single_file(file_id); // return file list
     });
 
     /* CONF API */

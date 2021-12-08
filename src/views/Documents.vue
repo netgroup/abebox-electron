@@ -40,7 +40,7 @@
                 Cancel
               </v-btn>
               <v-btn color="blue darken-1" text @click="save">
-                Save
+                Share
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -199,8 +199,11 @@ export default {
         policy: new_pol,
       };
       this.fileItems = await ipcRenderer.invoke("set-policy", data);
-      await ipcRenderer.invoke("share-single", this.editedItem.file_id);
-      console.log("SUB:", data);
+      const res = await ipcRenderer.invoke(
+        "share-single",
+        this.editedItem.file_id
+      );
+      console.log("RES:", res);
       console.log(this.fileItems);
     },
     addValutazione() {
