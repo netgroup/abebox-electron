@@ -490,10 +490,9 @@ const Abebox = (config_name = "config", name = "") => {
 
   // user retrieves her ABE SK
   const retrieve_abe_secret_key = function(full_file_name) {
-    const { admin_keys, user_abe_sk } = JSON.parse(
+    const { keys, sign } = JSON.parse(
       fs.readFileSync(full_file_name, "utf-8")
     );
-    const { keys, sign } = admin_keys;
     const computed_signature = file_utils.get_hmac(
       _conf.token,
       JSON.toString(keys)
@@ -504,16 +503,17 @@ const Abebox = (config_name = "config", name = "") => {
       log.debug(`ERROR RSA SIGN ERROR`);
       throw Error("Admin RSA PK has not been signed correctly");
     }
-    const abe_enc_sk = core.verify_jwt(user_abe_sk, keys.rsa_pk);
+    const { abe_pk, admin_rsa_pk, user_abe_sk} = keys;
+    const abe_enc_sk = core.verify_jwt(user_abe_sk, admin_rsa_pk);
     //TODO controllo d'errore
     const abe_sk = rsa
       .decrypt(JSON.stringify(abe_enc_sk), core.get_rsa_keys().sk)
       .toString("utf-8");
-    core.set_abe_keys(keys.abe_pk, abe_sk);
+    core.set_abe_keys(abe_pk, abe_sk);
 
     _conf.keys.abe = core.get_abe_keys();
-    core.set_admin_rsa_pk(keys.rsa_pk);
-    _conf.keys.admin_rsa_pk = keys.rsa_pk;
+    core.set_admin_rsa_pk(admin_rsa_pk);
+    _conf.keys.admin_rsa_pk = admin_rsa_pk;
     store.set_keys(_conf.keys);
 
     log.debug(`USER ABE SK RETIEVED` + JSON.stringify(abe_sk));
@@ -540,22 +540,17 @@ const Abebox = (config_name = "config", name = "") => {
 
     const sk = core.create_user_abe_sk(attr_list, false);
     const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
-
     const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
-    const admin_keys = {
+
+    const keys = {
       abe_pk: core.get_abe_keys().pk,
-      rsa_pk: core.get_rsa_keys().pk,
-    };
-    const signature = file_utils.get_hmac(
-      user_token,
-      JSON.toString(admin_keys)
-    );
-    const data = {
-      admin_keys: {
-        keys: admin_keys,
-        sign: signature.toString("hex"),
-      },
+      admin_rsa_pk: core.get_rsa_keys().pk,
       user_abe_sk: abe_enc_sk_jwt,
+    };
+    const signature = file_utils.get_hmac(user_token, JSON.toString(keys));
+    const data = {
+      keys: keys,
+      sign: signature.toString("hex"),
     };
     fs.writeFileSync(file_name, JSON.stringify(data));
     log.debug(`ABE SK SENT WITH TOKEN  ${user_token}`);
