@@ -3,6 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
+import "nunito-fontface/css/nunito/nunito-fontface.css";
 
 /*const rabe = require("./abebox-core/rabejs/rabejs.node");
 const [pk, msk] = rabe.setup();

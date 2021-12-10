@@ -1,12 +1,12 @@
 <template>
   <v-container class="main-page">
     <v-row>
-      <v-col cols="12"><h1>Users</h1></v-col>
+      <v-col cols="12"><h1>Attributes</h1></v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="users"
-          sort-by="mail"
+          :items="attributeList"
+          sort-by="id"
           class="elevation-1"
           :search="search"
         >
@@ -30,39 +30,34 @@
                     v-bind="attrs"
                     v-on="on"
                   >
-                    New User
+                    New Attribute
                   </v-btn>
                 </template>
                 <v-card>
                   <v-card-title>
                     <span class="text-h5">{{ formTitle }}</span>
                   </v-card-title>
+
                   <v-card-text>
                     <v-container>
-                      <v-row class="m-0" v-if="editedIndex !== -1">
-                        <v-col cols="12" sm="12" md="12">
-                          <h2>{{ editedItem.mail }}</h2>
-                        </v-col>
-                      </v-row>
-                      <v-row class="m-0" v-else>
-                        <v-col cols="12" sm="12" md="12">
+                      <v-row>
+                        <v-col cols="12" sm="6" md="4">
                           <v-text-field
-                            v-model="editedItem.mail"
-                            label="Mail"
-                            :rules="checkRule"
+                            v-model="editedItem.univ"
+                            label="Universe"
                           ></v-text-field>
                         </v-col>
-                      </v-row>
-                      <v-row class="m-0">
-                        <v-col cols="12" sm="12" md="12">
-                          <v-select
-                            :items="items"
-                            label="Attributes"
-                            v-model="editedItem.attrs"
-                            multiple
-                            chips
-                            persistent-hint
-                          ></v-select>
+                        <v-col cols="12" sm="6" md="4">
+                          <v-text-field
+                            v-model="editedItem.attr"
+                            label="Attribute"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6" md="4">
+                          <v-text-field
+                            v-model="editedItem.vers"
+                            label="Version"
+                          ></v-text-field>
                         </v-col>
                       </v-row>
                     </v-container>
@@ -98,7 +93,6 @@
               </v-dialog>
             </v-toolbar>
           </template>
-
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon small class="mr-2" @click="editItem(item)">
               mdi-pencil
@@ -106,14 +100,6 @@
             <v-icon small @click="deleteItem(item)">
               mdi-delete
             </v-icon>
-            <v-icon small @click="share(item)">
-              mdi-share
-            </v-icon>
-          </template>
-          <template v-slot:[`item.attributes`]="{ item }">
-            <span v-for="(att, index) in item.attrs" :key="index"
-              >{{ att.univ }}:{{ att.attr }}:{{ att.vers }}
-            </span>
           </template>
         </v-data-table>
       </v-col>
@@ -124,41 +110,42 @@
 const { ipcRenderer } = window.require("electron");
 
 export default {
-  name: "UsersView",
+  name: "AttributeView",
   data: () => ({
     dialog: false,
     dialogDelete: false,
     search: "",
-    checkRule: [(v) => !!v || "Please fill this field"],
-
+    attached: false,
     headers: [
-      {
-        text: "Email",
-        value: "mail",
-      },
-      { text: "Attributes", value: "attributes" }, //${el.univ}:${el.attr}:${el.vers}
+      /*{
+        text: "ID",
+        align: "start",
+        value: "id",
+      },*/
+      { text: "Universe", value: "univ" },
+      { text: "Attribute", value: "attr" },
+      { text: "Version", value: "vers" },
       { text: "Actions", value: "actions", sortable: false },
     ],
-    users: [],
-    attrs: [],
-    items: [],
+    attributeList: [],
     editedIndex: -1,
+    oldItem: null,
     editedItem: {
-      mail: "",
-      attrs: [],
+      univ: "",
+      attr: "",
+      vers: "",
     },
     defaultItem: {
-      mail: "",
-      attrs: [],
+      univ: "",
+      attr: "",
+      vers: "",
     },
   }),
-
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New User" : "Edit User";
+      return this.editedIndex === -1 ? "New Attribute" : "Edit Attribute";
     },
   },
-
   watch: {
     dialog(val) {
       val || this.close();
@@ -167,45 +154,35 @@ export default {
       val || this.closeDelete();
     },
   },
-
   mounted() {
-    if (!this.users || this.users.length === 0) {
-      this.getUsersList();
-    }
-    if (!this.attrs || this.attrs.length === 0) {
+    if (this.attributeList == undefined || this.attributeList.length === 0) {
       this.getAttrsList();
     }
   },
   methods: {
-    filterUsers(value, search, item) {
+    filterAttrs(value, search, item) {
       //TODO fix non funziona
       return (
         value != null &&
         search != null &&
-        value.mail.toLocaleUpperCase().indexOf(search) !== -1
+        value.attr.toLocaleUpperCase().indexOf(search) !== -1
       );
     },
-
     editItem(item) {
-      this.editedIndex = this.users.indexOf(item);
+      this.editedIndex = this.attributeList.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      this.oldItem = item;
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.users.indexOf(item);
+      this.editedIndex = this.attributeList.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialogDelete = true;
     },
-    async share(item) {
-      const user_mail = item.mail;
-      console.log(user_mail);
-      const ret = await ipcRenderer.invoke("invite-user", { mail: user_mail });
-      console.log(ret);
-    },
 
     deleteItemConfirm() {
-      this.delUser(this.editedItem.mail);
+      this.delAttr(this.editedItem);
       this.closeDelete();
     },
 
@@ -216,7 +193,6 @@ export default {
         this.editedIndex = -1;
       });
     },
-
     closeDelete() {
       this.dialogDelete = false;
       this.$nextTick(() => {
@@ -224,42 +200,37 @@ export default {
         this.editedIndex = -1;
       });
     },
-
     save() {
       if (this.editedIndex < 0) {
-        this.newUser(Object.assign({}, this.editedItem));
+        this.newAttr(Object.assign({}, this.editedItem));
       } else {
-        this.setUser(Object.assign({}, this.editedItem));
+        this.setAttr(this.oldItem, Object.assign({}, this.editedItem));
       }
       this.close();
     },
-    async getUsersList() {
-      const list = await ipcRenderer.invoke("list-users", "");
-      console.log("getUsersList:", list);
-      this.users = list;
-    },
     async getAttrsList() {
-      this.attrs = await ipcRenderer.invoke("list-attrs", "");
-      this.items = this.attrs.map((el) => {
-        return { text: `${el.univ}:${el.attr}:${el.vers}`, value: el };
-      });
+      console.log("getAttrsList");
+      const list = await ipcRenderer.invoke("list-attrs", "");
+      this.attributeList = list;
     },
-    async newUser(user) {
-      console.log("newUser", user);
-      const new_users_list = await ipcRenderer.invoke("new-user", user);
-      console.log("New User List:", new_users_list);
-      this.users = new_users_list;
+    async setAttr(old_attr, attr) {
+      console.log("setAttr", attr);
+      const new_attrs_list = await ipcRenderer.invoke(
+        "set-attr",
+        old_attr,
+        attr
+      );
+      this.attributeList = new_attrs_list;
     },
-    async setUser(user) {
-      console.log("setUser", user);
-      const new_users_list = await ipcRenderer.invoke("set-user", user);
-      console.log("New User List:", new_users_list);
-      this.users = new_users_list;
+    async newAttr(attr) {
+      console.log("newAttr", attr);
+      const new_attrs_list = await ipcRenderer.invoke("new-attr", attr);
+      this.attributeList = new_attrs_list;
     },
-    async delUser(mail) {
-      console.log("delUser", mail);
-      const new_users_list = await ipcRenderer.invoke("del-user", mail);
-      this.users = new_users_list;
+    async delAttr(attr) {
+      console.log("delAttr", attr);
+      const new_attrs_list = await ipcRenderer.invoke("del-attr", attr);
+      this.attributeList = new_attrs_list;
     },
   },
 };

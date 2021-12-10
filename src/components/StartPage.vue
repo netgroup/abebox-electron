@@ -2,11 +2,15 @@
   <v-container class="hello-page pb-0">
     <v-row class="text-center">
       <v-col cols="12">
-        <v-img :src="require('../assets/img/logo.png')" contain height="65" />
+        <v-img
+          :src="require('../assets/img/logo_tondo.png')"
+          contain
+          height="80"
+        />
       </v-col>
       <v-col class="mt-5" offset="1" cols="5">
         <h1 class="display-1 font-weight-bold mb-3">Protect your Data</h1>
-        <p class="body-1 font-weight-regular" style="opacity: 0.5">
+        <p class="body-1 font-weight-regular" style="opacity: 0.6">
           Abebox provides end-to-end encryption on top of your file sharing
           service <br />(Dropbox, Google Drive, Owncloud ecc.) using Attribute
           Based Encryption.
@@ -14,14 +18,24 @@
       </v-col>
       <v-col class="mb-30" cols="7">
         <v-row justify="center"
-          ><v-btn primary style="width: 300px" class="text-my-blue">
+          ><v-btn
+            primary
+            style="width: 300px"
+            class="text-my-blue"
+            @click="$emit('onpath', 'user')"
+          >
             <v-icon left dark> mdi-account </v-icon>
             Create user
           </v-btn></v-row
         >
       </v-col>
       <v-col class="mb-4" offset="1" cols="5">
-        <v-btn primary style="width: 300px" class="text-my-blue">
+        <v-btn
+          primary
+          style="width: 300px"
+          class="text-my-blue"
+          @click="$emit('onpath', 'admin')"
+        >
           <v-icon left dark> mdi-account </v-icon>
           Create admin user
         </v-btn>
@@ -40,7 +54,7 @@
 
 <script>
 export default {
-  name: "HelloWorld",
+  name: "StartPage",
 
   data: () => ({}),
 };

@@ -1,5 +1,5 @@
 {
-  "name": "vue-electron-app",
+  "name": "Abebox-App",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,14 +8,21 @@
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "yarn build:rabe && electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps"
+    "postuninstall": "electron-builder install-app-deps",
+    "test": "mocha"
   },
   "main": "background.js",
   "dependencies": {
+    "axios": "^0.24.0",
     "chokidar": "^3.5.2",
     "config": "^3.3.6",
     "crypto": "^1.0.1",
+    "electron-log": "^4.4.1",
     "electron-store": "^8.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "nunito-fontface": "^0.7.3",
+    "openurl": "^1.1.1",
     "uuid": "^3.4.0",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
@@ -27,11 +34,12 @@
     "@vue/cli-plugin-vuex": "~4.5.0",
     "@vue/cli-service": "^4.5.13",
     "cargo-cp-artifact": "^0.1",
-    "electron": "^13.0.0",
+    "electron": "^15.0.0",
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-vue": "^6.2.2",
+    "mocha": "^9.1.3",
     "native-ext-loader": "^2.3.0",
     "node-loader": "^1.0.2",
     "prettier": "^1.19.1",

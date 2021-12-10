@@ -1,48 +1,44 @@
 <template>
-  <v-app>
+  <v-app class="abebox-app">
     <v-navigation-drawer
       v-if="configured"
       v-model="drawer"
       app
       permanent
       mini-variant
+      class="nav-drawer"
+      dark
     >
-      <!--<v-list-item class="px-2">
-        <v-list-item-avatar>
-          <v-img :src="require('./assets/gb.jpg')"></v-img>
-        </v-list-item-avatar>
-
-        <v-list-item-title>{{ configuration.name }}</v-list-item-title>
-
-        <v-btn icon @click.stop="mini = !mini">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-      </v-list-item>-->
-
       <v-divider></v-divider>
-
-      <v-list dense>
-        <v-list-item
-          v-for="item in items"
-          :key="item.title"
-          link
-          router
-          @click="$router.push({ path: item.route })"
-        >
-          <v-list-item-icon>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item-content>
+      <v-list>
+        <v-list-item class="px-2">
+          <v-list-item-avatar>
+            <v-img :src="require('./assets/img/logo_blu.png')"></v-img>
+          </v-list-item-avatar>
         </v-list-item>
+      </v-list>
+      <v-list>
+        <v-list-item-group v-model="model">
+          <v-list-item
+            v-for="item in items"
+            :key="item.title"
+            :value="item.active"
+            link
+            router
+            @click="$router.push({ path: item.route })"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>{{ item.title }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <v-container fluid>
-        <router-view></router-view>
-      </v-container>
+      <router-view></router-view>
     </v-main>
   </v-app>
 </template>
@@ -51,19 +47,16 @@
 export default {
   name: "App",
   data: () => ({
+    model: 0,
     drawer: false,
-    items: [
-      { title: "Home", icon: "mdi-home-city", route: "/" },
-      { title: "Repository", icon: "mdi-folder-key", route: "/repository" },
-      { title: "  ", icon: "mdi-account-group-outline", route: "/users" },
-    ],
+    items: [],
     mini: false,
     configured: false,
     configuration: {},
   }),
   created() {
     this.$vueEventBus.$on("configured", (conf) => {
-      if (console.log(Object.keys(conf).length === 0)) {
+      if (!conf.configured) {
         this.configured = false;
         this.configuration = {};
       } else {
@@ -76,5 +69,44 @@ export default {
   beforeDestroy() {
     this.$vueEventBus.$off("configured");
   },
+  watch: {
+    configured: function(val) {
+      console.log("configured: ", val);
+      if (this.configured) {
+        this.items.push({
+          title: "Home",
+          icon: "mdi-home",
+          route: "/",
+        });
+        this.items.push({
+          title: "Documents",
+          icon: "mdi-folder-key",
+          route: "/docs",
+        });
+
+        if (this.configuration["isAdmin"]) {
+          this.items.push({
+            title: "Users",
+            icon: "mdi-account-multiple",
+            route: "/users",
+          });
+          this.items.push({
+            title: "Attributes",
+            icon: "mdi-format-list-bulleted",
+            route: "/attrs",
+          });
+        }
+      }
+    },
+  },
 };
 </script>
+<style>
+@import "./assets/styles/main.css";
+.v-navigation-drawer .v-list .v-list-item {
+  background-color: #2046d1 !important;
+}
+.nav-drawer.theme--dark.v-navigation-drawer {
+  background-color: transparent !important;
+}
+</style>
