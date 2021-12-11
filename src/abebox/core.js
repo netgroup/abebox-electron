@@ -2,13 +2,42 @@
 
 const crypto = require("crypto");
 const fs = require("fs");
-const { pipeline } = require("stream/promises");
+//const { pipeline } = require("stream/promises");
 const jwt = require("jsonwebtoken");
 
 const fu = require("./file_utils");
 const path = require("path");
 const rabe = require("./rabejs/rabejs.node");
 const rsa = require("./rsa");
+
+function promisifiedPipe(input, output) {
+  let ended = false;
+  function end() {
+    if (!ended) {
+      ended = true;
+      output.close && output.close();
+      input.close && input.close();
+      return true;
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    input.pipe(output);
+    input.on("error", errorEnding);
+
+    function niceEnding() {
+      if (end()) resolve();
+    }
+
+    function errorEnding(error) {
+      if (end()) reject(error);
+    }
+
+    output.on("finish", niceEnding);
+    output.on("end", niceEnding);
+    output.on("error", errorEnding);
+  });
+}
 
 const AbeboxCore = (log) => {
   const _conf = {
@@ -170,7 +199,8 @@ const AbeboxCore = (log) => {
     const algorithm = "aes-256-cbc";
     const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
     // Read data, encrypt it and write the resulting ciphertext
-    await pipeline(input_file_stream, cipher, output_file_stream);
+    await promisifiedPipe(input_file_stream.pipe(cipher), output_file_stream);
+    //await pipeline(input_file_stream, cipher, output_file_stream);
     return {
       sym_key: sym_key.toString("hex"),
       iv: iv.toString("hex"),
@@ -194,7 +224,11 @@ const AbeboxCore = (log) => {
       Buffer.from(iv, "hex")
     );
     // Read data, decrypt it and write the resulting plaintext
-    return await pipeline(input_file_stream, decipher, output_file_stream);
+    //await pipeline(input_file_stream, decipher, output_file_stream)
+    return await promisifiedPipe(
+      input_file_stream.pipe(decipher),
+      output_file_stream
+    );
   };
 
   const generate_jwt = function(data) {
