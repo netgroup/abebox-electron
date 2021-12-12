@@ -88,8 +88,8 @@ if (isDevelopment) {
       }
     });
   } else {
-    process.on("SIGTERM", () => {
+    /*process.on("SIGTERM", () => {
       app.quit();
-    });
+    });*/
   }
 }

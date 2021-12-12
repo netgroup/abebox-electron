@@ -1,5 +1,8 @@
 "use strict";
 import { ipcMain } from "electron";
+const { dialog } = require("electron");
+
+const fs = require("fs");
 
 //import { get_files_list, set_config, get_config, set_policy } from ".";
 
@@ -25,12 +28,51 @@ const abebox = require(".")();
 
 /* HELPER FUNCTIONS */
 
-const select_folder = async function() {
-  const { dialog } = require("electron");
+const isEmptyFolder = async function(path) {
+  const data = fs.readdirSync(path);
+  const filert_data = await Promise.all(
+    data.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
+  );
+  if (filert_data.length == 0) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+const select_local_folder = async function() {
   const res = await dialog.showOpenDialog({
     properties: ["openDirectory", "createDirectory", "promptToCreate"],
   });
-  console.log();
+
+  if (!res.canceled) {
+    res.isEmpty = await isEmptyFolder(res.filePaths[0]);
+  }
+
+  return res;
+};
+
+const select_admin_remote_folder = async function() {
+  const res = await dialog.showOpenDialog({
+    properties: ["openDirectory", "createDirectory", "promptToCreate"],
+  });
+
+  if (!res.canceled) {
+    res.isEmpty = await isEmptyFolder(res.filePaths[0]);
+  }
+
+  return res;
+};
+
+const select_user_remote_folder = async function() {
+  const res = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+
+  if (!res.canceled) {
+    res.isRepo = abebox.is_repository(res.filePaths[0]);
+  }
+
   return res;
 };
 
@@ -104,9 +146,17 @@ export default {
     });
 
     /* UTILITY API */
-    ipcMain.handle("select-folder", async (event, someArgument) => {
-      const result = select_folder();
+    ipcMain.handle("select-local-folder", async (event) => {
+      const result = select_local_folder();
       return result;
+    });
+
+    ipcMain.handle("select-remote-folder", async (event, isUser = false) => {
+      if (isUser) {
+        return select_user_remote_folder();
+      } else {
+        return select_admin_remote_folder();
+      }
     });
 
     started = true;

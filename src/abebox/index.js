@@ -7,6 +7,8 @@ const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
 const electronLog = require("electron-log");
+const log = electronLog;
+log.transports.console.level = false;
 const envPaths = require("env-paths");
 
 const file_utils = require("./file_utils"); // TODO Rename
@@ -37,10 +39,13 @@ const file_status = {
 
 const Abebox = (config_name = "config", name = "") => {
   // setup logfile
-  const log = electronLog.create(`log_${name}`);
-  log.transports.console.level = false;
-  log.transports.file.resolvePath = () =>
-    path.join(__dirname, "log", `${name}.log`);
+
+  if (name != "") {
+    const log = electronLog.create(`log_${name}`);
+    log.transports.console.level = true;
+    log.transports.file.resolvePath = () =>
+      path.join(__dirname, "log", `${name}.log`);
+  }
 
   const store = AbeboxStore(config_name);
   const core = AbeboxCore(log);
@@ -92,7 +97,13 @@ const Abebox = (config_name = "config", name = "") => {
     if (_configured) throw Error("ABEBox already configured - no setup needed");
     _configured = true;
     _conf = store.get_conf();
-    _create_dirs(remote_repo_dirs); // potrebbero essere piene admin - potrebbero non esistere
+    if (_conf.isAdmin) {
+      _init_dirs();
+    } else {
+      if (!_check_dirs())
+        throw Error("Shared folder is not correctly configured");
+    }
+    //_create_dirs(remote_repo_dirs); // potrebbero essere piene admin - potrebbero non esistere
     _init_core();
     _init_attribute(path.join(_conf.remote, attr_rel_path));
     _start_watchers();
@@ -188,6 +199,45 @@ const Abebox = (config_name = "config", name = "") => {
   const stop = async function() {
     //TODO save conf
     return await _stop_watchers();
+  };
+
+  const _init_dirs = function() {
+    remote_repo_dirs.forEach((dir) => {
+      const absolute_dir = path.join(_conf.remote, dir);
+      if (fs.existsSync(absolute_dir)) {
+        fs.rmSync(absolute_dir, {
+          recursive: true,
+          force: true,
+        });
+        fs.mkdirSync(absolute_dir, { recursive: true });
+      } else {
+        fs.mkdirSync(absolute_dir, { recursive: true });
+      }
+    });
+  };
+
+  const _check_dirs = function(remote_path) {
+    let is_ok = true;
+
+    if (!remote_path) {
+      remote_path = _conf.remote;
+    }
+
+    remote_repo_dirs.forEach((dir) => {
+      const absolute_dir = path.join(remote_path, dir);
+      if (!fs.existsSync(absolute_dir)) {
+        is_ok = false;
+      }
+    });
+
+    const attr_abs_path = path.join(remote_path, attr_rel_path);
+    if (!fs.existsSync(attr_abs_path)) is_ok = false;
+
+    return is_ok;
+  };
+
+  const is_repository = function(path) {
+    return _check_dirs(path);
   };
 
   const _create_dirs = function(dirs) {
@@ -490,9 +540,7 @@ const Abebox = (config_name = "config", name = "") => {
 
   // user retrieves her ABE SK
   const retrieve_abe_secret_key = function(full_file_name) {
-    const { keys, sign } = JSON.parse(
-      fs.readFileSync(full_file_name, "utf-8")
-    );
+    const { keys, sign } = JSON.parse(fs.readFileSync(full_file_name, "utf-8"));
     const computed_signature = file_utils.get_hmac(
       _conf.token,
       JSON.toString(keys)
@@ -503,7 +551,7 @@ const Abebox = (config_name = "config", name = "") => {
       log.debug(`ERROR RSA SIGN ERROR`);
       throw Error("Admin RSA PK has not been signed correctly");
     }
-    const { abe_pk, admin_rsa_pk, user_abe_sk} = keys;
+    const { abe_pk, admin_rsa_pk, user_abe_sk } = keys;
     const abe_enc_sk = core.verify_jwt(user_abe_sk, admin_rsa_pk);
     //TODO controllo d'errore
     const abe_sk = rsa
@@ -830,6 +878,7 @@ const Abebox = (config_name = "config", name = "") => {
   return {
     stop,
     get_files_list,
+    is_repository,
     set_policy,
     share_single_file,
     share_files,

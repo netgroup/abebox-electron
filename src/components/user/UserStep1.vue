@@ -5,6 +5,22 @@
         <v-img :src="require('../assets/img/logo.png')" contain height="65" />
       </v-col>-->
       <v-col class="mt-0 mb-0" offset="3" cols="6">
+        <v-dialog v-model="errorDialog" persistent max-width="500">
+          <v-card>
+            <v-card-title class="text-h5 orange--text">
+              Warning
+            </v-card-title>
+            <v-card-text class="text-body-1"
+              >You need to provide the token received by the admin.</v-card-text
+            >
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning darken-1" @click="errorDialog = false">
+                OK
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <p class="body-2 font-weight-bold mb-0">STEP #1</p>
         <div class="text-h5 font-weight-bold">
           Please fill your personal info below to use Abebox App
@@ -120,14 +136,34 @@
         </v-row>
       </v-container>
     </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
+    </div>
   </v-container>
 </template>
 
 <script>
 export default {
   name: "UserStep1",
-
+  props: ["formdata"],
   data: () => ({
+    errorDialog: false,
     name: "",
     email: "",
     token: "",
@@ -139,6 +175,20 @@ export default {
         "E-mail must be valid",
     ],
   }),
+  created() {
+    console.log("created ", this.formdata);
+    if (this.formdata) {
+      if (this.formdata.hasOwnProperty("name")) {
+        this.name = this.formdata.name;
+      }
+      if (this.formdata.hasOwnProperty("email")) {
+        this.email = this.formdata.email;
+      }
+      if (this.formdata.hasOwnProperty("token")) {
+        this.token = this.formdata.token;
+      }
+    }
+  },
   methods: {
     signin() {
       console.log("signin");
@@ -146,6 +196,8 @@ export default {
         const data = { email: this.email, name: this.name, token: this.token };
         console.log(data);
         this.$emit("next", data);
+      } else {
+        this.errorDialog = true;
       }
     },
     back() {

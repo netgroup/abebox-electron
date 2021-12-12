@@ -25,7 +25,6 @@ import Registering from "./Registering.vue";
 
 export default {
   data: () => ({
-    formdata: {},
     status: 0,
   }),
   name: "Registration",
@@ -94,7 +93,7 @@ export default {
       await ipcRenderer.invoke("new-attr", new_attr);
     },
     handleReset() {
-      console.log("handleReset ", handleReset);
+      console.log("handleReset ");
       this.status = 0;
     },
   },

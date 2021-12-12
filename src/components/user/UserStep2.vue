@@ -1,10 +1,26 @@
 <template>
-  <v-container class="admin-step-1 pb-0 mt-5">
+  <v-container class="admin-step-1 pb-0 pt-5">
     <v-row class="text-center">
-      <!--<v-col cols="12">
-        <v-img :src="require('../assets/img/logo.png')" contain height="65" />
-      </v-col>-->
       <v-col class="mt-0 mb-0" offset="3" cols="6">
+        <v-dialog v-model="errorDialog" persistent max-width="500">
+          <!--<template v-slot:activator="{ on, attrs }">
+            <v-btn color="primary" dark v-bind="attrs" v-on="on">
+              Open Dialog
+            </v-btn>
+          </template>-->
+          <v-card>
+            <v-card-title class="text-h5 red--text">
+              Shared Folder Selection Error:
+            </v-card-title>
+            <v-card-text class="text-body-1">{{ errorText }}</v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning darken-1" @click="errorDialog = false">
+                OK
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <p class="body-2 font-weight-bold mb-0">STEP #2</p>
         <div class="text-h5 font-weight-bold">Configure your folders</div>
         <div class="d-flex justify-center mt-2 mb-2">
@@ -121,21 +137,55 @@
         </v-row>
       </v-container>
     </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
+    </div>
   </v-container>
 </template>
 
 <script>
 const { ipcRenderer } = window.require("electron");
+import BackArrow from "../BackArrow";
 
 export default {
   name: "UserStep2",
-
+  props: ["formdata"],
+  components: {
+    BackArrow,
+  },
   data: () => ({
+    errorDialog: false,
+    errorText: "",
     folder_shared: "",
     folder_local: "",
-    rs: true,
-    ls: true,
   }),
+  created() {
+    console.log("created ", this.formdata);
+    if (this.formdata) {
+      if (this.formdata.hasOwnProperty("remote")) {
+        this.folder_shared = this.formdata.remote;
+      }
+      if (this.formdata.hasOwnProperty("local")) {
+        this.folder_local = this.formdata.local;
+      }
+    }
+  },
   computed: {
     folder_shared_name: function() {
       if (this.folder_shared)
@@ -161,12 +211,20 @@ export default {
       this.$emit("next", data);
     },
     async selectRemote() {
-      const folder = await ipcRenderer.invoke("select-folder");
+      const folder = await ipcRenderer.invoke("select-remote-folder", true);
       console.log(folder);
-      if (!folder.canceled) this.folder_shared = folder.filePaths[0];
+      if (!folder.canceled) {
+        if (!folder.isRepo) {
+          this.errorText =
+            "The folder you selected is not an Abebox repository. You have to select the folder shared by the Abebox administrator.";
+          this.errorDialog = true;
+        } else {
+          this.folder_shared = folder.filePaths[0];
+        }
+      }
     },
     async selectLocal() {
-      const folder = await ipcRenderer.invoke("select-folder");
+      const folder = await ipcRenderer.invoke("select-local-folder");
       console.log(folder);
       if (!folder.canceled) this.folder_local = folder.filePaths[0];
     },

@@ -1,5 +1,5 @@
 <template>
-  <v-container class="admin-step-1 pb-0 mt-5">
+  <v-container class="admin-step-1 pb-0 pt-5">
     <v-row class="text-center">
       <!--<v-col cols="12">
         <v-img :src="require('../assets/img/logo.png')" contain height="65" />
@@ -104,6 +104,25 @@
           </v-col>
         </v-row>
       </v-container>
+    </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
     </div>
   </v-container>
 </template>

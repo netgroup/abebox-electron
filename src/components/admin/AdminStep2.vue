@@ -160,12 +160,12 @@ export default {
       this.$emit("next", data);
     },
     async selectRemote() {
-      const folder = await ipcRenderer.invoke("select-folder");
+      const folder = await ipcRenderer.invoke("select-remote-folder");
       console.log(folder);
       if (!folder.canceled) this.folder_shared = folder.filePaths[0];
     },
     async selectLocal() {
-      const folder = await ipcRenderer.invoke("select-folder");
+      const folder = await ipcRenderer.invoke("select-local-folder");
       console.log(folder);
       if (!folder.canceled) this.folder_local = folder.filePaths[0];
     },
