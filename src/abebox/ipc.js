@@ -90,6 +90,14 @@ export default {
       return await abebox.get_files_list(); // return file list
     });
 
+    ipcMain.handle("get-user-info", async (event, data) => {
+      return await abebox.get_user_info(); // return user info
+    });
+
+    ipcMain.handle("get-admin-info", async (event, data) => {
+      return await abebox.get_admin_info(); // return admin info
+    });
+
     ipcMain.handle("set-policy", async (event, data) => {
       return await abebox.set_policy(data); // return file list
     });
@@ -116,7 +124,14 @@ export default {
 
     /*  ATTRIBUTES API */
     ipcMain.handle("list-attrs", async (event) => {
-      return await abebox.get_attrs();
+      try {
+        return await abebox.get_attrs();
+      } catch (err) {
+        return {
+          status: "error",
+          message: err.message,
+        };
+      }
     });
     ipcMain.handle("new-attr", async (event, n_attr) => {
       return await abebox.new_attr(n_attr);

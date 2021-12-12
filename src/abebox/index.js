@@ -873,6 +873,30 @@ const Abebox = (config_name = "config", name = "") => {
     return _conf;
   };
 
+  const get_user_info = function() {
+    let list_attrs = [];
+    try {
+      list_attrs = attribute.get_all();
+    } catch (err) {
+      log.error("Error retrieving Attr in get_user_info " + err.message);
+    }
+    return { num_files: files_list.length, num_attrs: list_attrs.length };
+  };
+
+  const get_admin_info = function() {
+    let list_attrs = [];
+    try {
+      list_attrs = attribute.get_all();
+    } catch (err) {
+      log.error("Error retrieving Attr in get_user_info " + err.message);
+    }
+    return {
+      num_files: files_list.length,
+      num_attrs: list_attrs.length,
+      num_users: get_users().length,
+    };
+  };
+
   _boot();
 
   return {
@@ -893,6 +917,8 @@ const Abebox = (config_name = "config", name = "") => {
     new_user,
     set_user,
     invite_user,
+    get_user_info,
+    get_admin_info,
     del_user,
     send_user_rsa_pk,
     debug_get_conf, // DEBUG

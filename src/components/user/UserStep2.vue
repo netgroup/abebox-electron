@@ -161,14 +161,11 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
-import BackArrow from "../BackArrow";
 
 export default {
   name: "UserStep2",
   props: ["formdata"],
-  components: {
-    BackArrow,
-  },
+
   data: () => ({
     errorDialog: false,
     errorText: "",

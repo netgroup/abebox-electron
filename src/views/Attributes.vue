@@ -210,8 +210,10 @@ export default {
     },
     async getAttrsList() {
       console.log("getAttrsList");
-      const list = await ipcRenderer.invoke("list-attrs", "");
-      this.attributeList = list;
+      const attrs = await ipcRenderer.invoke("list-attrs", "");
+      if (attrs.hasOwnProperty("status") && attrs.status === "error") return;
+
+      this.attributeList = attrs;
     },
     async setAttr(old_attr, attr) {
       console.log("setAttr", attr);

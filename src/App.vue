@@ -65,11 +65,13 @@ export default {
       }
     });
   },
-
   beforeDestroy() {
     this.$vueEventBus.$off("configured");
   },
   watch: {
+    "$store.state.conf": function() {
+      console.log(this.$store.state.conf);
+    },
     configured: function(val) {
       console.log("configured: ", val);
       if (this.configured) {
@@ -83,17 +85,17 @@ export default {
           icon: "mdi-folder-key",
           route: "/docs",
         });
+        this.items.push({
+          title: "Attributes",
+          icon: "mdi-format-list-bulleted",
+          route: "/attrs",
+        });
 
         if (this.configuration["isAdmin"]) {
           this.items.push({
             title: "Users",
             icon: "mdi-account-multiple",
             route: "/users",
-          });
-          this.items.push({
-            title: "Attributes",
-            icon: "mdi-format-list-bulleted",
-            route: "/attrs",
           });
         }
       }

@@ -81,7 +81,7 @@ export default {
   data: () => ({
     headers: [
       { text: "FILE NAME", value: "file", sortable: false },
-      { text: "POLICY", value: "policy", sortable: false, align: "center" },
+      { text: "SHARED", value: "policy", sortable: false, align: "center" },
       { text: "ACTION", value: "actions", sortable: false, align: "center" },
     ],
     items: [], // visualized in the tree
@@ -181,7 +181,11 @@ export default {
       console.log("Documents - getFileList - ", this.fileItems);
     },
     async getAttrsList() {
-      this.attrs = await ipcRenderer.invoke("list-attrs", "");
+      const attrs = await ipcRenderer.invoke("list-attrs", "");
+      if (attrs.hasOwnProperty("status") && attrs.status === "error") {
+        this.attrs = [];
+        return;
+      }
       this.all_items_attrs = await Promise.all(
         this.attrs.map((el) => {
           return { text: `${el.univ}:${el.attr}:${el.vers}`, value: el };

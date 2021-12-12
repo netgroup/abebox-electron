@@ -6,7 +6,7 @@
         ><v-card
           ><v-card-title>Documents</v-card-title>
           <v-card-text
-            ><div class="text-h3 text--primary">3</div>
+            ><div class="text-h3 text--primary">{{ num_files }}</div>
             <div class="text-h6 text--primary">
               Encript and Share your documents
             </div></v-card-text
@@ -20,9 +20,9 @@
         ><v-card
           ><v-card-title>Attributes</v-card-title
           ><v-card-text
-            ><div class="text-h3 text--primary">1</div>
+            ><div class="text-h3 text--primary">{{ num_attrs }}</div>
             <div class="text-h6 text--primary">
-              Create attributes for your group
+              Use attributes to share files
             </div></v-card-text
           ><v-card-actions
             ><v-btn width="100%" color="primary" disabled>
@@ -40,11 +40,14 @@ const { ipcRenderer } = window.require("electron");
 
 export default {
   name: "AdminDashboard",
-  data: () => ({}),
+  data: () => ({
+    num_files: "",
+    num_attrs: "",
+  }),
 
   created() {
     console.log("APP: CREATED");
-    //this.getConfiguration();
+    this.getUserInfo();
   },
   mounted() {
     console.log("APP: MLOUNTED");
@@ -60,9 +63,13 @@ export default {
       }
     },
     async getUserInfo() {
-      console.log("getInfo");
-      const conf = await ipcRenderer.invoke("get-conf");
-      this.handleConf(conf);
+      const info = await ipcRenderer.invoke("get-user-info");
+      console.log("getInfo: ", info);
+      this.handleInfo(info);
+    },
+    handleInfo(data) {
+      this.num_files = data.num_files;
+      this.num_attrs = data.num_attrs;
     },
   },
 };
