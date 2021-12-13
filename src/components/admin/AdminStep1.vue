@@ -28,18 +28,7 @@
           rounded-lg
         ></v-text-field>
       </v-col>
-      <v-col class="pb-0 pt-0 mb-0" cols="4" offset="4">
-        <v-text-field
-          v-model="email"
-          label="Email Address"
-          required
-          :rules="emailRules"
-          dense
-          solo
-          rounded-lg
-          class="form-input"
-        ></v-text-field>
-      </v-col>
+
       <v-col offset="4" cols="4" sm="4" class="mt-0 mb-0 pa-0 text-center"
         ><span class="caption">I agree on terms and conditions</span>
       </v-col>
@@ -103,15 +92,34 @@
         </v-row>
       </v-container>
     </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
+    </div>
   </v-container>
 </template>
 
 <script>
 export default {
   name: "AdminStep1",
+  props: ["formdata"],
   data: () => ({
     name: "",
-    email: "",
     valid: false,
     emailRules: [
       (v) =>
@@ -120,10 +128,18 @@ export default {
         "E-mail must be valid",
     ],
   }),
+  created() {
+    console.log("created ", this.formdata);
+    if (this.formdata) {
+      if (this.formdata.hasOwnProperty("name")) {
+        this.name = this.formdata.name;
+      }
+    }
+  },
   methods: {
     signin() {
-      if (this.email) {
-        const data = { email: this.email, name: this.name };
+      if (this.name) {
+        const data = { name: this.name };
         console.log(data);
         this.$emit("next", data);
       }
@@ -136,6 +152,9 @@ export default {
 </script>
 
 <style>
+.v-text-field--outlined >>> fieldset {
+  border-color: transparent;
+}
 body .v-application .error--text {
   color: darkorange !important;
   caret-color: yellow !important;

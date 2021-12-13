@@ -1,5 +1,8 @@
 "use strict";
 import { ipcMain } from "electron";
+const { dialog } = require("electron");
+
+const fs = require("fs");
 
 //import { get_files_list, set_config, get_config, set_policy } from ".";
 
@@ -25,12 +28,51 @@ const abebox = require(".")();
 
 /* HELPER FUNCTIONS */
 
-const select_folder = async function() {
-  const { dialog } = require("electron");
+const isEmptyFolder = async function(path) {
+  const data = fs.readdirSync(path);
+  const filert_data = await Promise.all(
+    data.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
+  );
+  if (filert_data.length == 0) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+const select_local_folder = async function() {
   const res = await dialog.showOpenDialog({
     properties: ["openDirectory", "createDirectory", "promptToCreate"],
   });
-  console.log();
+
+  if (!res.canceled) {
+    res.isEmpty = await isEmptyFolder(res.filePaths[0]);
+  }
+
+  return res;
+};
+
+const select_admin_remote_folder = async function() {
+  const res = await dialog.showOpenDialog({
+    properties: ["openDirectory", "createDirectory", "promptToCreate"],
+  });
+
+  if (!res.canceled) {
+    res.isEmpty = await isEmptyFolder(res.filePaths[0]);
+  }
+
+  return res;
+};
+
+const select_user_remote_folder = async function() {
+  const res = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+
+  if (!res.canceled) {
+    res.isRepo = abebox.is_repository(res.filePaths[0]);
+  }
+
   return res;
 };
 
@@ -46,6 +88,14 @@ export default {
     /*  FILE API */
     ipcMain.handle("list-files", async (event, data) => {
       return await abebox.get_files_list(); // return file list
+    });
+
+    ipcMain.handle("get-user-info", async (event, data) => {
+      return await abebox.get_user_info(); // return user info
+    });
+
+    ipcMain.handle("get-admin-info", async (event, data) => {
+      return await abebox.get_admin_info(); // return admin info
     });
 
     ipcMain.handle("set-policy", async (event, data) => {
@@ -74,7 +124,14 @@ export default {
 
     /*  ATTRIBUTES API */
     ipcMain.handle("list-attrs", async (event) => {
-      return await abebox.get_attrs();
+      try {
+        return await abebox.get_attrs();
+      } catch (err) {
+        return {
+          status: "error",
+          message: err.message,
+        };
+      }
     });
     ipcMain.handle("new-attr", async (event, n_attr) => {
       return await abebox.new_attr(n_attr);
@@ -100,16 +157,27 @@ export default {
       return await abebox.del_user(id_user);
     });
     ipcMain.handle("invite-user", async (event, user_mail) => {
-      return await abebox.invite_user(user_mail);
+      return await abebox.invite_user(user_mail); // mail is a name!
     });
 
     /* UTILITY API */
-    ipcMain.handle("select-folder", async (event, someArgument) => {
-      const result = select_folder();
+    ipcMain.handle("select-local-folder", async (event) => {
+      const result = select_local_folder();
       return result;
     });
 
+    ipcMain.handle("select-remote-folder", async (event, isUser = false) => {
+      if (isUser) {
+        return select_user_remote_folder();
+      } else {
+        return select_admin_remote_folder();
+      }
+    });
+
     started = true;
+  },
+  async stopServices() {
+    await abebox.stop();
   },
   setWindow(win) {
     if (win) {

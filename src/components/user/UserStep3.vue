@@ -1,5 +1,5 @@
 <template>
-  <v-container class="admin-step-1 pb-0 mt-5">
+  <v-container class="admin-step-1 pb-0 pt-5">
     <v-row class="text-center">
       <!--<v-col cols="12">
         <v-img :src="require('../assets/img/logo.png')" contain height="65" />
@@ -18,14 +18,6 @@
       <v-col cols="6" offset="3">
         <v-card color="white" class="pa-10">
           <v-row>
-            <v-col ocols="12" class="pa-0 mb-0"
-              ><p class="caption mb-0">Name:</p>
-              <p class="font-weight-bold mb-2">{{ saveddata.name }}</p></v-col
-            >
-            <v-col cols="12" class="pa-0 mb-0"
-              ><p class="caption mb-0">Email:</p>
-              <p class="font-weight-bold mb-2">{{ saveddata.email }}</p></v-col
-            >
             <v-col cols="12" class="pa-0"
               ><p class="caption mb-0">Key Code:</p>
               <p class="font-weight-bold mb-5">
@@ -105,6 +97,25 @@
         </v-row>
       </v-container>
     </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
+    </div>
   </v-container>
 </template>
 
@@ -112,10 +123,7 @@
 export default {
   name: "UserStep3",
   props: ["saveddata"],
-  data: () => ({
-    name: "",
-    email: "",
-  }),
+  data: () => ({}),
 };
 </script>
 <style scoped>

@@ -75,13 +75,14 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
+const path = require("path")
 
 export default {
   name: "Repository",
   data: () => ({
     headers: [
       { text: "FILE NAME", value: "file", sortable: false },
-      { text: "POLICY", value: "policy", sortable: false, align: "center" },
+      { text: "SHARED", value: "policy", sortable: false, align: "center" },
       { text: "ACTION", value: "actions", sortable: false, align: "center" },
     ],
     items: [], // visualized in the tree
@@ -171,8 +172,8 @@ export default {
         this.fileItems.map((el) => {
           return {
             file: el.file_name,
-            dir: "/" + el.file_dir,
-            pol_ok: el.policy.length > 0 ? true : false,
+            dir: path.sep + el.file_dir,
+            pol_ok: el.status == 0 ? true : false,
             id: el.file_id,
           };
         })
@@ -180,8 +181,13 @@ export default {
 
       console.log("Documents - getFileList - ", this.fileItems);
     },
+
     async getAttrsList() {
       this.attrs = await ipcRenderer.invoke("list-attrs", "");
+      /*if (attrs.hasOwnProperty("status") && attrs.status === "error") {
+        this.attrs = [];
+        return;
+      }*/
       this.all_items_attrs = await Promise.all(
         this.attrs.map((el) => {
           return { text: `${el.univ}:${el.attr}:${el.vers}`, value: el };
@@ -203,8 +209,7 @@ export default {
         "share-single",
         this.editedItem.file_id
       );
-      console.log("RES:", res);
-      console.log(this.fileItems);
+      this.getFileList();
     },
     addValutazione() {
       this.editedAttrs.push({ and_list: [] });

@@ -6,8 +6,8 @@
         ><v-card
           ><v-card-title>Documents</v-card-title>
           <v-card-text
-            ><div class="text-h3 text--primary">3</div>
-            <div class="text-h6 text--primary">
+            ><div class="text-h3 text--primary">{{ num_files }}</div>
+            <div class="text-body-1 text--primary">
               Encript and Share your documents
             </div></v-card-text
           ><v-card-actions
@@ -20,8 +20,8 @@
         ><v-card
           ><v-card-title>Attributes</v-card-title
           ><v-card-text
-            ><div class="text-h3 text--primary">1</div>
-            <div class="text-h6 text--primary">
+            ><div class="text-h3 text--primary">{{ num_attrs }}</div>
+            <div class="text-body-1 text--primary">
               Create attributes for your group
             </div></v-card-text
           ><v-card-actions
@@ -34,8 +34,8 @@
         ><v-card
           ><v-card-title>Users</v-card-title
           ><v-card-text
-            ><div class="text-h3 text--primary">3</div>
-            <div class="text-h6 text--primary">
+            ><div class="text-h3 text--primary">{{ num_users }}</div>
+            <div class="text-body-1 text--primary">
               Insert users to share your documents with
             </div></v-card-text
           ><v-card-actions
@@ -54,11 +54,15 @@ const { ipcRenderer } = window.require("electron");
 
 export default {
   name: "AdminDashboard",
-  data: () => ({}),
+  data: () => ({
+    num_files: "",
+    num_attrs: "",
+    num_users: "",
+  }),
 
   created() {
     console.log("APP: CREATED");
-    //this.getConfiguration();
+    this.getAdminInfo();
   },
   mounted() {
     console.log("APP: MLOUNTED");
@@ -73,10 +77,15 @@ export default {
         this.$router.push({ path: "/users" });
       }
     },
-    async getUserInfo() {
-      console.log("getInfo");
-      const conf = await ipcRenderer.invoke("get-conf");
-      this.handleConf(conf);
+    async getAdminInfo() {
+      const info = await ipcRenderer.invoke("get-admin-info");
+      console.log("getInfo: ", info);
+      this.handleInfo(info);
+    },
+    handleInfo(data) {
+      this.num_files = data.num_files;
+      this.num_attrs = data.num_attrs;
+      this.num_users = data.num_users;
     },
   },
 };
