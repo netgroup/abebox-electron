@@ -139,12 +139,6 @@ export default {
     errorDialog: false,
     token: "",
     valid: false,
-    emailRules: [
-      (v) =>
-        !v ||
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) ||
-        "E-mail must be valid",
-    ],
   }),
   created() {
     console.log("created ", this.formdata);
@@ -156,7 +150,7 @@ export default {
   },
   methods: {
     signin() {
-      if (this.email && this.token) {
+      if (this.token) {
         const data = { token: this.token };
         console.log(data);
         this.$emit("next", data);
