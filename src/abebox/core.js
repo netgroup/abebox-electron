@@ -189,7 +189,7 @@ const AbeboxCore = (log) => {
     const file_name_converted = file_name.replace("/",path.sep);
 
     return {
-      file_name,
+      file_name: file_name_converted,
       sym_key,
       iv,
       policy,
