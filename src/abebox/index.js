@@ -40,6 +40,7 @@ const file_status = {
 const Abebox = (config_name = "config", name = "") => {
   // setup logfile
 
+  log.debug("\n*********************************** Abebox Starting")
   if (name != "") {
     const log = electronLog.create(`log_${name}`);
     log.transports.console.level = true;
@@ -255,6 +256,8 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.local
     );
+    log.debug("HL ADD: ",filename,rel_dir)
+
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
@@ -267,7 +270,7 @@ const Abebox = (config_name = "config", name = "") => {
         status: file_status.local_change,
       });
       store.set_files(files_list);
-      log.debug(`UPDATED FILE LIST ${JSON.stringify(files_list)}`);
+      log.debug(`LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       return files_list;
     }
   };
@@ -277,6 +280,7 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.remote
     );
+    log.debug("HR ADD: ",filename,rel_dir)
 
     if (handle_key_files(rel_dir, file_path, filename)) {
       return;
@@ -320,6 +324,7 @@ const Abebox = (config_name = "config", name = "") => {
       files_list[index].status = file_status.sync;
     }
     store.set_files(files_list);
+    log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
     return files_list;
   };
 
@@ -328,12 +333,15 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.local
     );
+    log.debug("HL CH: ",filename,rel_dir)
+
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index >= 0) {
       files_list[index].status = file_status.local_change;
       store.set_files(files_list);
+      log.debug(`LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       return files_list;
     } else throw Error(`Local change error: ${file_path} already exists`);
   };
@@ -343,6 +351,7 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.remote
     );
+    log.debug("HR CH: ",filename,rel_dir)
 
     if (handle_key_files(rel_dir, file_path, filename)) return files_list;
 
@@ -370,6 +379,7 @@ const Abebox = (config_name = "config", name = "") => {
     }
     files_list[index].status = file_status.sync; // in all case we are synched.
     store.set_files(files_list);
+    log.debug(`REMOTE CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
     return files_list;
   };
 
@@ -378,12 +388,14 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.local
     );
+    log.debug("HL REM: ",filename,rel_dir)
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index >= 0) {
       const removed_file = files_list.splice(index, 1)[0];
       store.set_files(files_list);
+      log.debug(`LOCAL REM - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       const remote_file = path.join(
         _conf.remote,
         repo_rel_path,
@@ -405,6 +417,7 @@ const Abebox = (config_name = "config", name = "") => {
       // REMOTE EVENT
       const removed_file = files_list.splice(index, 1)[0];
       store.set_files(files_list);
+      log.debug(`REMOTE REM - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       const local_file = path.join(
         _conf.local,
         removed_file.file_dir,
@@ -434,11 +447,16 @@ const Abebox = (config_name = "config", name = "") => {
 
   const download_file = async function(file_name, file_path, sym_key, iv) {
     // separate folder and name of the encrypted file
+    log.debug("FN ",file_name)
+    log.debug("FP ",file_path)
     const last_sep_index = file_name.lastIndexOf(path.sep);
     const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
     const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
+    log.debug("FF ",plaintext_file_folder)
+    log.debug("DN ",plaintext_file_name)
 
     const abs_plaintext_file_folder = path.join(_conf.local, plaintext_file_folder)
+    log.debug("ADN ",abs_plaintext_file_folder)
     
     if (!fs.existsSync(abs_plaintext_file_folder))
       fs.mkdirSync(abs_plaintext_file_folder, {
@@ -720,30 +738,7 @@ const Abebox = (config_name = "config", name = "") => {
       if (file.status == file_status.local_change && file.policy.length != 0) {
         share_local_file(file);
       }
-      // // Decrypt remote files and copy in the local repo
-      // if (file.status == file_status.remote_change) {
-      //   const relative_file_path = file.file_dir + file.file_name;
-      //   log.debug(`SHARE REMOTE FILE  ${relative_file_path}`);
-      //   const enc_file_name = path.join(
-      //     _conf.remote,
-      //     repo_rel_path,
-      //     file.file_id
-      //   );
-      //   const enc_file_name_no_ext = enc_file_name.substring(
-      //     0,
-      //     enc_file_name.lastIndexOf(".")
-      //   );
-      //   core
-      //     .file_decrypt(enc_file_name_no_ext)
-      //     .then(() => {
-      //       file.status = file_status.sync;
-      //       store.set_files(files_list);
-      //     })
-      //     .catch((err) => {
-      //       log.debug("ERROR IN SYNC REMOTE FILE");
-      //       throw Error(`Error ${err} decrypting remote file ${file.file_id}`);
-      //     });
-      // }
+      
     });
     return files_list;
   };
