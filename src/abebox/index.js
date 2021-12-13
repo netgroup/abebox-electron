@@ -437,8 +437,11 @@ const Abebox = (config_name = "config", name = "") => {
     const last_sep_index = file_name.lastIndexOf(path.sep);
     const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
     const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
-    if (!fs.existsSync(path.join(_conf.local, plaintext_file_folder)))
-      fs.mkdirSync(path.join(_conf.local, plaintext_file_folder), {
+
+    const abs_plaintext_file_folder = path.join(_conf.local, plaintext_file_folder)
+    
+    if (!fs.existsSync(abs_plaintext_file_folder))
+      fs.mkdirSync(abs_plaintext_file_folder, {
         recursive: true,
       });
     // File content symmetric decryption
