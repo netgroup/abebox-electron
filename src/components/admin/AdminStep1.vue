@@ -28,18 +28,7 @@
           rounded-lg
         ></v-text-field>
       </v-col>
-      <v-col class="pb-0 pt-0 mb-0" cols="4" offset="4">
-        <v-text-field
-          v-model="email"
-          label="Email Address"
-          required
-          :rules="emailRules"
-          dense
-          solo
-          rounded-lg
-          class="form-input"
-        ></v-text-field>
-      </v-col>
+
       <v-col offset="4" cols="4" sm="4" class="mt-0 mb-0 pa-0 text-center"
         ><span class="caption">I agree on terms and conditions</span>
       </v-col>
@@ -131,7 +120,6 @@ export default {
   props: ["formdata"],
   data: () => ({
     name: "",
-    email: "",
     valid: false,
     emailRules: [
       (v) =>
@@ -146,15 +134,12 @@ export default {
       if (this.formdata.hasOwnProperty("name")) {
         this.name = this.formdata.name;
       }
-      if (this.formdata.hasOwnProperty("email")) {
-        this.email = this.formdata.email;
-      }
     }
   },
   methods: {
     signin() {
-      if (this.email) {
-        const data = { email: this.email, name: this.name };
+      if (this.name) {
+        const data = { name: this.name };
         console.log(data);
         this.$emit("next", data);
       }

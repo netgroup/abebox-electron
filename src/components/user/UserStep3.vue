@@ -18,14 +18,6 @@
       <v-col cols="6" offset="3">
         <v-card color="white" class="pa-10">
           <v-row>
-            <v-col ocols="12" class="pa-0 mb-0"
-              ><p class="caption mb-0">Name:</p>
-              <p class="font-weight-bold mb-2">{{ saveddata.name }}</p></v-col
-            >
-            <v-col cols="12" class="pa-0 mb-0"
-              ><p class="caption mb-0">Email:</p>
-              <p class="font-weight-bold mb-2">{{ saveddata.email }}</p></v-col
-            >
             <v-col cols="12" class="pa-0"
               ><p class="caption mb-0">Key Code:</p>
               <p class="font-weight-bold mb-5">
@@ -131,10 +123,7 @@
 export default {
   name: "UserStep3",
   props: ["saveddata"],
-  data: () => ({
-    name: "",
-    email: "",
-  }),
+  data: () => ({}),
 };
 </script>
 <style scoped>

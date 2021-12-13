@@ -33,32 +33,6 @@
       </v-col>
     </v-row>
     <v-row class="mt-0">
-      <v-col class="pb-0 pt-0 mb-0" cols="6" offset="3">
-        <v-text-field
-          v-model="name"
-          class="ma-0"
-          label="Name"
-          required
-          dense
-          rounded-lg
-          outlined
-          background-color="#637Fdb"
-          dark
-        ></v-text-field>
-      </v-col>
-      <v-col class="pb-0 pt-0 mb-0 mt-0" cols="6" offset="3">
-        <v-text-field
-          v-model="email"
-          label="Email Address"
-          class="ma-0"
-          required
-          dense
-          rounded-lg
-          outlined
-          background-color="#637Fdb"
-          dark
-        ></v-text-field>
-      </v-col>
       <v-col class="pb-0 pt-0 mb-0 mt-0" cols="6" offset="3">
         <v-text-field
           v-model="token"
@@ -163,26 +137,12 @@ export default {
   props: ["formdata"],
   data: () => ({
     errorDialog: false,
-    name: "",
-    email: "",
     token: "",
     valid: false,
-    emailRules: [
-      (v) =>
-        !v ||
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) ||
-        "E-mail must be valid",
-    ],
   }),
   created() {
     console.log("created ", this.formdata);
     if (this.formdata) {
-      if (this.formdata.hasOwnProperty("name")) {
-        this.name = this.formdata.name;
-      }
-      if (this.formdata.hasOwnProperty("email")) {
-        this.email = this.formdata.email;
-      }
       if (this.formdata.hasOwnProperty("token")) {
         this.token = this.formdata.token;
       }
@@ -190,8 +150,8 @@ export default {
   },
   methods: {
     signin() {
-      if (this.email && this.token) {
-        const data = { email: this.email, name: this.name, token: this.token };
+      if (this.token) {
+        const data = { token: this.token };
         console.log(data);
         this.$emit("next", data);
       } else {

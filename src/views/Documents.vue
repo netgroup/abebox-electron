@@ -75,6 +75,7 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
+const path = require("path")
 
 export default {
   name: "Repository",
@@ -171,7 +172,7 @@ export default {
         this.fileItems.map((el) => {
           return {
             file: el.file_name,
-            dir: "/" + el.file_dir,
+            dir: path.sep + el.file_dir,
             pol_ok: el.status == 0 ? true : false,
             id: el.file_id,
           };

@@ -147,10 +147,15 @@ const AbeboxCore = (log) => {
     policy
   ) {
     if (!_conf.abe_init) throw Error("ABE Not initialized");
+
+    // convert input file 
+
+    const input_file_converted = input_file.replace(path.sep,"/");
+
     // Group parameters to encrypt
     const metadata_to_enc = {
       sym_key: sym_key,
-      file_name: input_file, //input_file_name,
+      file_name: input_file_converted, //input_file_name,
     };
     // Encrypt parameters using CP-ABE
     const enc_metadata = rabe.encrypt_str(
@@ -179,8 +184,12 @@ const AbeboxCore = (log) => {
     const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
     // Extract and return parameters
     const { sym_key, file_name } = JSON.parse(dec_metadata);
+
+    // convert file name
+    const file_name_converted = file_name.replace("/",path.sep);
+
     return {
-      file_name,
+      file_name: file_name_converted,
       sym_key,
       iv,
       policy,

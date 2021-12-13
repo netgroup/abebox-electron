@@ -121,7 +121,7 @@ const user_conf = {
 
 // information set by admin about a new user invited in abebox
 const new_user_info = {
-  mail: user_conf.name,
+  name: user_conf.name,
   attrs: [attr_data_1, attr_data_3],
   token: "",
   rsa_pub_key: "",
@@ -201,7 +201,7 @@ describe("Abebox Tests", () => {
     const user_list = admin_abebox.get_users();
 
     const new_user = {
-      mail: "pippo@uniroma2.it",
+      name: "pippo@uniroma2.it",
       attrs: [],
       token: "",
       rsa_pub_key: "",
@@ -218,13 +218,13 @@ describe("Abebox Tests", () => {
     const after_set_user_list = admin_abebox.get_users();
 
     const index = after_set_user_list.findIndex(
-      (item) => item.mail == new_user.mail
+      (item) => item.name == new_user.name
     );
     assert.deepEqual(after_set_user_list[index].attrs, new_attributes);
 
     // delete the user
 
-    admin_abebox.del_user(new_user.mail);
+    admin_abebox.del_user(new_user.name);
     const after_del_user_list = admin_abebox.get_users();
     assert.equal(after_del_user_list.length + 1, after_add_user_list.length);
   });
@@ -245,7 +245,7 @@ describe("Abebox Tests", () => {
 
     // add new user
     const new_user = {
-      mail: "pippo@uniroma2.it",
+      name: "pippo@uniroma2.it",
       attrs: [attr_data_4],
       token: "",
       rsa_pub_key: "",
@@ -267,7 +267,7 @@ describe("Abebox Tests", () => {
     const post_set_user_list = admin_abebox.get_users();
 
     const index = post_set_user_list.findIndex(
-      (item) => item.mail == new_user.mail
+      (item) => item.name == new_user.name
     );
     assert.deepEqual(post_set_user_list[index].attrs[0], attr_data_5);
 
@@ -276,7 +276,7 @@ describe("Abebox Tests", () => {
     assert.equal(post_set_attr_list.length, post_del_attr_list.length + 1);
 
     // delete the user
-    const post_del_user_list = admin_abebox.del_user(new_user.mail);
+    const post_del_user_list = admin_abebox.del_user(new_user.name);
     assert.equal(post_del_user_list.length + 1, post_add_user_list.length);
   });
 
@@ -322,7 +322,7 @@ describe("Abebox Tests", () => {
     assert.ok(admin_abebox.get_users().length > 0);
     const invited_user = admin_abebox.invite_user(user);
     invited_user_token = invited_user.token;
-    assert.equal(invited_user.mail, new_user_info.mail);
+    assert.equal(invited_user.name, new_user_info.name);
     assert.ok(invited_user_token);
   }).timeout(15000);
   /*
@@ -339,10 +339,32 @@ describe("Abebox Tests", () => {
     // loading new configuration
     user_abebox.set_config(user_conf);
 
-    //user_abebox.send_user_rsa_pk(); // send the user RSA pubkey to admin
+    // try to decode the user SK (and the other data) written by the admin on the remote repo
+    // wait for watchers
+    await delay(15000);
 
-    // check if the
+    const user_index_conf = user_abebox.debug_get_conf();
+
+    // read manually the file with all the user information
     const token_hash = file_utils.get_hash(user_conf.token);
+
+    // check user secret key file (we check here only the format)
+    const user_sk_filepath = `${path.join(
+      user_index_conf.remote,
+      "keys",
+      token_hash.toString("hex")
+    )}.sk`;
+
+    assert.ok(fs.existsSync(user_sk_filepath));
+
+    const user_sk_file_content = fs.readFileSync(user_sk_filepath, "utf-8");
+    const user_sk_file_obj = JSON.parse(user_sk_file_content);
+
+    assert.ok(user_sk_file_obj.hasOwnProperty("data"));
+    assert.ok(user_sk_file_obj.hasOwnProperty("iv"));
+    assert.ok(user_sk_file_obj.hasOwnProperty("tag"));
+
+    // check on the user RSA PK: admin should take it from the repo
     const user_rsa_pk_filename = path.join(
       user_conf.remote,
       "pub_keys",
@@ -350,6 +372,7 @@ describe("Abebox Tests", () => {
     );
 
     assert.ok(fs.existsSync(user_rsa_pk_filename));
+
     const user_rsa_file_content = fs.readFileSync(
       user_rsa_pk_filename,
       "utf-8"
@@ -358,20 +381,30 @@ describe("Abebox Tests", () => {
     assert.ok(user_rsa_obj.hasOwnProperty("rsa_pub_key"));
     assert.ok(user_rsa_obj.hasOwnProperty("sign"));
 
-    await delay(15000);
+    // file are now ok
+    // let's see the content!
 
-    // admin received the RSA pub key of the user
-    // this is done by retrieve_pub_key called by the watcher
     const user = admin_abebox
       .get_users()
-      .find((el) => el.mail == new_user_info.mail);
-    assert.equal(user.rsa_pub_key, user_rsa_obj.rsa_pub_key);
+      .find((el) => el.name == user_index_conf.name);
 
-    // then admin sends the SK to the user
+    assert.ok(user); // should find the user
 
-    // user receives the sk and should set his SK
-    assert.ok(user_abebox.debug_get_conf().keys.hasOwnProperty("abe"));
-    assert.ok(user_abebox.debug_get_conf().keys.abe.hasOwnProperty("sk"));
+    // does the user get the admin rsa/abe pk and abe sk?
+    assert.equal(
+      user_index_conf.keys.rsa_admin_pk,
+      admin_abebox.debug_get_conf().keys.rsa.pk
+    );
+
+    assert.equal(
+      user_index_conf.keys.abe.pk,
+      admin_abebox.debug_get_conf().keys.abe.pk
+    );
+    assert.ok(user_index_conf.keys.abe.sk);
+
+    // admin acquired the user rsa PK?
+
+    assert.equal(user_index_conf.keys.rsa.pk, user.rsa_pub_key);
   }).timeout(50000);
   it("user retrieves his own attributes", () => {
     const user_attributes = user_abebox.get_attrs();
