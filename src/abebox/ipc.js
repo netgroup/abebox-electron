@@ -157,7 +157,7 @@ export default {
       return await abebox.del_user(id_user);
     });
     ipcMain.handle("invite-user", async (event, user_mail) => {
-      return await abebox.invite_user(user_mail);
+      return await abebox.invite_user(user_mail); // mail is a name!
     });
 
     /* UTILITY API */
