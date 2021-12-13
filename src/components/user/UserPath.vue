@@ -1,9 +1,9 @@
 <template>
   <div style="position: relative; height: 100vh;">
     <user-step-1
+      :formdata.sync="formdata"
       @next="handleNext"
       @back="handleBack"
-      :formdata.sync="formdata"
       v-if="step == 1"
     ></user-step-1>
     <user-step-2

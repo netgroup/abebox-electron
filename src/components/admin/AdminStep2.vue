@@ -120,6 +120,25 @@
         </v-row>
       </v-container>
     </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
+    </div>
   </v-container>
 </template>
 
@@ -128,13 +147,26 @@ const { ipcRenderer } = window.require("electron");
 
 export default {
   name: "AdminStep2",
+  props: ["formdata"],
 
   data: () => ({
+    errorDialog: false,
+    errorText: "",
     folder_shared: "",
     folder_local: "",
-    rs: true,
-    ls: true,
   }),
+  created() {
+    console.log("created ", this.formdata);
+    if (this.formdata) {
+      if (this.formdata.hasOwnProperty("remote")) {
+        this.folder_shared = this.formdata.remote;
+      }
+      if (this.formdata.hasOwnProperty("local")) {
+        this.folder_local = this.formdata.local;
+      }
+    }
+  },
+
   computed: {
     folder_shared_name: function() {
       if (this.folder_shared)

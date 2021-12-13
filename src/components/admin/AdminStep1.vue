@@ -103,12 +103,32 @@
         </v-row>
       </v-container>
     </div>
+    <div
+      style="
+        position: absolute;
+        top: 0px;
+        left: 0px
+        z-index: 100;
+        margin-left: 10px;
+        margin-top: 10px;
+      "
+    >
+      <v-btn
+        class="ma-2"
+        text
+        icon
+        color="white lighten-2"
+        @click="$emit('back')"
+        ><v-icon large>mdi-arrow-left</v-icon></v-btn
+      >
+    </div>
   </v-container>
 </template>
 
 <script>
 export default {
   name: "AdminStep1",
+  props: ["formdata"],
   data: () => ({
     name: "",
     email: "",
@@ -120,6 +140,17 @@ export default {
         "E-mail must be valid",
     ],
   }),
+  created() {
+    console.log("created ", this.formdata);
+    if (this.formdata) {
+      if (this.formdata.hasOwnProperty("name")) {
+        this.name = this.formdata.name;
+      }
+      if (this.formdata.hasOwnProperty("email")) {
+        this.email = this.formdata.email;
+      }
+    }
+  },
   methods: {
     signin() {
       if (this.email) {
@@ -136,6 +167,9 @@ export default {
 </script>
 
 <style>
+.v-text-field--outlined >>> fieldset {
+  border-color: transparent;
+}
 body .v-application .error--text {
   color: darkorange !important;
   caret-color: yellow !important;

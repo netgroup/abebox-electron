@@ -7,7 +7,7 @@
           ><v-card-title>Documents</v-card-title>
           <v-card-text
             ><div class="text-h3 text--primary">{{ num_files }}</div>
-            <div class="text-h6 text--primary">
+            <div class="text-body-1 text--primary">
               Encript and Share your documents
             </div></v-card-text
           ><v-card-actions
@@ -21,7 +21,7 @@
           ><v-card-title>Attributes</v-card-title
           ><v-card-text
             ><div class="text-h3 text--primary">{{ num_attrs }}</div>
-            <div class="text-h6 text--primary">
+            <div class="text-body-1 text--primary">
               Use attributes to share files
             </div></v-card-text
           ><v-card-actions

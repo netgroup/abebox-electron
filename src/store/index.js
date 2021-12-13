@@ -14,10 +14,15 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    getConf({ commit }) {
+    get_conf({ commit }) {
       ipcRenderer.invoke("get-conf").then((conf) => {
         commit("set_conf", conf);
       });
+    },
+  },
+  getters: {
+    conf: (state) => {
+      state.conf;
     },
   },
 });

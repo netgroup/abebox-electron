@@ -176,6 +176,9 @@ export default {
 
     started = true;
   },
+  async stopServices() {
+    await abebox.stop();
+  },
   setWindow(win) {
     if (win) {
       window = win; // save the reference to the main window

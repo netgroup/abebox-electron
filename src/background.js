@@ -46,11 +46,12 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL("app://./index.html");
   }
-  abeboxIpc.setWindow(win);
+  //abeboxIpc.setWindow(win);
 }
 
 // Quit when all windows are closed.
-app.on("window-all-closed", () => {
+app.on("window-all-closed", async () => {
+  await abeboxIpc.stopServices();
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== "darwin") {
@@ -88,8 +89,8 @@ if (isDevelopment) {
       }
     });
   } else {
-    /*process.on("SIGTERM", () => {
+    process.on("SIGTERM", () => {
       app.quit();
-    });*/
+    });
   }
 }

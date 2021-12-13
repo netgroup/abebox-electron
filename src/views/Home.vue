@@ -78,7 +78,7 @@ export default {
         this.configuration = conf;
         this.isAdmin = conf.isAdmin;
         this.status = 2;
-        this.$vueEventBus.$emit("configured", conf);
+        this.$store.commit("set_conf", conf);
       } else {
         this.status = 1;
       }

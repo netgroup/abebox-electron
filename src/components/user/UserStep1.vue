@@ -83,7 +83,6 @@
         ></v-col
       >
     </v-row>
-
     <div
       style="
         position: absolute;
@@ -191,7 +190,6 @@ export default {
   },
   methods: {
     signin() {
-      console.log("signin");
       if (this.email && this.token) {
         const data = { email: this.email, name: this.name, token: this.token };
         console.log(data);

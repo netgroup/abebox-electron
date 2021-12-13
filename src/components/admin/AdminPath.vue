@@ -1,17 +1,19 @@
 <template>
   <div style="position: relative; height: 100vh;">
     <admin-step-1
+      :formdata.sync="formdata"
       @next="handleNext"
       @back="handleBack"
-      v-model="formdata"
       v-if="step == 1"
     ></admin-step-1>
     <admin-step-2
+      :formdata.sync="formdata"
       @next="handleNext"
       @back="handleBack"
       v-else-if="step == 2"
     ></admin-step-2>
     <admin-step-3
+      :formdata.sync="formdata"
       @next="handleNext"
       @back="handleBack"
       v-else-if="step == 3"
@@ -55,8 +57,17 @@ export default {
     },
     handleBack: function(data) {
       if (this.step == 1) {
+        this.formdata = {};
         this.$emit("reset");
+      } else if (this.step == 2) {
+        this.step = 1;
+      } else if (this.step == 3) {
+        this.step = 2;
       }
+    },
+    handleReset: function() {
+      this.formdata = {};
+      this.$emit("reset");
     },
   },
 };
