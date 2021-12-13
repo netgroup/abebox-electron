@@ -168,10 +168,20 @@ describe("Abebox Tests", () => {
     const user_list = admin_abebox.new_user(new_user_info);
     const user = user_list[0];
     assert.ok(admin_abebox.get_users().length > 0);
-    const invited_user = admin_abebox.invite_user(user);
-    invited_user_token = invited_user.token;
-    assert.equal(invited_user.name, new_user_info.name);
+    invited_user_token = admin_abebox.invite_user(user);
+    //invited_user_token = invited_user.token;
+    //assert.equal(invited_user.name, new_user_info.name);
     assert.ok(invited_user_token);
+
+    delay(5000);
+
+    const user_sk_filepath = `${path.join(
+      admin_abebox.debug_get_conf().remote,
+      "keys",
+      file_utils.get_hash(invited_user_token).toString("hex")
+    )}.sk`;
+
+    assert.ok(fs.existsSync(user_sk_filepath));
   }).timeout(15000);
 
   it("setup abebox user with token", async () => {
@@ -182,6 +192,10 @@ describe("Abebox Tests", () => {
     user_abebox_init.set_config(user_conf);
     // user_abebox_init.send_user_rsa_pk(); // send the user RSA pubkey to admin
 
+    // try to decode the user SK (and the other data) written by the admin on the remote repo
+    // wait for watchers
+    await delay(15000);
+    
     const token_hash = file_utils.get_hash(user_conf.token);
 
     //////////////// NEW

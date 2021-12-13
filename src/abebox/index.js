@@ -570,21 +570,21 @@ const Abebox = (config_name = "config", name = "") => {
         // Add pub key to the specific user and update users list
         users[index].rsa_pub_key = rsa_pk;
         store.set_users(users);
-        // Create user secret key
-        const user_abe_sk_filename = file_utils
-          .get_hash(users[index].name)
-          .toString("hex");
+        // // Create user secret key
+        // const user_abe_sk_filename = file_utils
+        //   .get_hash(users[index].name)
+        //   .toString("hex");
 
-        const user_abe_sk_path = `${path.join(
-          _conf.remote,
-          keys_dir_rel_path,
-          user_abe_sk_filename
-        )}.sk`;
-        send_abe_user_secret_key(
-          attribute.compress_list(users[index].attrs),
-          users[index].token,
-          users[index].name
-        );
+        // const user_abe_sk_path = `${path.join(
+        //   _conf.remote,
+        //   keys_dir_rel_path,
+        //   user_abe_sk_filename
+        // )}.sk`;
+        // send_abe_user_secret_key(
+        //   attribute.compress_list(users[index].attrs),
+        //   users[index].token,
+        //   users[index].name
+        // );
       } else {
         log.debug(`INVALID SIGNATURE PUB KEY OF ${users[index].name}`);
         throw Error("Invalid signature on retrieve_pub_key");

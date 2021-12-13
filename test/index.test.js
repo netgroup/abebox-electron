@@ -320,10 +320,20 @@ describe("Abebox Tests", () => {
     const user_list = admin_abebox.new_user(new_user_info);
     const user = user_list[0];
     assert.ok(admin_abebox.get_users().length > 0);
-    const invited_user = admin_abebox.invite_user(user);
-    invited_user_token = invited_user.token;
-    assert.equal(invited_user.name, new_user_info.name);
+    invited_user_token = admin_abebox.invite_user(user);
+    //invited_user_token = invited_user.token;
+    //assert.equal(invited_user.name, new_user_info.name);
     assert.ok(invited_user_token);
+
+    delay(5000);
+
+    const user_sk_filepath = `${path.join(
+      admin_abebox.debug_get_conf().remote,
+      "keys",
+      file_utils.get_hash(invited_user_token).toString("hex")
+    )}.sk`;
+
+    assert.ok(fs.existsSync(user_sk_filepath));
   }).timeout(15000);
   /*
   it("stop abebox", () => {
@@ -334,7 +344,6 @@ describe("Abebox Tests", () => {
   it("setup abebox user with token", async () => {
     // init the abebox index for the user
     user_abebox = Abebox(cfg_filename_user.split(".")[0], "USER");
-
     user_conf.token = invited_user_token;
     // loading new configuration
     user_abebox.set_config(user_conf);
@@ -345,8 +354,15 @@ describe("Abebox Tests", () => {
 
     const user_index_conf = user_abebox.debug_get_conf();
 
+    assert.equal(user_index_conf.token, invited_user_token);
+
     // read manually the file with all the user information
     const token_hash = file_utils.get_hash(user_conf.token);
+
+    assert.equal(
+      token_hash.toString("hex"),
+      file_utils.get_hash(invited_user_token).toString("hex")
+    );
 
     // check user secret key file (we check here only the format)
     const user_sk_filepath = `${path.join(
