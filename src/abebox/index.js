@@ -882,7 +882,7 @@ const Abebox = (config_name = "config", name = "") => {
         users[index].name
       );
 
-      return users[index];
+      return users[index].token;
     }
   };
 
