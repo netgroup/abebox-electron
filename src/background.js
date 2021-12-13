@@ -1,20 +1,21 @@
 "use strict";
 
+const log = require("electron-log");
+log.debug("Abebox App Starting");
+
 import { app, protocol, BrowserWindow } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-//import rabe from "./abebox-core/rabejs/rabejs.node";
-//console.log(rabe.setup());
-//console.log(app.getPath("userData"));
-
 import abeboxIpc from "./abebox/ipc";
 abeboxIpc.startIpcServices();
 
 let win = undefined; // referencce to the app main window
+let tray = null;
 
 console.log(process.env.WEBPACK_DEV_SERVER_URL);
+
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } },
@@ -23,9 +24,10 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    icon: __dirname + "/asset/logo.png",
+    width: 900,
+    height: 500,
+    resizable: false,
+    icon: __dirname + "/assets/abebox.icns",
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -44,11 +46,12 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL("app://./index.html");
   }
-  abeboxIpc.setWindow(win);
+  //abeboxIpc.setWindow(win);
 }
 
 // Quit when all windows are closed.
-app.on("window-all-closed", () => {
+app.on("window-all-closed", async () => {
+  await abeboxIpc.stopServices();
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== "darwin") {

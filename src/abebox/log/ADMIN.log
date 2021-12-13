@@ -1,0 +1,27 @@
+[2021-12-11 14:46:36.477] [debug] BOOTING NO CONF
+[2021-12-11 14:46:36.498] [debug] Abebox Setup
+[2021-12-11 14:46:36.498] [debug] Abebox InitCore
+[2021-12-11 14:46:37.216] [debug] Starting watchers
+[2021-12-11 14:46:42.740] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2021-12-11 14:46:42.750] [debug] UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"3cd251fc-0906-4241-bcf9-92046ff35b63","policy":[],"status":1}]
+[2021-12-11 14:46:45.055] [debug] SET POLICY TO 3cd251fc-0906-4241-bcf9-92046ff35b63 DATA: ("UN:C:1")
+[2021-12-11 14:46:45.064] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2021-12-11 14:46:47.711] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/3cd251fc-0906-4241-bcf9-92046ff35b63.0
+[2021-12-11 14:46:47.813] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/3cd251fc-0906-4241-bcf9-92046ff35b63.abebox
+[2021-12-11 14:46:51.810] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/7fb2d87e7e01376edebc32de01669e43f8b8c4c08019ab6b930151c3c85f021b
+[2021-12-11 14:46:51.810] [debug] DETECTED PUB KEY FILE
+[2021-12-11 14:46:51.811] [debug] GET PUB KEY OF user@uniroma2.it
+[2021-12-11 14:46:52.310] [debug] ABE SK SENT WITH TOKEN  fa74c7c771cd960147b54fa8bdb325d781609b16ae5720527db9a85f8e0e7741
+[2021-12-11 14:46:55.109] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/29cf50c7e4a0c01d4f0a4f6a2cc9f3a9368ed4f41c9ac3e5c9f284a226840db1.sk
+[2021-12-11 14:46:55.109] [debug] DETECTED ABE USER KEY FILE
+[2021-12-11 14:47:12.009] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/3cd251fc-0906-4241-bcf9-92046ff35b63.0
+[2021-12-11 14:47:12.009] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/3cd251fc-0906-4241-bcf9-92046ff35b63.abebox
+[2021-12-11 14:47:16.029] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2021-12-11 14:47:25.363] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/935cf828-304e-49f2-b9ab-9193081cd18d.0
+[2021-12-11 14:47:25.465] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/935cf828-304e-49f2-b9ab-9193081cd18d.abebox
+[2021-12-11 14:47:28.822] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2021-12-11 14:47:30.834] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/935cf828-304e-49f2-b9ab-9193081cd18d.abebox
+[2021-12-11 14:47:30.843] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/935cf828-304e-49f2-b9ab-9193081cd18d.0
+[2021-12-11 14:47:30.846] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2021-12-12 09:51:32.822] [debug] BOOTING NO CONF
+[2021-12-12 09:51:32.838] [debug] Abebox Setup

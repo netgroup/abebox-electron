@@ -1,4 +1,5 @@
 const path = require("path");
+
 module.exports = {
   /*  configureWebpack: {
     target: 'electron-renderer',
@@ -15,6 +16,7 @@ module.exports = {
     }, 
   }, */
   configureWebpack: {
+    devtool: "source-map",
     module: {
       rules: [
         {
@@ -39,7 +41,24 @@ module.exports = {
  }, */
   pluginOptions: {
     electronBuilder: {
+      /*directories: {
+        buildResources: "build",
+      },*/
       nodeIntegration: true,
+      //files: ["build/**/*"],
+      /*mac: {
+        target: [
+          {
+            target: "dmg",
+            arch: ["x64", "arm64", "universal"],
+          },
+        ],
+        category: "public.app-category.utilities",
+      },*/
+      dmg: {
+        icon: "build/icons/icon.icns",
+      },
+
       chainWebpackMainProcess: (config) => {
         config.module
           .rule("node")

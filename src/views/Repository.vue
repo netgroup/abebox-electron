@@ -1,68 +1,143 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col>
+  <v-card>
+    <v-dialog v-model="dialog" persistent max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h6  ">{{ editedItem.file_name }}</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <div v-for="(element, index) in editedAttrs" :key="index">
+              <v-row align="center">
+                <v-col cols="12" sm="10">
+                  <v-select
+                    :items="all_items_attrs"
+                    label="AND Attributes Group"
+                    v-model="element.and_list"
+                    multiple
+                    chips
+                    persistent-hint
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" sm="2">
+                  <v-icon class="mr-2" @click="addValutazione">
+                    mdi-plus
+                  </v-icon>
+                  <v-icon @click="remValutazione(index)">
+                    mdi-delete
+                  </v-icon>
+                </v-col>
+              </v-row>
+            </div>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="close">
+            Cancel
+          </v-btn>
+          <v-btn color="blue darken-1" text @click="save">
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-card-title
+      ><v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field
+      ><v-spacer></v-spacer>
+      <v-btn color="primary" dark class="mb-2" @click="getFileList">
+        Refresh List
+      </v-btn>
+    </v-card-title>
+    <v-row style="height:100%">
+      <v-col class="col-12">
         <v-treeview
           :items="items"
+          item-key="id"
           activatable
-          :active.sync="active"
           color="warning"
-          open-all
+          rounded
           dense
+          :active.sync="active"
+          :search="search"
+          open-on-click
         >
           <template v-slot:prepend="{ item, open }">
-            <v-icon v-if="!item.file">
+            <v-icon v-if="item.hasOwnProperty('children')" :color="item.color">
               {{ open ? "mdi-folder-open" : "mdi-folder" }}
             </v-icon>
-            <v-icon v-else>
-              {{ files[item.file] }}
+            <v-icon v-else :color="item.color">
+              {{ "mdi-file-document-outline" }}
             </v-icon>
           </template>
         </v-treeview>
       </v-col>
-      <v-divider vertical></v-divider>
+      <!--<v-divider vertical></v-divider>
 
-      <v-col class="d-flex text-center">
+      <v-col class="d-flex col-6">
         <v-scroll-y-transition mode="out-in">
           <div
             v-if="!activeItem"
             class="text-h6 grey--text text--lighten-1 font-weight-light"
-            style="align-self: center;"
           >
             Select a File
           </div>
-          <v-card
-            v-else
-            :key="activeItem.fid"
-            class="pt-6 mx-auto"
-            flat
-            max-width="400"
-          >
+          <v-card v-else :key="activeItem.fid" style="width:100%">
             <v-card-text>
-              <h3 class="text-h5 mb-2">
+              <p>File Name:</p>
+              <h3 class="mb-20">
                 {{ activeItem.name }}
               </h3>
             </v-card-text>
             <v-divider></v-divider>
             <v-row class="text-left" tag="v-card-text">
-              <v-col class="text-right mr-4 mb-2" tag="strong" cols="5">
-                Policy:
+              <v-col class="col-12 pt-0 pb-0"
+                ><v-textarea
+                  outlined
+                  label="Policy"
+                  v-model="activeItem.policy"
+                ></v-textarea
+              ></v-col>
+              <v-col class="col-12">
+                <v-btn @click="submitPolicy">Modify</v-btn>
               </v-col>
-              <v-col>{{ activeItem.policy }}</v-col>
             </v-row>
           </v-card>
         </v-scroll-y-transition>
-      </v-col>
+      </v-col>-->
     </v-row>
-  </v-container>
+  </v-card>
 </template>
 
 <script>
 const { ipcRenderer } = window.require("electron");
+const { get_tree } = require("../abebox/utils");
 
 export default {
+  name: "Repository",
   data: () => ({
     active: [],
+    open: ["dir1  "],
+    search: "",
+    dialog: false,
+    editedIndex: -1,
+    editedItem: {
+      file_name: "",
+      file_id: "",
+      policy: [],
+    },
+    defaultItem: {
+      file_name: "",
+      file_id: "",
+      policy: [],
+    },
+    editedAttrs: [],
     files: {
       html: "mdi-language-html5",
       js: "mdi-nodejs",
@@ -73,86 +148,125 @@ export default {
       txt: "mdi-file-document-outline",
       xls: "mdi-file-excel",
     },
-    tree: [],
-    selection: [],
-    items: [],
-    fileItems: [],
-    activeItem: undefined,
-    attached: false,
+    items: [], // visualized in the tree
+    fileItems: [], // flat file list
+    all_items_attrs: [], // list of attributes and slugs
+    attrs: [], // list of valid attributes
   }),
-  mounted() {
-    console.log("Items:", this.items);
-    console.log("Atteched:", this.attached);
-    if (!this.attached) {
-      this.setListener();
-      this.attached = true;
-    }
-    if (this.items.length === 0) {
-      this.items = [{ name: "@Local Repo", children: [], fid: 1 }];
-      this.getFileList();
-    }
+  watch: {
+    dialog(val) {
+      val || this.close();
+    },
+    dialogDelete(val) {
+      val || this.closeDelete();
+    },
   },
-  beforeUnmount() {
-    console.log("beforeUnmount", this.attached);
+  mounted() {
+    this.getAttrsList();
+    this.getFileList();
   },
   methods: {
+    /*editItem(item) {
+      this.editedIndex = 1;
+      this.editedItem = Object.assign({}, item);
+      this.editedAttrs = [];
+      for (val in item.policy) {
+        this.editedAttrs.push({ and_list: val });
+      }
+      this.dialog = true;
+    },*/
+    close() {
+      this.dialog = false;
+      console.log("close");
+      this.active = [];
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+    closeDelete() {
+      this.dialogDelete = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+    async save() {
+      console.log("ALL ATTR: ", JSON.stringify(this.all_items_attrs));
+      console.log("ED IT: ", JSON.stringify(this.editedItem));
+      console.log("ED ATTR: ", JSON.stringify(this.editedAttrs));
+      const new_pol = [];
+      for (el of this.editedAttrs) {
+        console.log("EL:", el, el.and_list);
+        new_pol.push(el.and_list);
+      }
+      //await this.submitPolicy(new_pol);
+      this.close();
+    },
     handleActive() {
       if (!this.active) return;
       console.log(this.active[0]);
-      this.activeItem = this.fileItems.find((el) => el.fid === this.active[0]);
-      console.log("ACTIVE ITEM", JSON.stringify(this.activeItem));
+      const item_sel = this.fileItems.find(
+        (el) => el.file_id === this.active[0]
+      );
+      if (!item_sel) {
+        return;
+      }
+      this.editedItem = item_sel;
+      this.editedAttrs = [];
+      for (let attr of item_sel.policy) {
+        this.editedAttrs.push({ and_list: attr });
+      }
+      if (this.editedAttrs.length === 0) {
+        this.addValutazione();
+      }
+      console.log("EDIT ITEM", JSON.stringify(this.editedItem));
+      this.dialog = true;
     },
     openDialog(item) {
       console.log(item);
     },
-    setListener() {
-      console.log("setListener");
-      ipcRenderer.removeListener("list-files-resp", this.handleFileList);
-      ipcRenderer.on("list-files-resp", this.handleFileList);
+    async getFileList() {
+      if (this.dialog) return;
+      this.fileItems = await ipcRenderer.invoke("list-files", "");
+      this.items = await get_tree(this.fileItems);
+      console.log("getFileList", this.fileItems, this.items);
     },
-    getFileList: async function() {
-      console.log("getFileList");
-      ipcRenderer.send("list-files", "reponame");
-    },
-    async handleFileList(event, data) {
-      console.log("DATA: ", data);
-      const newList = await Promise.all(
-        data.map((el) => {
-          //console.log("EL:", el);
-          const ret = {
-            name: el.name,
-            id: el.fid,
-            file: "txt", // TODO Farla più robusta
-          };
-          return ret;
+    async getAttrsList() {
+      this.attrs = await ipcRenderer.invoke("list-attrs", "");
+      this.all_items_attrs = await Promise.all(
+        this.attrs.map((el) => {
+          return { text: `${el.univ}:${el.attr}:${el.vers}`, value: el };
         })
       );
-      this.fileItems = data;
-      console.log("NEW DATA: ", newList);
+      console.log("getAttrsList:", this.attrs);
+    },
 
-      if (data) this.items[0].children = newList;
+    async onSubmit(event) {
+      console.log("ON SUBMIT");
+    },
+    async submitPolicy(new_pol) {
+      const data = {
+        file_id: this.editedItem.file_id,
+        policy: new_pol,
+      };
+      this.fileItems = await ipcRenderer.invoke("set-policy", data);
+      console.log("SUB:", data);
+      console.log(this.fileItems);
+      this.items = await get_tree(this.fileItems);
+    },
+    addValutazione() {
+      this.editedAttrs.push({ and_list: [] });
+    },
+    remValutazione(index) {
+      this.editedAttrs.splice(index, 1);
+      if (this.editedAttrs.length === 0) {
+        this.addValutazione();
+      }
     },
   },
   watch: {
     active: "handleActive",
-  },
-
-  beforeUpdate() {
-    console.log("beforeUpdate");
-  },
-  updated() {
-    console.log("updated");
-  },
-  beforeDestroy() {
-    console.log("beforeDestroy");
-    if (this.attached) {
-      console.log("listener removed");
-      ipcRenderer.removeListener("list-files-resp", this.handleFileList);
-      this.attached = false;
-    }
-  },
-  destroyed() {
-    console.log("destroyed");
   },
 };
 </script>
