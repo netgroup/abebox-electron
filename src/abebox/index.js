@@ -951,7 +951,7 @@ const Abebox = (config_name = "config", name = "") => {
     get_user_info,
     get_admin_info,
     del_user,
-    send_user_rsa_pk,
+    // send_user_rsa_pk, // removed with new key exchance
     debug_get_conf, // DEBUG
   };
 };
