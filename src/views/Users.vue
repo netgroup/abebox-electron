@@ -21,6 +21,22 @@
               ></v-text-field>
               <v-divider class="mx-4" inset vertical></v-divider>
               <v-spacer></v-spacer>
+              <v-dialog v-model="dialogToken" max-width="500px">
+                <v-card>
+                  <v-card-title>
+                    <span class="text-h5">User Token</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <p>{{userToken}}</p>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="blue darken-1" text @click="dialogToken=false">
+                      Cancel
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
               <v-dialog v-model="dialog" max-width="500px">
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
@@ -129,6 +145,8 @@ export default {
     dialog: false,
     dialogDelete: false,
     search: "",
+    userToken:"",
+    dialogToken: false,
     checkRule: [(v) => !!v || "Please fill this field"],
 
     headers: [
@@ -201,6 +219,8 @@ export default {
       const user_name = item.name;
       console.log(user_name);
       const ret = await ipcRenderer.invoke("invite-user", { name: user_name });
+      this.dialogToken=true
+      this.userToken = ret
       console.log(ret);
     },
 
