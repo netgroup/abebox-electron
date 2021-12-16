@@ -6,7 +6,7 @@
         <v-data-table
           :headers="headers"
           :items="users"
-          sort-by="mail"
+          sort-by="name"
           class="elevation-1"
           :search="search"
         >
@@ -21,6 +21,22 @@
               ></v-text-field>
               <v-divider class="mx-4" inset vertical></v-divider>
               <v-spacer></v-spacer>
+              <v-dialog v-model="dialogToken" max-width="500px">
+                <v-card>
+                  <v-card-title>
+                    <span class="text-h5">User Token</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <p>{{userToken}}</p>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="blue darken-1" text @click="dialogToken=false">
+                      Cancel
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
               <v-dialog v-model="dialog" max-width="500px">
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
@@ -41,14 +57,14 @@
                     <v-container>
                       <v-row class="m-0" v-if="editedIndex !== -1">
                         <v-col cols="12" sm="12" md="12">
-                          <h2>{{ editedItem.mail }}</h2>
+                          <h2>{{ editedItem.name }}</h2>
                         </v-col>
                       </v-row>
                       <v-row class="m-0" v-else>
                         <v-col cols="12" sm="12" md="12">
                           <v-text-field
-                            v-model="editedItem.mail"
-                            label="Mail"
+                            v-model="editedItem.name"
+                            label="Name"
                             :rules="checkRule"
                           ></v-text-field>
                         </v-col>
@@ -129,12 +145,14 @@ export default {
     dialog: false,
     dialogDelete: false,
     search: "",
+    userToken:"",
+    dialogToken: false,
     checkRule: [(v) => !!v || "Please fill this field"],
 
     headers: [
       {
-        text: "Email",
-        value: "mail",
+        text: "Name",
+        value: "name",
       },
       { text: "Attributes", value: "attributes" }, //${el.univ}:${el.attr}:${el.vers}
       { text: "Actions", value: "actions", sortable: false },
@@ -144,11 +162,11 @@ export default {
     items: [],
     editedIndex: -1,
     editedItem: {
-      mail: "",
+      name: "",
       attrs: [],
     },
     defaultItem: {
-      mail: "",
+      name: "",
       attrs: [],
     },
   }),
@@ -182,7 +200,7 @@ export default {
       return (
         value != null &&
         search != null &&
-        value.mail.toLocaleUpperCase().indexOf(search) !== -1
+        value.name.toLocaleUpperCase().indexOf(search) !== -1
       );
     },
 
@@ -198,14 +216,16 @@ export default {
       this.dialogDelete = true;
     },
     async share(item) {
-      const user_mail = item.mail;
-      console.log(user_mail);
-      const ret = await ipcRenderer.invoke("invite-user", { mail: user_mail });
+      const user_name = item.name;
+      console.log(user_name);
+      const ret = await ipcRenderer.invoke("invite-user", { name: user_name });
+      this.dialogToken=true
+      this.userToken = ret
       console.log(ret);
     },
 
     deleteItemConfirm() {
-      this.delUser(this.editedItem.mail);
+      this.delUser(this.editedItem.name);
       this.closeDelete();
     },
 
@@ -256,9 +276,9 @@ export default {
       console.log("New User List:", new_users_list);
       this.users = new_users_list;
     },
-    async delUser(mail) {
-      console.log("delUser", mail);
-      const new_users_list = await ipcRenderer.invoke("del-user", mail);
+    async delUser(name) {
+      console.log("delUser", name);
+      const new_users_list = await ipcRenderer.invoke("del-user", name);
       this.users = new_users_list;
     },
   },

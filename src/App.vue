@@ -51,11 +51,11 @@ export default {
     drawer: false,
     items: [],
     mini: false,
-    configured: false,
-    configuration: {},
   }),
   created() {
-    this.$vueEventBus.$on("configured", (conf) => {
+    this.$store.dispatch("get_conf");
+
+    /*this.$vueEventBus.$on("configured", (conf) => {
       if (!conf.configured) {
         this.configured = false;
         this.configuration = {};
@@ -63,13 +63,23 @@ export default {
         this.configured = true;
         this.configuration = conf;
       }
-    });
+    });*/
   },
-
   beforeDestroy() {
-    this.$vueEventBus.$off("configured");
+    //this.$vueEventBus.$off("configured");
+  },
+  computed: {
+    configured: function() {
+      return this.$store.state.conf.configured;
+    },
+    isAdmin: function() {
+      return this.$store.state.conf.isAdmin;
+    },
   },
   watch: {
+    "$store.state.conf": function() {
+      console.log("New conf: ", this.$store.state.conf);
+    },
     configured: function(val) {
       console.log("configured: ", val);
       if (this.configured) {
@@ -83,17 +93,17 @@ export default {
           icon: "mdi-folder-key",
           route: "/docs",
         });
+        this.items.push({
+          title: "Attributes",
+          icon: "mdi-format-list-bulleted",
+          route: "/attrs",
+        });
 
-        if (this.configuration["isAdmin"]) {
+        if (this.isAdmin) {
           this.items.push({
             title: "Users",
             icon: "mdi-account-multiple",
             route: "/users",
-          });
-          this.items.push({
-            title: "Attributes",
-            icon: "mdi-format-list-bulleted",
-            route: "/attrs",
           });
         }
       }

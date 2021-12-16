@@ -23,15 +23,17 @@
               <v-spacer></v-spacer>
               <v-dialog v-model="dialog" max-width="500px">
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    color="primary"
-                    dark
-                    class="mb-2"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    New Attribute
-                  </v-btn>
+                  <div v-if="isAdmin">
+                    <v-btn
+                      color="primary"
+                      dark
+                      class="mb-2"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      New Attribute
+                    </v-btn>
+                  </div>
                 </template>
                 <v-card>
                   <v-card-title>
@@ -94,12 +96,14 @@
             </v-toolbar>
           </template>
           <template v-slot:[`item.actions`]="{ item }">
-            <v-icon small class="mr-2" @click="editItem(item)">
-              mdi-pencil
-            </v-icon>
-            <v-icon small @click="deleteItem(item)">
-              mdi-delete
-            </v-icon>
+            <div v-if="isAdmin">
+              <v-icon small class="mr-2" @click="editItem(item)">
+                mdi-pencil
+              </v-icon>
+              <v-icon small @click="deleteItem(item)">
+                mdi-delete
+              </v-icon>
+            </div>
           </template>
         </v-data-table>
       </v-col>
@@ -144,6 +148,9 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "New Attribute" : "Edit Attribute";
+    },
+    isAdmin: function() {
+      return this.$store.state.conf.isAdmin;
     },
   },
   watch: {
@@ -210,8 +217,10 @@ export default {
     },
     async getAttrsList() {
       console.log("getAttrsList");
-      const list = await ipcRenderer.invoke("list-attrs", "");
-      this.attributeList = list;
+      const attrs = await ipcRenderer.invoke("list-attrs", "");
+      if (attrs.hasOwnProperty("status") && attrs.status === "error") return;
+
+      this.attributeList = attrs;
     },
     async setAttr(old_attr, attr) {
       console.log("setAttr", attr);

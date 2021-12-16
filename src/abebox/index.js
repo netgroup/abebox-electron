@@ -2,11 +2,14 @@
 
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
 const electronLog = require("electron-log");
+const log = electronLog;
+log.transports.console.level = false;
 const envPaths = require("env-paths");
 
 const file_utils = require("./file_utils"); // TODO Rename
@@ -33,14 +36,19 @@ const file_status = {
   sync: 0,
   local_change: 1,
   remote_change: 2,
+  downloaded: 3,
 };
 
 const Abebox = (config_name = "config", name = "") => {
   // setup logfile
-  const log = electronLog.create(`log_${name}`);
-  log.transports.console.level = false;
-  log.transports.file.resolvePath = () =>
-    path.join(__dirname, "log", `${name}.log`);
+
+  log.debug("\n*********************************** Abebox Starting");
+  if (name != "") {
+    const log = electronLog.create(`log_${name}`);
+    log.transports.console.level = true;
+    log.transports.file.resolvePath = () =>
+      path.join(__dirname, "log", `${name}.log`);
+  }
 
   const store = AbeboxStore(config_name);
   const core = AbeboxCore(log);
@@ -72,7 +80,7 @@ const Abebox = (config_name = "config", name = "") => {
         // TODO per user abe potrebbe essere vuoto
         if (Object.keys(_conf.keys.abe).length > 0) {
           core.set_abe_keys(_conf.keys.abe.pk, _conf.keys.abe.sk);
-          core.set_admin_rsa_pk(_conf.keys.admin_rsa_pk);
+          core.set_admin_rsa_pk(_conf.keys.rsa_admin_pk);
           _configured_user_abe = true;
         } else {
           // if the abe keys are not found, send the RSA key to the admin
@@ -92,7 +100,13 @@ const Abebox = (config_name = "config", name = "") => {
     if (_configured) throw Error("ABEBox already configured - no setup needed");
     _configured = true;
     _conf = store.get_conf();
-    _create_dirs(remote_repo_dirs); // potrebbero essere piene admin - potrebbero non esistere
+    if (_conf.isAdmin) {
+      _init_dirs();
+    } else {
+      if (!_check_dirs())
+        throw Error("Shared folder is not correctly configured");
+    }
+    //_create_dirs(remote_repo_dirs); // potrebbero essere piene admin - potrebbero non esistere
     _init_core();
     _init_attribute(path.join(_conf.remote, attr_rel_path));
     _start_watchers();
@@ -190,6 +204,45 @@ const Abebox = (config_name = "config", name = "") => {
     return await _stop_watchers();
   };
 
+  const _init_dirs = function() {
+    remote_repo_dirs.forEach((dir) => {
+      const absolute_dir = path.join(_conf.remote, dir);
+      if (fs.existsSync(absolute_dir)) {
+        fs.rmSync(absolute_dir, {
+          recursive: true,
+          force: true,
+        });
+        fs.mkdirSync(absolute_dir, { recursive: true });
+      } else {
+        fs.mkdirSync(absolute_dir, { recursive: true });
+      }
+    });
+  };
+
+  const _check_dirs = function(remote_path) {
+    let is_ok = true;
+
+    if (!remote_path) {
+      remote_path = _conf.remote;
+    }
+
+    remote_repo_dirs.forEach((dir) => {
+      const absolute_dir = path.join(remote_path, dir);
+      if (!fs.existsSync(absolute_dir)) {
+        is_ok = false;
+      }
+    });
+
+    const attr_abs_path = path.join(remote_path, attr_rel_path);
+    if (!fs.existsSync(attr_abs_path)) is_ok = false;
+
+    return is_ok;
+  };
+
+  const is_repository = function(path) {
+    return _check_dirs(path);
+  };
+
   const _create_dirs = function(dirs) {
     dirs.forEach((dir) => {
       const absolute_dir = path.join(_conf.remote, dir);
@@ -205,6 +258,8 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.local
     );
+    log.debug("HL ADD: ", filename, rel_dir);
+
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
@@ -217,8 +272,17 @@ const Abebox = (config_name = "config", name = "") => {
         status: file_status.local_change,
       });
       store.set_files(files_list);
-      log.debug(`UPDATED FILE LIST ${JSON.stringify(files_list)}`);
+      log.debug(`LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       return files_list;
+    } else {
+      if (files_list[index].status == file_status.downloaded) {
+        files_list[index].status = file_status.sync;
+        store.set_files(files_list);
+        log.debug(
+          `LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+        );
+        return files_list;
+      }
     }
   };
 
@@ -227,6 +291,7 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.remote
     );
+    log.debug("HR ADD: ", filename, rel_dir);
 
     if (handle_key_files(rel_dir, file_path, filename)) {
       return;
@@ -248,9 +313,7 @@ const Abebox = (config_name = "config", name = "") => {
       throw Error("Metadata file name is empty");
     }
     // search if file has been already added in the file list
-    const index = files_list.findIndex(
-      (el) => el.file_id === file_id && el.status === file_status.local_change
-    );
+    const index = files_list.findIndex((el) => el.file_id === file_id);
     if (index < 0) {
       // REMOTE EVENT
       const {
@@ -263,13 +326,22 @@ const Abebox = (config_name = "config", name = "") => {
         file_name: plaintext_file_name,
         file_id: file_id,
         policy: attribute.policy_from_string(policy),
-        status: file_status.sync,
+        status: file_status.downloaded,
       });
     } else {
+      if ((files_list[index].status = file_status.local_change)) {
+        files_list[index].status = file_status.sync;
+      } else {
+        const {
+          plaintext_file_folder,
+          plaintext_file_name,
+        } = await download_file(file_name, file_path, sym_key, iv);
+        files_list[index].status = file_status.downloaded;
+      }
       // TRIGGERED BY LOCAL ADD
-      files_list[index].status = file_status.sync;
     }
     store.set_files(files_list);
+    log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
     return files_list;
   };
 
@@ -278,12 +350,21 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.local
     );
+    log.debug("HL CH: ", filename, rel_dir);
+
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index >= 0) {
-      files_list[index].status = file_status.local_change;
+      if (files_list[index].status == file_status.downloaded) {
+        files_list[index].status = file_status.sync;
+      } else {
+        files_list[index].status = file_status.local_change;
+      }
       store.set_files(files_list);
+      log.debug(
+        `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+      );
       return files_list;
     } else throw Error(`Local change error: ${file_path} already exists`);
   };
@@ -293,6 +374,7 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.remote
     );
+    log.debug("HR CH: ", filename, rel_dir);
 
     if (handle_key_files(rel_dir, file_path, filename)) return files_list;
 
@@ -314,12 +396,22 @@ const Abebox = (config_name = "config", name = "") => {
     // search if file has been already added in the file list
     const index = files_list.findIndex((el) => el.file_id === file_id);
     if (index >= 0) {
-      if (files_list[index].status != file_status.local_change)
+      if (
+        files_list[index].status == file_status.sync ||
+        files_list[index].status == file_status.local_change // TODO errore
+      ) {
         // REMOTE EVENT
         download_file(file_name, file_path, sym_key, iv); // it's an async function
+        files_list[index].status = file_status.downloaded;
+      } else {
+        log.error("Handle remote change bad file status " + file_name);
+        throw Error("Handle remote change bad file status: " + file_name);
+      }
     }
-    files_list[index].status = file_status.sync; // in all case we are synched.
     store.set_files(files_list);
+    log.debug(
+      `REMOTE CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+    );
     return files_list;
   };
 
@@ -328,12 +420,14 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.local
     );
+    log.debug("HL REM: ", filename, rel_dir);
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index >= 0) {
       const removed_file = files_list.splice(index, 1)[0];
       store.set_files(files_list);
+      log.debug(`LOCAL REM - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       const remote_file = path.join(
         _conf.remote,
         repo_rel_path,
@@ -355,6 +449,7 @@ const Abebox = (config_name = "config", name = "") => {
       // REMOTE EVENT
       const removed_file = files_list.splice(index, 1)[0];
       store.set_files(files_list);
+      log.debug(`REMOTE REM - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       const local_file = path.join(
         _conf.local,
         removed_file.file_dir,
@@ -375,7 +470,7 @@ const Abebox = (config_name = "config", name = "") => {
     if (dir.includes(`${keys_dir_rel_path}${path.sep}`)) {
       log.debug(`DETECTED ABE USER KEY FILE`);
       if (!_conf.isAdmin) {
-        retrieve_abe_secret_key(file_path);
+        retrieve_abe_secret_key(file_path, _conf.token);
       }
       return true;
     }
@@ -384,11 +479,22 @@ const Abebox = (config_name = "config", name = "") => {
 
   const download_file = async function(file_name, file_path, sym_key, iv) {
     // separate folder and name of the encrypted file
+    log.debug("FN ", file_name);
+    log.debug("FP ", file_path);
     const last_sep_index = file_name.lastIndexOf(path.sep);
     const plaintext_file_folder = file_name.substr(0, last_sep_index + 1); // myfolder
     const plaintext_file_name = file_name.substr(last_sep_index + 1); // myfolder/foo.txt
-    if (!fs.existsSync(path.join(_conf.local, plaintext_file_folder)))
-      fs.mkdirSync(path.join(_conf.local, plaintext_file_folder), {
+    log.debug("FF ", plaintext_file_folder);
+    log.debug("DN ", plaintext_file_name);
+
+    const abs_plaintext_file_folder = path.join(
+      _conf.local,
+      plaintext_file_folder
+    );
+    log.debug("ADN ", abs_plaintext_file_folder);
+
+    if (!fs.existsSync(abs_plaintext_file_folder))
+      fs.mkdirSync(abs_plaintext_file_folder, {
         recursive: true,
       });
     // File content symmetric decryption
@@ -406,7 +512,7 @@ const Abebox = (config_name = "config", name = "") => {
       plaintext_file_name,
     };
   };
-
+  /*
   const send_invite = function(recv) {
     return openurl.mailto([recv.mail], {
       subject: "ABEBox invitation!",
@@ -414,6 +520,7 @@ const Abebox = (config_name = "config", name = "") => {
     Here is your invitation token ${recv.token}\n`,
     });
   };
+  */
 
   // User send the RSA PK to Admin, writing it on pub keys.
   const send_user_rsa_pk = function() {
@@ -450,37 +557,36 @@ const Abebox = (config_name = "config", name = "") => {
       (item) => file_utils.get_hash(item.token).toString("hex") === file_name
     );
     if (index >= 0) {
-      log.debug(`GET PUB KEY OF ${users[index].mail}`);
+      log.debug(`GET PUB KEY OF ${users[index].name}`);
       // Test sign
       const data = JSON.parse(fs.readFileSync(full_file_name, "utf-8"));
       const rsa_pk = data.rsa_pub_key;
       const sign = data.sign;
       const signature = file_utils.get_hmac(
         users[index].token,
-        rsa_pk + users[index].mail
+        rsa_pk + users[index].name
       );
       if (sign == signature.toString("hex")) {
         // Add pub key to the specific user and update users list
         users[index].rsa_pub_key = rsa_pk;
         store.set_users(users);
-        // Create user secret key
-        const user_abe_sk_filename = file_utils
-          .get_hash(users[index].mail)
-          .toString("hex");
+        // // Create user secret key
+        // const user_abe_sk_filename = file_utils
+        //   .get_hash(users[index].name)
+        //   .toString("hex");
 
-        const user_abe_sk_path = `${path.join(
-          _conf.remote,
-          keys_dir_rel_path,
-          user_abe_sk_filename
-        )}.sk`;
-        send_abe_user_secret_key(
-          users[index].rsa_pub_key,
-          attribute.compress_list(users[index].attrs),
-          users[index].token,
-          user_abe_sk_path
-        );
+        // const user_abe_sk_path = `${path.join(
+        //   _conf.remote,
+        //   keys_dir_rel_path,
+        //   user_abe_sk_filename
+        // )}.sk`;
+        // send_abe_user_secret_key(
+        //   attribute.compress_list(users[index].attrs),
+        //   users[index].token,
+        //   users[index].name
+        // );
       } else {
-        log.debug(`INVALID SIGNATURE PUB KEY OF ${users[index].mail}`);
+        log.debug(`INVALID SIGNATURE PUB KEY OF ${users[index].name}`);
         throw Error("Invalid signature on retrieve_pub_key");
       }
     } else {
@@ -489,34 +595,42 @@ const Abebox = (config_name = "config", name = "") => {
   };
 
   // user retrieves her ABE SK
-  const retrieve_abe_secret_key = function(full_file_name) {
-    const { keys, sign } = JSON.parse(
+  const retrieve_abe_secret_key = function(full_file_name, user_token) {
+    let dec_data;
+    const { data, iv, tag } = JSON.parse(
       fs.readFileSync(full_file_name, "utf-8")
     );
-    const computed_signature = file_utils.get_hmac(
-      _conf.token,
-      JSON.toString(keys)
-    );
-    log.debug(`USER ABE PK RETIEVED` + JSON.stringify(keys.abe_pk));
 
-    if (sign != computed_signature.toString("hex")) {
-      log.debug(`ERROR RSA SIGN ERROR`);
-      throw Error("Admin RSA PK has not been signed correctly");
+    log.debug(`USER ABE PK RETIEVED`);
+
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      Buffer.from(user_token, "hex"),
+      Buffer.from(iv, "hex")
+    );
+    decipher.setAuthTag(Buffer.from(tag, "hex"));
+
+    try {
+      dec_data = decipher.update(data, "hex", "utf8");
+      dec_data += decipher.final("utf8");
+    } catch (err) {
+      log.debug(`Error decoding user SK from file ${full_file_name}`);
+      console.log(`Error decoding user SK from file ${full_file_name}`);
+      throw Error(`Error decoding user SK from file ${full_file_name}`);
     }
-    const { abe_pk, admin_rsa_pk, user_abe_sk} = keys;
-    const abe_enc_sk = core.verify_jwt(user_abe_sk, admin_rsa_pk);
-    //TODO controllo d'errore
-    const abe_sk = rsa
-      .decrypt(JSON.stringify(abe_enc_sk), core.get_rsa_keys().sk)
-      .toString("utf-8");
-    core.set_abe_keys(abe_pk, abe_sk);
+
+    const { abe_pk, rsa_admin_pk, user_abe_sk, user_name } = JSON.parse(
+      dec_data
+    );
+    core.set_abe_keys(abe_pk, user_abe_sk);
 
     _conf.keys.abe = core.get_abe_keys();
-    core.set_admin_rsa_pk(admin_rsa_pk);
-    _conf.keys.admin_rsa_pk = admin_rsa_pk;
+    core.set_admin_rsa_pk(rsa_admin_pk);
+    _conf.keys.rsa_admin_pk = rsa_admin_pk;
+    _conf.name = user_name;
     store.set_keys(_conf.keys);
 
-    log.debug(`USER ABE SK RETIEVED` + JSON.stringify(abe_sk));
+    log.debug(`USER ABE SK RETIEVED` + JSON.stringify(user_abe_sk));
 
     // ABE is now configured, we can download files in remote repo
     const remote_repo_file_list = _walk(
@@ -530,29 +644,42 @@ const Abebox = (config_name = "config", name = "") => {
   };
 
   // admin calls this function to send the user ABE sk.
-  const send_abe_user_secret_key = function(
-    user_rsa_pk,
-    attr_list,
-    user_token,
-    file_name
-  ) {
+  const send_abe_user_secret_key = function(attr_list, user_token, username) {
     assert(_conf.isAdmin);
 
     const sk = core.create_user_abe_sk(attr_list, false);
-    const enc_sk = rsa.encrypt(Buffer.from(sk), user_rsa_pk);
-    const abe_enc_sk_jwt = core.generate_jwt(enc_sk);
 
-    const keys = {
+    const user_data = {
       abe_pk: core.get_abe_keys().pk,
-      admin_rsa_pk: core.get_rsa_keys().pk,
-      user_abe_sk: abe_enc_sk_jwt,
+      rsa_admin_pk: core.get_rsa_keys().pk,
+      user_abe_sk: sk,
+      user_name: username,
     };
-    const signature = file_utils.get_hmac(user_token, JSON.toString(keys));
+
+    const sym_key = Buffer.from(user_token, "hex");
+    // Create IV
+    const iv = crypto.randomBytes(16);
+    // Create symmetric cipher
+    const algorithm = "aes-256-gcm";
+    const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
+
+    let enc = cipher.update(JSON.stringify(user_data), "utf8", "hex");
+    enc += cipher.final("hex");
+    const file_name = file_utils.get_hash(user_token).toString("hex");
+
     const data = {
-      keys: keys,
-      sign: signature.toString("hex"),
+      data: enc,
+      iv: iv.toString("hex"),
+      tag: cipher.getAuthTag().toString("hex"),
     };
-    fs.writeFileSync(file_name, JSON.stringify(data));
+
+    const file_path = `${path.join(
+      _conf.remote,
+      keys_dir_rel_path,
+      file_name
+    )}.sk`;
+
+    fs.writeFileSync(file_path, JSON.stringify(data));
     log.debug(`ABE SK SENT WITH TOKEN  ${user_token}`);
   };
 
@@ -669,30 +796,6 @@ const Abebox = (config_name = "config", name = "") => {
       if (file.status == file_status.local_change && file.policy.length != 0) {
         share_local_file(file);
       }
-      // // Decrypt remote files and copy in the local repo
-      // if (file.status == file_status.remote_change) {
-      //   const relative_file_path = file.file_dir + file.file_name;
-      //   log.debug(`SHARE REMOTE FILE  ${relative_file_path}`);
-      //   const enc_file_name = path.join(
-      //     _conf.remote,
-      //     repo_rel_path,
-      //     file.file_id
-      //   );
-      //   const enc_file_name_no_ext = enc_file_name.substring(
-      //     0,
-      //     enc_file_name.lastIndexOf(".")
-      //   );
-      //   core
-      //     .file_decrypt(enc_file_name_no_ext)
-      //     .then(() => {
-      //       file.status = file_status.sync;
-      //       store.set_files(files_list);
-      //     })
-      //     .catch((err) => {
-      //       log.debug("ERROR IN SYNC REMOTE FILE");
-      //       throw Error(`Error ${err} decrypting remote file ${file.file_id}`);
-      //     });
-      // }
     });
     return files_list;
   };
@@ -766,7 +869,7 @@ const Abebox = (config_name = "config", name = "") => {
   const new_user = function(new_obj) {
     const users = store.get_users();
     // Check if already exists
-    const index = users.findIndex((item) => item.mail == new_obj.mail);
+    const index = users.findIndex((item) => item.name == new_obj.name);
     if (index >= 0) {
       throw Error("User already exists");
     } else {
@@ -780,7 +883,7 @@ const Abebox = (config_name = "config", name = "") => {
   const set_user = function(new_obj) {
     const users = store.get_users();
     // Check if already exists
-    const index = users.findIndex((item) => item.mail == new_obj.mail);
+    const index = users.findIndex((item) => item.name == new_obj.name);
     if (index < 0) {
       throw Error("User not present");
     } else {
@@ -793,7 +896,7 @@ const Abebox = (config_name = "config", name = "") => {
   const invite_user = function(user) {
     const users = store.get_users();
     // Check if already exists
-    const index = users.findIndex((el) => el.mail == user.mail);
+    const index = users.findIndex((el) => el.name == user.name);
 
     if (index < 0) {
       throw Error("User not present");
@@ -803,13 +906,20 @@ const Abebox = (config_name = "config", name = "") => {
         users[index].token = token;
         store.set_users(users);
       }
-      return users[index];
+      // write user SK to a file and encrypt with a token
+      send_abe_user_secret_key(
+        attribute.compress_list(users[index].attrs),
+        users[index].token,
+        users[index].name
+      );
+
+      return users[index].token;
     }
   };
 
-  const del_user = function(mail) {
+  const del_user = function(name) {
     const users = store.get_users();
-    const index = users.findIndex((item) => item.mail == mail);
+    const index = users.findIndex((item) => item.name == name);
     // Check if already exists
     if (index < 0) {
       throw Error("User not present");
@@ -825,11 +935,36 @@ const Abebox = (config_name = "config", name = "") => {
     return _conf;
   };
 
+  const get_user_info = function() {
+    let list_attrs = [];
+    try {
+      list_attrs = attribute.get_all();
+    } catch (err) {
+      log.error("Error retrieving Attr in get_user_info " + err.message);
+    }
+    return { num_files: files_list.length, num_attrs: list_attrs.length };
+  };
+
+  const get_admin_info = function() {
+    let list_attrs = [];
+    try {
+      list_attrs = attribute.get_all();
+    } catch (err) {
+      log.error("Error retrieving Attr in get_user_info " + err.message);
+    }
+    return {
+      num_files: files_list.length,
+      num_attrs: list_attrs.length,
+      num_users: get_users().length,
+    };
+  };
+
   _boot();
 
   return {
     stop,
     get_files_list,
+    is_repository,
     set_policy,
     share_single_file,
     share_files,
@@ -844,8 +979,10 @@ const Abebox = (config_name = "config", name = "") => {
     new_user,
     set_user,
     invite_user,
+    get_user_info,
+    get_admin_info,
     del_user,
-    send_user_rsa_pk,
+    // send_user_rsa_pk, // removed with new key exchance
     debug_get_conf, // DEBUG
   };
 };

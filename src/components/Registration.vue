@@ -11,7 +11,13 @@
       @done="handleRegistrationDone"
       @reset="handleReset"
     ></admin-path>
-    <registering v-else-if="status == 3"></registering>
+    <v-overlay :value="registering">
+      <v-progress-circular
+        indeterminate
+        persistent
+        size="64"
+      ></v-progress-circular>
+    </v-overlay>
   </div>
 </template>
 
@@ -21,19 +27,18 @@ const { ipcRenderer } = window.require("electron");
 import StartPage from "./StartPage.vue";
 import UserPath from "../components/user/UserPath.vue";
 import AdminPath from "../components/admin/AdminPath.vue";
-import Registering from "./Registering.vue";
+//import Registering from "./Registering.vue";
 
 export default {
   data: () => ({
-    formdata: {},
     status: 0,
+    registering: false,
   }),
   name: "Registration",
   components: {
     UserPath,
     AdminPath,
     StartPage,
-    Registering,
   },
   mounted() {
     console.log("APP: MLOUNTED");
@@ -50,7 +55,7 @@ export default {
     async handleRegistrationDone(data) {
       console.log("handleRegistrationDone ", data); // the full configurqtion submitted
       const old_status = this.status;
-      this.status = 3; // saving the conf
+      this.registering = true;
 
       let conf;
       if (old_status == 2) {
@@ -83,6 +88,7 @@ export default {
         conf = await this.saveConf(user_conf);
       }
 
+      this.registering = false;
       this.$emit("done", conf);
     },
     async saveConf(new_conf) {
@@ -94,7 +100,7 @@ export default {
       await ipcRenderer.invoke("new-attr", new_attr);
     },
     handleReset() {
-      console.log("handleReset ", handleReset);
+      console.log("handleReset ");
       this.status = 0;
     },
   },
