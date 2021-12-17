@@ -1,10 +1,10 @@
 "use strict";
 
-const crypto = require("crypto");
 const fs = require("fs");
 //const { pipeline } = require("stream/promises");
 const jwt = require("jsonwebtoken");
 
+const aes = require("./aes");
 const fu = require("./file_utils");
 const path = require("path");
 const rabe = require("./rabejs/rabejs.node");
@@ -201,12 +201,11 @@ const AbeboxCore = (log) => {
     const input_file_stream = fs.createReadStream(input_file);
     const output_file_stream = fs.createWriteStream(output_file);
     // Create symmetric key
-    const sym_key = crypto.randomBytes(32);
+    const sym_key = aes.gen_key();
     // Create IV
-    const iv = crypto.randomBytes(16);
+    const iv = aes.gen_iv();
     // Create symmetric cipher
-    const algorithm = "aes-256-cbc";
-    const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
+    const cipher = aes.init_cipher(sym_key, iv);
     // Read data, encrypt it and write the resulting ciphertext
     await promisifiedPipe(input_file_stream.pipe(cipher), output_file_stream);
     //await pipeline(input_file_stream, cipher, output_file_stream);
@@ -226,9 +225,7 @@ const AbeboxCore = (log) => {
     const input_file_stream = fs.createReadStream(input_file);
     const output_file_stream = fs.createWriteStream(output_file);
     // Create symmetric decipher
-    const algorithm = "aes-256-cbc";
-    const decipher = crypto.createDecipheriv(
-      algorithm,
+    const decipher = aes.init_decipher(
       Buffer.from(sym_key, "hex"),
       Buffer.from(iv, "hex")
     );

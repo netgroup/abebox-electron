@@ -2,7 +2,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 
 const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
@@ -12,6 +11,7 @@ const log = electronLog;
 log.transports.console.level = false;
 const envPaths = require("env-paths");
 
+const aes = require("./aes");
 const file_utils = require("./file_utils"); // TODO Rename
 const rsa = require("./rsa"); // TODO Remove
 const AbeboxStore = require("./store"); // local storage
@@ -130,6 +130,8 @@ const Abebox = (config_name = "config", name = "") => {
     attribute.init(attribute_path);
   };
 
+  const _start_
+
   const _start_watchers = function() {
     if (!_configured)
       throw Error("Start Watchers called without configuration");
@@ -148,6 +150,8 @@ const Abebox = (config_name = "config", name = "") => {
         path.join(_conf.remote, attr_rel_path, "*"),
         path.join(_conf.remote, repo_rel_path, ".*"),
         path.join(_conf.remote, repo_rel_path, "*", ".*"),
+        path.join(_conf.remote, repo_rel_path, "*.0"),
+        path.join(_conf.remote, repo_rel_path, "*", "*.0"),
       ],
     });
 
@@ -253,7 +257,6 @@ const Abebox = (config_name = "config", name = "") => {
   };
 
   const handle_local_add = function(file_path) {
-    const fid = uuidv4();
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.local
@@ -264,6 +267,7 @@ const Abebox = (config_name = "config", name = "") => {
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
     if (index < 0) {
+      const fid = uuidv4();
       files_list.push({
         file_dir: rel_dir,
         file_name: filename,
@@ -351,18 +355,27 @@ const Abebox = (config_name = "config", name = "") => {
       _conf.local
     );
     log.debug("HL CH: ", filename, rel_dir);
+    console.log("HL CH: ", file_path, filename, rel_dir);
+
+    console.log("FILE LIST", files_list);
 
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
+    console.log("FILE INFO", files_list[index]);
     if (index >= 0) {
       if (files_list[index].status == file_status.downloaded) {
         files_list[index].status = file_status.sync;
+        console.log("FILE STATUS = SYNC");
       } else {
         files_list[index].status = file_status.local_change;
+        console.log("FILE STATUS = LOCAL CHANGE");
       }
       store.set_files(files_list);
       log.debug(
+        `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+      );
+      console.log(
         `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
       );
       return files_list;
@@ -603,19 +616,22 @@ const Abebox = (config_name = "config", name = "") => {
 
     log.debug(`USER ABE PK RETIEVED`);
 
-    const decipher = crypto.createDecipheriv(
-      "aes-256-gcm",
+    const decipher = aes.init_decipher(
       Buffer.from(user_token, "hex"),
       Buffer.from(iv, "hex")
     );
-    decipher.setAuthTag(Buffer.from(tag, "hex"));
+
+    //decipher.setAuthTag(Buffer.from(tag, "hex"));
 
     try {
-      dec_data = decipher.update(data, "hex", "utf8");
-      dec_data += decipher.final("utf8");
+      dec_data = aes.decrypt(decipher, data, tag);
+      //decipher.update(data, "hex", "utf8");
+      //dec_data += decipher.final("utf8");
     } catch (err) {
       log.debug(`Error decoding user SK from file ${full_file_name}`);
-      console.log(`Error decoding user SK from file ${full_file_name}`);
+      console.log(
+        `Error decoding user SK from file ${full_file_name} - ${err}`
+      );
       throw Error(`Error decoding user SK from file ${full_file_name}`);
     }
 
@@ -658,19 +674,21 @@ const Abebox = (config_name = "config", name = "") => {
 
     const sym_key = Buffer.from(user_token, "hex");
     // Create IV
-    const iv = crypto.randomBytes(16);
+    const iv = aes.gen_iv();
     // Create symmetric cipher
-    const algorithm = "aes-256-gcm";
-    const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
+    //const algorithm = "aes-256-gcm";
+    const cipher = aes.init_cipher(sym_key, iv);
+    //crypto.createCipheriv(algorithm, sym_key, iv);
 
-    let enc = cipher.update(JSON.stringify(user_data), "utf8", "hex");
-    enc += cipher.final("hex");
+    const { ciphertext, tag } = aes.encrypt(cipher, JSON.stringify(user_data));
+    //cipher.update(JSON.stringify(user_data), "utf8", "hex");
+    //enc += cipher.final("hex");
     const file_name = file_utils.get_hash(user_token).toString("hex");
 
     const data = {
-      data: enc,
+      data: ciphertext,
       iv: iv.toString("hex"),
-      tag: cipher.getAuthTag().toString("hex"),
+      tag: tag,
     };
 
     const file_path = `${path.join(
@@ -759,6 +777,7 @@ const Abebox = (config_name = "config", name = "") => {
     const abs_local_file_path = path.join(_conf.local, relative_file_path);
     const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
     log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
+    console.log(`SHARE LOCAL FILE  ${relative_file_path}`);
     core
       .file_encrypt(
         relative_file_path,
@@ -769,6 +788,7 @@ const Abebox = (config_name = "config", name = "") => {
       )
       .catch((err) => {
         log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
+        console.log("ERROR IN SYNC LOCAL FILE " + String(err));
         throw Error(`Error ${err} encrypting local file ${relative_file_path}`);
       });
   };
@@ -794,6 +814,7 @@ const Abebox = (config_name = "config", name = "") => {
       assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
       // Encrypt the local files and copy in the remote repo
       if (file.status == file_status.local_change && file.policy.length != 0) {
+        console.log("SHARING FILE", file);
         share_local_file(file);
       }
     });
