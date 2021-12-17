@@ -20,10 +20,13 @@ const init_cipher = function(key, iv, algo = _default_algorithm) {
   return crypto.createCipheriv(algo, key, iv);
 };
 
-const init_decipher = function(key, iv, algo = _default_algorithm) {
+const init_decipher = function(key, iv, tag, algo = _default_algorithm) {
   if (!key) throw Error("AES Decipher: invalid key!");
   if (!iv) throw Error("AES Decipher: invalid IV!");
-  return crypto.createDecipheriv(algo, key, iv);
+  if (!tag) throw Error("AES Decipher: invalid tag!");
+  const decipher = crypto.createDecipheriv(algo, key, iv);
+  decipher.setAuthTag(tag);
+  return decipher;
 };
 
 const encrypt = function(cipher, plaintext) {
@@ -41,11 +44,9 @@ const encrypt = function(cipher, plaintext) {
   }
 };
 
-const decrypt = function(decipher, ciphertext, tag) {
+const decrypt = function(decipher, ciphertext) {
   if (!decipher) throw Error("AES Decrypt: invalid decipher!");
   if (!ciphertext) throw Error("AES Decrypt: invalid ciphertext!");
-  if (!tag) throw Error("AES Decrypt: invalid tag!");
-  decipher.setAuthTag(Buffer.from(tag, "hex"));
   try {
     let dec_data = decipher.update(ciphertext, "hex", "utf8");
     dec_data += decipher.final("utf8");
@@ -57,7 +58,7 @@ const decrypt = function(decipher, ciphertext, tag) {
 
 const get_tag = function(cipher) {
   if (!cipher) throw Error("AES Tag: invalid cipher!");
-  return cipher.getAuthTag().toString("hex");
+  return cipher.getAuthTag();
 };
 
 module.exports = {

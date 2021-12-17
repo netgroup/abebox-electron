@@ -130,8 +130,6 @@ const Abebox = (config_name = "config", name = "") => {
     attribute.init(attribute_path);
   };
 
-  const _start_
-
   const _start_watchers = function() {
     if (!_configured)
       throw Error("Start Watchers called without configuration");
@@ -309,9 +307,10 @@ const Abebox = (config_name = "config", name = "") => {
     // we discard files without .abebox extensions since they are just
     // fragments.
     if (file_ext != "abebox") return files_list;
-    const { file_name, sym_key, iv, policy } = core.retrieve_metadata(
+    const { file_name, sym_key, iv, tag, policy } = core.retrieve_metadata(
       file_path
     );
+
     if (file_name === null) {
       // if metadata.file_path is null, decoding was not possible
       throw Error("Metadata file name is empty");
@@ -323,7 +322,7 @@ const Abebox = (config_name = "config", name = "") => {
       const {
         plaintext_file_folder,
         plaintext_file_name,
-      } = await download_file(file_name, file_path, sym_key, iv);
+      } = await download_file(file_name, file_path, sym_key, iv, tag);
       assert(plaintext_file_name);
       files_list.push({
         file_dir: plaintext_file_folder,
@@ -355,27 +354,18 @@ const Abebox = (config_name = "config", name = "") => {
       _conf.local
     );
     log.debug("HL CH: ", filename, rel_dir);
-    console.log("HL CH: ", file_path, filename, rel_dir);
-
-    console.log("FILE LIST", files_list);
 
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
-    console.log("FILE INFO", files_list[index]);
     if (index >= 0) {
       if (files_list[index].status == file_status.downloaded) {
         files_list[index].status = file_status.sync;
-        console.log("FILE STATUS = SYNC");
       } else {
         files_list[index].status = file_status.local_change;
-        console.log("FILE STATUS = LOCAL CHANGE");
       }
       store.set_files(files_list);
       log.debug(
-        `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
-      );
-      console.log(
         `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
       );
       return files_list;
@@ -400,7 +390,7 @@ const Abebox = (config_name = "config", name = "") => {
     // fragments.
     if (file_ext != "abebox") return files_list;
 
-    const { file_name, sym_key, iv } = core.retrieve_metadata(file_path);
+    const { file_name, sym_key, iv, tag } = core.retrieve_metadata(file_path);
 
     if (file_name === null) {
       // if metadata.file_path is null, decoding was not possible
@@ -414,7 +404,7 @@ const Abebox = (config_name = "config", name = "") => {
         files_list[index].status == file_status.local_change // TODO errore
       ) {
         // REMOTE EVENT
-        download_file(file_name, file_path, sym_key, iv); // it's an async function
+        download_file(file_name, file_path, sym_key, iv, tag); // it's an async function
         files_list[index].status = file_status.downloaded;
       } else {
         log.error("Handle remote change bad file status " + file_name);
@@ -490,7 +480,7 @@ const Abebox = (config_name = "config", name = "") => {
     return false;
   };
 
-  const download_file = async function(file_name, file_path, sym_key, iv) {
+  const download_file = async function(file_name, file_path, sym_key, iv, tag) {
     // separate folder and name of the encrypted file
     log.debug("FN ", file_name);
     log.debug("FP ", file_path);
@@ -518,7 +508,8 @@ const Abebox = (config_name = "config", name = "") => {
       encrypted_content_file,
       path.join(_conf.local, file_name),
       sym_key,
-      iv
+      iv,
+      tag
     );
     return {
       plaintext_file_folder,
@@ -614,24 +605,22 @@ const Abebox = (config_name = "config", name = "") => {
       fs.readFileSync(full_file_name, "utf-8")
     );
 
-    log.debug(`USER ABE PK RETIEVED`);
+    log.debug(`USER ABE PK RETRIEVED`);
 
     const decipher = aes.init_decipher(
       Buffer.from(user_token, "hex"),
-      Buffer.from(iv, "hex")
+      Buffer.from(iv, "hex"),
+      Buffer.from(tag, "hex"),
     );
 
     //decipher.setAuthTag(Buffer.from(tag, "hex"));
 
     try {
-      dec_data = aes.decrypt(decipher, data, tag);
+      dec_data = aes.decrypt(decipher, data);
       //decipher.update(data, "hex", "utf8");
       //dec_data += decipher.final("utf8");
     } catch (err) {
-      log.debug(`Error decoding user SK from file ${full_file_name}`);
-      console.log(
-        `Error decoding user SK from file ${full_file_name} - ${err}`
-      );
+      log.debug(`Error decoding user SK from file ${full_file_name} - ${err}`);
       throw Error(`Error decoding user SK from file ${full_file_name}`);
     }
 
@@ -711,7 +700,8 @@ const Abebox = (config_name = "config", name = "") => {
       if (fs.statSync(full_path).isDirectory()) {
         filelist = _walk(full_path, filelist);
       } else {
-        filelist.push(file);
+        const last_dot = file.lastIndexOf(".");
+        if (file.substring(last_dot) != "0") filelist.push(file);
       }
     });
     return filelist;
@@ -777,7 +767,6 @@ const Abebox = (config_name = "config", name = "") => {
     const abs_local_file_path = path.join(_conf.local, relative_file_path);
     const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
     log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
-    console.log(`SHARE LOCAL FILE  ${relative_file_path}`);
     core
       .file_encrypt(
         relative_file_path,
@@ -788,7 +777,6 @@ const Abebox = (config_name = "config", name = "") => {
       )
       .catch((err) => {
         log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
-        console.log("ERROR IN SYNC LOCAL FILE " + String(err));
         throw Error(`Error ${err} encrypting local file ${relative_file_path}`);
       });
   };
@@ -814,7 +802,6 @@ const Abebox = (config_name = "config", name = "") => {
       assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
       // Encrypt the local files and copy in the remote repo
       if (file.status == file_status.local_change && file.policy.length != 0) {
-        console.log("SHARING FILE", file);
         share_local_file(file);
       }
     });

@@ -144,6 +144,7 @@ const AbeboxCore = (log) => {
     output_file,
     sym_key,
     iv,
+    tag,
     policy
   ) {
     if (!_conf.abe_init) throw Error("ABE Not initialized");
@@ -167,6 +168,7 @@ const AbeboxCore = (log) => {
     const metadata = {
       enc_metadata: enc_metadata,
       iv: iv,
+      tag: tag,
     };
     // Write metadata on file
     fs.writeFileSync(output_file, JSON.stringify(metadata));
@@ -178,7 +180,7 @@ const AbeboxCore = (log) => {
     // Read raw metadata
     const raw_metadata = fs.readFileSync(input_metadata_file, "utf-8");
     // Read metadata
-    const { enc_metadata, iv } = JSON.parse(raw_metadata);
+    const { enc_metadata, iv, tag } = JSON.parse(raw_metadata);
     const policy = JSON.parse(enc_metadata)._policy[0];
     // Decrypt the encrypted ones
     const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
@@ -192,6 +194,7 @@ const AbeboxCore = (log) => {
       file_name: file_name_converted,
       sym_key,
       iv,
+      tag,
       policy,
     };
   };
@@ -212,6 +215,7 @@ const AbeboxCore = (log) => {
     return {
       sym_key: sym_key.toString("hex"),
       iv: iv.toString("hex"),
+      tag: aes.get_tag(cipher).toString("hex"),
     };
   };
 
@@ -219,7 +223,8 @@ const AbeboxCore = (log) => {
     input_file,
     output_file,
     sym_key,
-    iv
+    iv,
+    tag
   ) {
     if (!fs.existsSync(input_file)) throw Error(`${input_file} does not exist`);
     const input_file_stream = fs.createReadStream(input_file);
@@ -227,7 +232,8 @@ const AbeboxCore = (log) => {
     // Create symmetric decipher
     const decipher = aes.init_decipher(
       Buffer.from(sym_key, "hex"),
-      Buffer.from(iv, "hex")
+      Buffer.from(iv, "hex"),
+      Buffer.from(tag, "hex")
     );
     // Read data, decrypt it and write the resulting plaintext
     //await pipeline(input_file_stream, decipher, output_file_stream)
@@ -279,7 +285,7 @@ const AbeboxCore = (log) => {
       ciphertext_file
     )}.0`;
     // File content symmetric encryption
-    const { sym_key, iv } = await create_encrypted_file(
+    const { sym_key, iv, tag } = await create_encrypted_file(
       abs_plaintext_file,
       encrypted_content_file
     );
@@ -289,6 +295,7 @@ const AbeboxCore = (log) => {
       metadata_file,
       sym_key,
       iv,
+      tag,
       policy
     );
     return metadata_file;
