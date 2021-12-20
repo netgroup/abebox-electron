@@ -1,7 +1,8 @@
 {
-  "name": "Abebox",
+  "name": "ABEBox",
   "version": "0.1.0",
   "private": true,
+  "author": "ABEBox Development Team <abebox@uniroma2.it>",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build:rabe": "cd src/abebox/rabejs && cargo-cp-artifact -ac rabejs rabejs.node -- cargo build --message-format=json-render-diagnostics",

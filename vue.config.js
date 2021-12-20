@@ -58,6 +58,15 @@ module.exports = {
       dmg: {
         icon: "build/icons/icon.icns",
       },
+      /*linux: {
+        target: "build/icons/icon.icns",
+      },*/
+      linux: {
+        target: [   {
+          target: "deb",
+          arch: [  "x64" ]
+        } ],
+      },
 
       chainWebpackMainProcess: (config) => {
         config.module
