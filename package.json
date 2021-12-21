@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "author": "ABEBox Development Team <abebox@uniroma2.it>",
+  "homepage": "http://abebox.netgroup.uniroma2.it/",
+  "description": "ABEBox provides end-to-end encryption on top of your file sharing service (e.g., Dropbox, Google Drive, Owncloud,...) using Attribute-Based Encryption. It allows you to share files within your favourite service in a secure way by also defining a fine-grained access policy to manage the access to your files without any third party. ABEBox is an ElectronJS application based on VueJS and NodeJS, that makes use of the Rust ABE library Rabe",
+  "keywords": ["Attribute-Based Encryption", "NodeJS", "End-to-end encryption", "Access control"],
   "scripts": {
     "serve": "vue-cli-service serve",
     "build:rabe": "cd src/abebox/rabejs && cargo-cp-artifact -ac rabejs rabejs.node -- cargo build --message-format=json-render-diagnostics",
