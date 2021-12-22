@@ -468,22 +468,24 @@ describe("Abebox Tests", () => {
     assert.equal(file_list2.length, file_list.length);
   }).timeout(25000);
   it("user creates and shares a test file", async () => {
-    const file_list_len = user_abebox.get_files_list().length();
+    const file_list_len = user_abebox.get_files_list().length;
     // create a new file on user local
     const test_content = "Other test file created on " + new Date();
     fs.writeFileSync(abs_plaintext_user_file_path_2, test_content);
 
     await delay(4000); // wait 4s for watcher file detection
 
-    const file_list2 = user_abebox.get_files_list();
+    const file_list2 = user_abebox.get_files_list()
+    const file_list2_len = file_list2.length;
 
-    console.log(file_list2);
+
+    //console.log(file_list2_len);
 
     const my_file = file_list2.find(
       (el) => el.file_name == plaintext_filename_2
     );
     assert.ok(my_file);
-    assert.equal(file_list2.length, file_list.length + 1);
+    assert.equal(file_list2_len, file_list_len + 1);
 
     // assign a policy and share with the admin
     const admin_attributes = admin_abebox.get_attrs();
@@ -498,8 +500,8 @@ describe("Abebox Tests", () => {
 
     await delay(8000); // wait 4s for watcher file detection
 
-    const file_list3 = user_abebox.get_files_list();
-    assert.equal(file_list3.length, file_list2.length);
+    const file_list3_len = user_abebox.get_files_list().length;
+    assert.equal(file_list3_len, file_list2_len);
 
     // admin should be able to retrive the content
     const admin_test_file_content = fs.readFileSync(
@@ -510,15 +512,15 @@ describe("Abebox Tests", () => {
     assert.equal(admin_test_file_content, test_content);
   }).timeout(20000);
   it("user deletes a file", async () => {
-    const file_list = user_abebox.get_files_list();
+    const file_list_len = user_abebox.get_files_list().length;
     // delete a file on user
     assert.ok(fs.existsSync(abs_plaintext_file_path_2));
     fs.rmSync(abs_plaintext_user_file_path_2);
     //wait
     await delay(12000);
 
-    const file_list2 = user_abebox.get_files_list();
-    assert.equal(file_list2, file_list - 1);
+    const file_list2_len = user_abebox.get_files_list().length;
+    assert.equal(file_list2_len, file_list_len - 1);
     
     // check if also the admin has such file removed
     assert.ok(!fs.existsSync(abs_plaintext_file_path_2));
