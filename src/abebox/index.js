@@ -323,9 +323,7 @@ const Abebox = (config_name = "config", name = "") => {
       );
 
       // search if file has been already added in the file list
-      const index = await Promise.all(
-        files_list.findIndex((el) => el.file_id === file_id)
-      );
+      const index = files_list.findIndex((el) => el.file_id === file_id);
       if (index < 0) {
         // REMOTE EVENT
         const {
