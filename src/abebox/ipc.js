@@ -160,6 +160,12 @@ export default {
       return await abebox.invite_user(user_mail); // mail is a name!
     });
 
+    ipcMain.handle("reset-abebox", async (event, data) => {
+      await abebox.reset_config(); // return file list
+      win.close();
+      return {};
+    });
+
     /* UTILITY API */
     ipcMain.handle("select-local-folder", async (event) => {
       const result = select_local_folder();

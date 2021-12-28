@@ -474,7 +474,12 @@ const Abebox = (config_name = "config", name = "") => {
     if (dir.includes(`${keys_dir_rel_path}${path.sep}`)) {
       log.debug(`DETECTED ABE USER KEY FILE`);
       if (!_conf.isAdmin) {
-        retrieve_abe_secret_key(file_path, _conf.token);
+        const expected_file_name = file_utils
+          .get_hash(_conf.token)
+          .toString("hex");
+        if (filename.includes(expected_file_name)) {
+          retrieve_abe_secret_key(file_path, _conf.token);
+        }
       }
       return true;
     }
