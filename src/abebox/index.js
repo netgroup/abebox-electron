@@ -314,46 +314,50 @@ const Abebox = (config_name = "config", name = "") => {
     const [file_id, file_ext] = filename.split(".");
     // we discard files without .abebox extensions since they are just
     // fragments.
-    if (file_ext != "abebox") return files_list;
-    const { file_name, sym_key, iv, tag, policy } = core.retrieve_metadata(
-      file_path
-    );
 
-    if (file_name === null) {
+    if (file_ext != "abebox") return files_list;
+
+    try {
+      const { file_name, sym_key, iv, tag, policy } = core.retrieve_metadata(
+        file_path
+      );
+
+      // search if file has been already added in the file list
+      const index = files_list.findIndex((el) => el.file_id === file_id);
+      if (index < 0) {
+        // REMOTE EVENT
+        const {
+          plaintext_file_folder,
+          plaintext_file_name,
+        } = await download_file(file_name, file_path, sym_key, iv, tag);
+        assert(plaintext_file_name);
+        files_list.push({
+          file_dir: plaintext_file_folder,
+          file_name: plaintext_file_name,
+          file_id: file_id,
+          policy: attribute.policy_from_string(policy),
+          status: file_status.downloaded,
+        });
+      } else {
+        if (files_list[index].status === file_status.local_change) {
+          throw Error("Bad File status - local change in remote add");
+          files_list[index].status = file_status.sync;
+        } else {
+          /*const {
+      plaintext_file_folder,
+      plaintext_file_name,
+    } = await download_file(file_name, file_path, sym_key, iv);
+    files_list[index].status = file_status.downloaded;*/
+        }
+        // TRIGGERED BY LOCAL ADD
+      }
+      store.set_files(files_list);
+      log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
+    } catch (err) {
       log.debug(`File ${filename} decrypt failed`);
       return;
     }
-    // search if file has been already added in the file list
-    const index = files_list.findIndex((el) => el.file_id === file_id);
-    if (index < 0) {
-      // REMOTE EVENT
-      const {
-        plaintext_file_folder,
-        plaintext_file_name,
-      } = await download_file(file_name, file_path, sym_key, iv, tag);
-      assert(plaintext_file_name);
-      files_list.push({
-        file_dir: plaintext_file_folder,
-        file_name: plaintext_file_name,
-        file_id: file_id,
-        policy: attribute.policy_from_string(policy),
-        status: file_status.downloaded,
-      });
-    } else {
-      if (files_list[index].status === file_status.local_change) {
-        throw Error("Bad File status - local change in remote add");
-        files_list[index].status = file_status.sync;
-      } else {
-        /*const {
-          plaintext_file_folder,
-          plaintext_file_name,
-        } = await download_file(file_name, file_path, sym_key, iv);
-        files_list[index].status = file_status.downloaded;*/
-      }
-      // TRIGGERED BY LOCAL ADD
-    }
-    store.set_files(files_list);
-    log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
+
     return files_list;
   };
 
@@ -548,7 +552,7 @@ const Abebox = (config_name = "config", name = "") => {
 
     const signature = file_utils.get_hmac(
       _conf.token,
-      rsa_keys.pk + _conf.name
+      rsa_keys.pk //+ _conf.name
     );
 
     const data = {
@@ -582,7 +586,7 @@ const Abebox = (config_name = "config", name = "") => {
       const sign = data.sign;
       const signature = file_utils.get_hmac(
         users[index].token,
-        rsa_pk + users[index].name
+        rsa_pk //+ users[index].name
       );
       if (sign == signature.toString("hex")) {
         // Add pub key to the specific user and update users list
