@@ -293,7 +293,7 @@ const Abebox = (config_name = "config", name = "") => {
       file_path,
       _conf.remote
     );
-    log.debug("HR ADD: ", filename, rel_dir);
+    log.debug("HR ADD: ", filename, rel_dir, JSON.stringify(files_list));
 
     const index_lf = files_list.findIndex((el) =>
       filename.includes(el.file_id)
@@ -661,8 +661,8 @@ const Abebox = (config_name = "config", name = "") => {
       []
     );
     // rescan the whole repo now that we have the right key
-    remote_repo_file_list.forEach((file) => {
-      handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
+    remote_repo_file_list.forEach(async (file) => {
+      await handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
     });
   };
 

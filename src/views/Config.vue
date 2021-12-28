@@ -66,7 +66,6 @@ export default {
       this.local = this.$store.state.conf.local;
     },
   },
-  created: {},
   methods: {
     async resetAbebox() {
       await ipcRenderer.invoke("reset-abebox", "");
