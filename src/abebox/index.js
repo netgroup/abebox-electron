@@ -559,6 +559,7 @@ const Abebox = (config_name = "config", name = "") => {
       rsa_pub_key: rsa_keys.pk,
       sign: signature.toString("hex"),
     };
+
     const key_filename = path.join(
       _conf.remote,
       pk_dir_rel_path,
@@ -588,6 +589,7 @@ const Abebox = (config_name = "config", name = "") => {
         users[index].token,
         rsa_pk //+ users[index].name
       );
+
       if (sign == signature.toString("hex")) {
         // Add pub key to the specific user and update users list
         users[index].rsa_pub_key = rsa_pk;
