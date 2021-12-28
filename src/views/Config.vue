@@ -61,9 +61,12 @@ export default {
   }),
   watch: {
     "$store.state.conf": function() {
-      console.log("New conf: ", this.$store.state.conf);
+      this.remote = this.$store.state.conf.remote;
+      this.name = this.$store.state.conf.name;
+      this.local = this.$store.state.conf.local;
     },
   },
+  created: {},
   methods: {
     async resetAbebox() {
       await ipcRenderer.invoke("reset-abebox", "");
