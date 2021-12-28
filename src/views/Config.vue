@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pb-0">
+  <v-container class="main-page pb-0">
     <v-row>
       <v-dialog v-model="errorDialog" persistent max-width="500">
         <v-card>
