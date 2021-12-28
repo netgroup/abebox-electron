@@ -332,7 +332,7 @@ const Abebox = (config_name = "config", name = "") => {
         status: file_status.downloaded,
       });
     } else {
-      if ((files_list[index].status = file_status.local_change)) {
+      if (files_list[index].status === file_status.local_change) {
         throw Error("Bad File status - local change in remote add");
         files_list[index].status = file_status.sync;
       } else {
