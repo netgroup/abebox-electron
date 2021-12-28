@@ -199,6 +199,8 @@ export default {
       console.log("USERSTEP2: ", this.folder_local, this.folder_shared);
       if (!this.folder_local || !this.folder_shared) {
         console.log("USERSTEP2: ERROR"); //TODO
+        this.errorText = "You must select both remote and locval folder";
+        this.errorDialog = true;
         return;
       }
       const data = {

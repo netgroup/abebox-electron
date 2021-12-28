@@ -1,9 +1,20 @@
 <template>
   <v-container class="admin-step-1 pb-0 pt-5">
     <v-row class="text-center">
-      <!--<v-col cols="12">
-        <v-img :src="require('../assets/img/logo.png')" contain height="65" />
-      </v-col>-->
+      <v-dialog v-model="errorDialog" persistent max-width="500">
+        <v-card>
+          <v-card-title class="text-h5 orange--text">
+            Warning
+          </v-card-title>
+          <v-card-text class="text-body-1">{{ errorText }}</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="warning darken-1" @click="errorDialog = false">
+              OK
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <v-col class="mt-0 mb-0" offset="3" cols="6">
         <p class="body-2 font-weight-bold mb-0">STEP #2</p>
         <div class="text-h5 font-weight-bold">Configure your folders</div>
@@ -194,7 +205,14 @@ export default {
     async selectRemote() {
       const folder = await ipcRenderer.invoke("select-remote-folder");
       console.log(folder);
-      if (!folder.canceled) this.folder_shared = folder.filePaths[0];
+      if (!folder.canceled) {
+        if (folder.isEmpty) {
+          this.folder_shared = folder.filePaths[0];
+        } else {
+          this.errorText = "Remote folder must be empty";
+          this.errorDialog = true;
+        }
+      }
     },
     async selectLocal() {
       const folder = await ipcRenderer.invoke("select-local-folder");
