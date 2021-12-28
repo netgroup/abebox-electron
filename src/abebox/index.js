@@ -903,51 +903,56 @@ const Abebox = (config_name = "config", name = "") => {
 
   const new_user = function(new_obj) {
     const users = store.get_users();
-    // Check if already exists
-    const index = users.findIndex((item) => item.name == new_obj.name);
-    if (index >= 0) {
-      throw Error("User already exists");
-    } else {
-      // Add new
-      users.push(new_obj);
-      store.set_users(users);
+    if (new_obj.name != "") {
+      // Check if already exists
+      const index = users.findIndex((item) => item.name == new_obj.name);
+      if (index >= 0) {
+        throw Error("User already exists");
+      } else {
+        // Add new
+        users.push(new_obj);
+        store.set_users(users);
+      }
     }
     return users;
   };
 
   const set_user = function(new_obj) {
     const users = store.get_users();
-    // Check if already exists
-    const index = users.findIndex((item) => item.name == new_obj.name);
-    if (index < 0) {
-      throw Error("User not present");
-    } else {
-      users[index] = new_obj;
-      store.set_users(users);
+    if (new_obj.name != "") {
+      // Check if already exists
+      const index = users.findIndex((item) => item.name == new_obj.name);
+      if (index < 0) {
+        throw Error("User not present");
+      } else {
+        users[index] = new_obj;
+        store.set_users(users);
+      }
     }
     return users;
   };
 
   const invite_user = function(user) {
     const users = store.get_users();
-    // Check if already exists
-    const index = users.findIndex((el) => el.name == user.name);
+    if (user.name != "") {
+      // Check if already exists
+      const index = users.findIndex((el) => el.name == user.name);
 
-    if (index < 0) {
-      throw Error("User not present");
-    } else {
-      if (!users[index].token) {
-        const token = file_utils.get_random(32).toString("hex");
-        users[index].token = token;
-        store.set_users(users);
+      if (index < 0) {
+        throw Error("User not present");
+      } else {
+        if (!users[index].token) {
+          const token = file_utils.get_random(32).toString("hex");
+          users[index].token = token;
+          store.set_users(users);
+        }
+        // write user SK to a file and encrypt with a token
+        send_abe_user_secret_key(
+          attribute.compress_list(users[index].attrs),
+          users[index].token,
+          users[index].name
+        );
       }
-      // write user SK to a file and encrypt with a token
-      send_abe_user_secret_key(
-        attribute.compress_list(users[index].attrs),
-        users[index].token,
-        users[index].name
-      );
-
       return users[index].token;
     }
   };
