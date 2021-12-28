@@ -295,6 +295,14 @@ const Abebox = (config_name = "config", name = "") => {
     );
     log.debug("HR ADD: ", filename, rel_dir);
 
+    const index_lf = files_list.findIndex((el) =>
+      filename.includes(el.file_id)
+    );
+    if (index_lf > 0) {
+      log.debug(`File ${filename} already in the file list`);
+      return;
+    }
+
     if (handle_key_files(rel_dir, file_path, filename)) {
       return;
     }
@@ -312,8 +320,8 @@ const Abebox = (config_name = "config", name = "") => {
     );
 
     if (file_name === null) {
-      // if metadata.file_path is null, decoding was not possible
-      throw Error("Metadata file name is empty");
+      log.debug(`File ${filename} decrypt failed`);
+      return;
     }
     // search if file has been already added in the file list
     const index = files_list.findIndex((el) => el.file_id === file_id);
