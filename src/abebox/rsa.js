@@ -3,6 +3,10 @@
 const fs = require("fs");
 const crypto = require("crypto");
 
+/**
+ * Generate a new RSA key pair
+ * @returns the key pair
+ */
 const create_keys = function() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
@@ -19,13 +23,16 @@ const create_keys = function() {
       */
     },
   });
-
   return {
     publicKey,
     privateKey,
   };
 };
 
+/**
+ * Get the RSA public key; if it does not exist, a new key pair is generated
+ * @returns the public key
+ */
 const getPubKey = function() {
   return fs.existsSync(rsa_pub_key_path)
     ? fs.readFileSync(rsa_pub_key_path)
@@ -43,21 +50,19 @@ const getPubKey = function() {
 };*/
 
 /**
- * Encrypt the specified data with RSA using the specified public key
+ * Encrypt the given data with RSA using the given public key
  * @param {Buffer} data_buffer data to encrypt
  * @param {} publicKey RSA public key
  * @returns encrypted data
  */
-
 const encrypt = function(data_buffer, publicKey) {
   // Perform encryption
-  // 1. generate random sym key
+  // 1. Initialise the cipher
   const sym_key = crypto.randomBytes(32);
   const iv = crypto.randomBytes(16);
   const algorithm = "aes-256-cbc";
   const cipher = crypto.createCipheriv(algorithm, sym_key, iv);
-
-  // 2. encrypt sym key
+  // 2. Encrypt the data
   const enc_sym_key = crypto.publicEncrypt(
     {
       key: publicKey,
@@ -66,14 +71,12 @@ const encrypt = function(data_buffer, publicKey) {
     },
     sym_key
   );
-
-  // 3. encrypt buf with sym key
+  // 3. Create the ciphertext
   const enc_payload = Buffer.concat([
     cipher.update(data_buffer),
     cipher.final(),
   ]);
-
-  // 4. return enc sym key + enc buf
+  // 4. Return the ciphertext and the cryptographic parameters
   return JSON.stringify({
     enc_sym_key,
     iv,
@@ -82,19 +85,16 @@ const encrypt = function(data_buffer, publicKey) {
 };
 
 /**
- * Decrypt the specified data with RSA using the specified private key
+ * Decrypt the given encrypted data with RSA using the given private key
  * @param {Buffer} enc_data_buffer encrypted data to decrypt
  * @param {} privateKey RSA private key
  * @returns decrypted data
  */
 const decrypt = function(enc_data_buffer, privateKey) {
   // Perform encryption
-
-  // 1. extract sym key
+  // 1. Extract the ciphertext and the cryptographic parameters
   const { enc_sym_key, iv, enc_payload } = JSON.parse(enc_data_buffer);
-
-  //2. decrypt the sym key
-
+  //2. Initialise the decipher
   const sym_key = crypto.privateDecrypt(
     {
       key: privateKey,
@@ -103,7 +103,6 @@ const decrypt = function(enc_data_buffer, privateKey) {
     },
     Buffer.from(enc_sym_key)
   );
-
   // 3. decrypt the content
   const algorithm = "aes-256-cbc";
   const decipher = crypto.createDecipheriv(
