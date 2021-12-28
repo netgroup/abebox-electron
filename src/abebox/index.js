@@ -333,13 +333,14 @@ const Abebox = (config_name = "config", name = "") => {
       });
     } else {
       if ((files_list[index].status = file_status.local_change)) {
+        throw Error("Bad File status - local change in remote add");
         files_list[index].status = file_status.sync;
       } else {
-        const {
+        /*const {
           plaintext_file_folder,
           plaintext_file_name,
         } = await download_file(file_name, file_path, sym_key, iv);
-        files_list[index].status = file_status.downloaded;
+        files_list[index].status = file_status.downloaded;*/
       }
       // TRIGGERED BY LOCAL ADD
     }
@@ -610,7 +611,7 @@ const Abebox = (config_name = "config", name = "") => {
     const decipher = aes.init_decipher(
       Buffer.from(user_token, "hex"),
       Buffer.from(iv, "hex"),
-      Buffer.from(tag, "hex"),
+      Buffer.from(tag, "hex")
     );
 
     //decipher.setAuthTag(Buffer.from(tag, "hex"));
@@ -788,6 +789,11 @@ const Abebox = (config_name = "config", name = "") => {
     } else {
       if (files_list[index].status == file_status.local_change) {
         share_local_file(files_list[index]);
+        files_list[index].status = file_status.sync;
+        store.set_files(files_list);
+        log.debug(
+          `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+        );
       } else {
         return {
           status: "error",

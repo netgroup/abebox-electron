@@ -2,9 +2,9 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import Users from "../views/Users.vue";
+import Config from "../views/Config.vue";
 import Attributes from "../views/Attributes.vue";
 import Documents from "../views/Documents.vue";
-import Repository from "../views/Repository.vue";
 
 Vue.use(VueRouter);
 
@@ -29,7 +29,11 @@ const routes = [
     name: "Attributes",
     component: Attributes,
   },
-  ,
+  {
+    path: "/config",
+    name: "Config",
+    component: Config,
+  },
   {
     path: "/users",
     name: "Users",

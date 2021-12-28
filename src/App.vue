@@ -106,6 +106,11 @@ export default {
             route: "/users",
           });
         }
+        this.items.push({
+          title: "Config",
+          icon: "mdi-cog-outline",
+          route: "/config",
+        });
       }
     },
   },
