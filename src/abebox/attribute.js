@@ -73,16 +73,18 @@ const AttributeManager = (core) => {
    */
   const add = function(new_attr) {
     const attrs_list = get_all();
-    // Check if already exists
-    const index = attrs_list.findIndex(
-      (item) => _get_attr_id(item) == _get_attr_id(new_attr)
-    );
-    if (index >= 0) {
-      throw Error("Attribute already exists");
-    } else {
-      // Add new
-      attrs_list.push(new_attr);
-      _save(attrs_list);
+    if (new_attr.univ != "" && new_attr.attr != "" && new_attr.vers != "") {
+      // Check if already exists
+      const index = attrs_list.findIndex(
+        (item) => _get_attr_id(item) == _get_attr_id(new_attr)
+      );
+      if (index >= 0) {
+        throw Error("Attribute already exists");
+      } else {
+        // Add new
+        attrs_list.push(new_attr);
+        _save(attrs_list);
+      }
     }
     return attrs_list;
   };
@@ -96,15 +98,17 @@ const AttributeManager = (core) => {
   const set = function(old_attr, new_attr) {
     // Check if already exists
     const attrs_list = get_all();
-    const index = attrs_list.findIndex(
-      (item) => _get_attr_id(item) == _get_attr_id(old_attr)
-    );
-    if (index < 0) {
-      throw Error("Attribute not present");
-    } else {
-      // Replace
-      attrs_list[index] = new_attr;
-      _save(attrs_list);
+    if (new_attr.univ != "" && new_attr.attr != "" && new_attr.vers != "") {
+      const index = attrs_list.findIndex(
+        (item) => _get_attr_id(item) == _get_attr_id(old_attr)
+      );
+      if (index < 0) {
+        throw Error("Attribute not present");
+      } else {
+        // Replace
+        attrs_list[index] = new_attr;
+        _save(attrs_list);
+      }
     }
     return attrs_list;
   };
