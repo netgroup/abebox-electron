@@ -644,10 +644,16 @@ const Abebox = (config_name = "config", name = "") => {
       path.join(_conf.remote, repo_rel_path),
       []
     );
-    // rescan the whole repo now that we have the right key
-    remote_repo_file_list.forEach(async (file) => {
-      await handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
+    
+    
+    setTimeout(()=>{
+          // rescan the whole repo now that we have the right key
+      remote_repo_file_list.forEach((file) => {
+      handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
     });
+
+    },3000)
+
   };
 
   // admin calls this function to send the user ABE sk.
