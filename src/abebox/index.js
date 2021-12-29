@@ -295,14 +295,6 @@ const Abebox = (config_name = "config", name = "") => {
     );
     log.debug("HR ADD: ", filename, rel_dir, JSON.stringify(files_list));
 
-    const index_lf = files_list.findIndex((el) =>
-      filename.includes(el.file_id)
-    );
-    if (index_lf > 0) {
-      log.debug(`File ${filename} already in the file list`);
-      return;
-    }
-
     if (handle_key_files(rel_dir, file_path, filename)) {
       return;
     }
@@ -325,7 +317,7 @@ const Abebox = (config_name = "config", name = "") => {
       // search if file has been already added in the file list
       const index = files_list.findIndex((el) => el.file_id === file_id);
       if (index < 0) {
-        // REMOTE EVENT
+        // not in the file list!!!
         const {
           plaintext_file_folder,
           plaintext_file_name,
@@ -339,17 +331,7 @@ const Abebox = (config_name = "config", name = "") => {
           status: file_status.downloaded,
         });
       } else {
-        if (files_list[index].status === file_status.local_change) {
-          throw Error("Bad File status - local change in remote add");
-          files_list[index].status = file_status.sync;
-        } else {
-          /*const {
-      plaintext_file_folder,
-      plaintext_file_name,
-    } = await download_file(file_name, file_path, sym_key, iv);
-    files_list[index].status = file_status.downloaded;*/
-        }
-        // TRIGGERED BY LOCAL ADD
+        files_list[index].policy = attribute.policy_from_string(policy);
       }
       store.set_files(files_list);
       log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
