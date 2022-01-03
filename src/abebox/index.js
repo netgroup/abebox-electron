@@ -1,4 +1,6 @@
 "use strict";
+// levare stato downloaded
+// usare MD5: local_add diventi local_change/remote_change
 
 const fs = require("fs");
 const path = require("path");
@@ -7,9 +9,10 @@ const chokidar = require("chokidar");
 const { v4: uuidv4 } = require("uuid");
 const openurl = require("openurl");
 const electronLog = require("electron-log");
-const log = electronLog;
+let log = electronLog;
 log.transports.console.level = false;
 const envPaths = require("env-paths");
+const md5File = require("md5-file");
 
 const aes = require("./aes");
 const file_utils = require("./file_utils"); // TODO Rename
@@ -44,7 +47,7 @@ const Abebox = (config_name = "config", name = "") => {
 
   log.debug("\n*********************************** Abebox Starting");
   if (name != "") {
-    const log = electronLog.create(`log_${name}`);
+    log = electronLog.create(`log_${name}`);
     log.transports.console.level = true;
     log.transports.file.resolvePath = () =>
       path.join(__dirname, "log", `${name}.log`);
@@ -260,6 +263,7 @@ const Abebox = (config_name = "config", name = "") => {
       _conf.local
     );
     log.debug("HL ADD: ", filename, rel_dir);
+    const digest = md5File.sync(file_path);
 
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
@@ -271,6 +275,7 @@ const Abebox = (config_name = "config", name = "") => {
         file_name: filename,
         file_id: fid,
         policy: [],
+        digest: digest,
         status: file_status.local_change,
       });
       store.set_files(files_list);
@@ -310,9 +315,14 @@ const Abebox = (config_name = "config", name = "") => {
     if (file_ext != "abebox") return files_list;
 
     try {
-      const { file_name, sym_key, iv, tag, policy } = core.retrieve_metadata(
-        file_path
-      );
+      const {
+        file_name,
+        sym_key,
+        iv,
+        tag,
+        digest,
+        policy,
+      } = core.retrieve_metadata(file_path);
 
       // search if file has been already added in the file list
       const index = files_list.findIndex((el) => el.file_id === file_id);
@@ -327,6 +337,7 @@ const Abebox = (config_name = "config", name = "") => {
           file_dir: plaintext_file_folder,
           file_name: plaintext_file_name,
           file_id: file_id,
+          digest: digest,
           policy: attribute.policy_from_string(policy),
           status: file_status.downloaded,
         });
@@ -349,20 +360,27 @@ const Abebox = (config_name = "config", name = "") => {
       _conf.local
     );
     log.debug("HL CH: ", filename, rel_dir);
+    const digest = md5File.sync(file_path);
 
     const index = files_list.findIndex(
       (el) => el.file_dir === rel_dir && el.file_name === filename
     );
+
     if (index >= 0) {
       if (files_list[index].status == file_status.downloaded) {
         files_list[index].status = file_status.sync;
       } else {
-        files_list[index].status = file_status.local_change;
+        if (files_list[index].digest !== digest) {
+          files_list[index].digest = digest;
+          files_list[index].status = file_status.local_change;
+          share_file(files_list[index].file_id);
+        }
       }
       store.set_files(files_list);
       log.debug(
         `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
       );
+
       return files_list;
     } else throw Error(`Local change error: ${file_path} already exists`);
   };
@@ -385,7 +403,14 @@ const Abebox = (config_name = "config", name = "") => {
     // fragments.
     if (file_ext != "abebox") return files_list;
 
-    const { file_name, sym_key, iv, tag } = core.retrieve_metadata(file_path);
+    const {
+      file_name,
+      sym_key,
+      iv,
+      tag,
+      digest,
+      policy,
+    } = core.retrieve_metadata(file_path);
 
     if (file_name === null) {
       // if metadata.file_path is null, decoding was not possible
@@ -644,16 +669,13 @@ const Abebox = (config_name = "config", name = "") => {
       path.join(_conf.remote, repo_rel_path),
       []
     );
-    
-    
-    setTimeout(()=>{
-          // rescan the whole repo now that we have the right key
+
+    setTimeout(() => {
+      // rescan the whole repo now that we have the right key
       remote_repo_file_list.forEach((file) => {
-      handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
-    });
-
-    },3000)
-
+        handle_remote_add(path.join(_conf.remote, repo_rel_path, file));
+      });
+    }, 3000);
   };
 
   // admin calls this function to send the user ABE sk.
@@ -767,40 +789,43 @@ const Abebox = (config_name = "config", name = "") => {
     return files_list;
   };
 
-  const share_local_file = function(file) {
-    if (!fs.existsSync(path.join(_conf.local, file.file_dir, file.file_name)))
-      throw Error(`File does not exist`);
-    if (!file.policy) throw Error(`Policy is undefined`);
-    const relative_file_path = path.join(file.file_dir, file.file_name);
-    const abs_local_file_path = path.join(_conf.local, relative_file_path);
-    const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
-    log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
-    core
-      .file_encrypt(
-        relative_file_path,
-        abs_local_file_path,
-        abs_remote_file_path,
-        file.file_id,
-        attribute.policy_as_string(file.policy)
-      )
-      .catch((err) => {
-        log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
-        throw Error(`Error ${err} encrypting local file ${relative_file_path}`);
-      });
-  };
-
-  const share_single_file = function(file_id) {
+  const share_file = function(file_id) {
     const index = files_list.findIndex((el) => el.file_id === file_id);
+
     if (index < 0) {
       return { status: "error", message: "file non trovato" };
     } else {
       if (files_list[index].status == file_status.local_change) {
-        share_local_file(files_list[index]);
+        const file = files_list[index];
+        if (
+          !fs.existsSync(path.join(_conf.local, file.file_dir, file.file_name))
+        )
+          throw Error(`File does not exist`);
+        if (!file.policy) throw Error(`Policy is undefined`);
+        const relative_file_path = path.join(file.file_dir, file.file_name);
+        const abs_local_file_path = path.join(_conf.local, relative_file_path);
+        const abs_remote_file_path = path.join(_conf.remote, repo_rel_path);
+        log.debug(`SHARE LOCAL FILE  ${relative_file_path}`);
+        core
+          .file_encrypt(
+            relative_file_path,
+            abs_local_file_path,
+            abs_remote_file_path,
+            file.file_id,
+            file.digest,
+            attribute.policy_as_string(file.policy)
+          )
+          .catch((err) => {
+            log.debug("ERROR IN SYNC LOCAL FILE " + String(err));
+            throw Error(
+              `Error ${err} encrypting local file ${relative_file_path}`
+            );
+          });
         files_list[index].status = file_status.sync;
         store.set_files(files_list);
-        log.debug(
-          `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
-        );
+        //log.debug(
+        //  `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+        //);
       } else {
         return {
           status: "error",
@@ -810,6 +835,7 @@ const Abebox = (config_name = "config", name = "") => {
     }
   };
 
+  /*
   const share_files = function() {
     files_list.forEach((file) => {
       assert(file.file_dir.charAt(0) != path.sep); // directory should not start with /
@@ -820,6 +846,7 @@ const Abebox = (config_name = "config", name = "") => {
     });
     return files_list;
   };
+  */
 
   /**************** CONFIGURATION *****************/
 
@@ -992,8 +1019,8 @@ const Abebox = (config_name = "config", name = "") => {
     get_files_list,
     is_repository,
     set_policy,
-    share_single_file,
-    share_files,
+    share_file,
+    //share_files,
     get_config,
     set_config,
     reset_config,

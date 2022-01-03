@@ -52,6 +52,8 @@ const abs_plaintext_user_file_path_2 = path.join(
   rel_plaintext_file_path_2
 );
 
+//console.log(path.join(paths.config, cfg_filename_admin));
+
 // remove and create test files
 before(() => {
   // Rename cfg file
@@ -300,7 +302,7 @@ describe("Abebox Tests", () => {
     const file_list2 = admin_abebox.get_files_list();
     const my_file2 = file_list2[0];
     assert.deepEqual(my_file2.policy, my_policy.policy);
-    admin_abebox.share_files();
+    admin_abebox.share_file(my_file.file_id);
 
     await delay(4000); // wait 4s for watcher file detection
 
@@ -444,6 +446,10 @@ describe("Abebox Tests", () => {
   });
   it("user modifies a shared test file", async () => {
     const file_list = user_abebox.get_files_list();
+    const initial_file_list_length = file_list.length;
+    let el_find = file_list.find((el) => el.file_name == plaintext_filename);
+    const initial_digest = el_find.digest;
+
     const user_test_file_content = fs.readFileSync(
       abs_plaintext_user_file_path,
       "utf-8"
@@ -452,9 +458,9 @@ describe("Abebox Tests", () => {
     const updated_content = user_test_file_content + new_content;
     fs.appendFileSync(abs_plaintext_user_file_path, new_content);
 
-    await delay(4000);
-    user_abebox.share_files();
-    await delay(10000);
+    //await delay(4000);
+    //user_abebox.share_file();
+    await delay(14000);
     const admin_test_file_content = fs.readFileSync(
       abs_plaintext_file_path,
       "utf-8"
@@ -462,10 +468,13 @@ describe("Abebox Tests", () => {
 
     assert.equal(admin_test_file_content, updated_content);
     const file_list2 = user_abebox.get_files_list();
-    const el_find = file_list2.find((el) => el.file_name == plaintext_filename);
+    const final_file_list_length = file_list2.length;
+    el_find = file_list2.find((el) => el.file_name == plaintext_filename);
+    const final_digest = el_find.digest;
     assert.ok(el_find);
     assert.equal(el_find.status, 0); // file_status.sync
-    assert.equal(file_list2.length, file_list.length);
+    assert.equal(final_file_list_length, initial_file_list_length);
+    assert.notEqual(final_digest, initial_digest);
   }).timeout(25000);
   it("user creates and shares a test file", async () => {
     const file_list_len = user_abebox.get_files_list().length;
@@ -475,9 +484,8 @@ describe("Abebox Tests", () => {
 
     await delay(4000); // wait 4s for watcher file detection
 
-    const file_list2 = user_abebox.get_files_list()
+    const file_list2 = user_abebox.get_files_list();
     const file_list2_len = file_list2.length;
-
 
     //console.log(file_list2_len);
 
@@ -496,7 +504,7 @@ describe("Abebox Tests", () => {
     };
     user_abebox.set_policy(my_policy);
 
-    user_abebox.share_files();
+    user_abebox.share_file(my_file.file_id);
 
     await delay(8000); // wait 4s for watcher file detection
 
@@ -521,7 +529,7 @@ describe("Abebox Tests", () => {
 
     const file_list2_len = user_abebox.get_files_list().length;
     assert.equal(file_list2_len, file_list_len - 1);
-    
+
     // check if also the admin has such file removed
     assert.ok(!fs.existsSync(abs_plaintext_file_path_2));
   }).timeout(20000);

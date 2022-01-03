@@ -145,18 +145,20 @@ const AbeboxCore = (log) => {
     sym_key,
     iv,
     tag,
+    digest,
     policy
   ) {
     if (!_conf.abe_init) throw Error("ABE Not initialized");
 
-    // convert input file 
+    // convert input file
 
-    const input_file_converted = input_file.replace(path.sep,"/");
+    const input_file_converted = input_file.replace(path.sep, "/");
 
     // Group parameters to encrypt
     const metadata_to_enc = {
       sym_key: sym_key,
       file_name: input_file_converted, //input_file_name,
+      digest: digest,
     };
     // Encrypt parameters using CP-ABE
     const enc_metadata = rabe.encrypt_str(
@@ -185,16 +187,17 @@ const AbeboxCore = (log) => {
     // Decrypt the encrypted ones
     const dec_metadata = rabe.decrypt_str(_conf.abe_keys.sk, enc_metadata);
     // Extract and return parameters
-    const { sym_key, file_name } = JSON.parse(dec_metadata);
+    const { sym_key, file_name, digest } = JSON.parse(dec_metadata);
 
     // convert file name
-    const file_name_converted = file_name.replace("/",path.sep);
+    const file_name_converted = file_name.replace("/", path.sep);
 
     return {
       file_name: file_name_converted,
       sym_key,
       iv,
       tag,
+      digest,
       policy,
     };
   };
@@ -272,6 +275,7 @@ const AbeboxCore = (log) => {
     abs_plaintext_file,
     abs_remote_repo_path,
     ciphertext_file,
+    digest,
     policy
   ) {
     if (!fs.existsSync(abs_plaintext_file))
@@ -289,6 +293,7 @@ const AbeboxCore = (log) => {
       abs_plaintext_file,
       encrypted_content_file
     );
+
     // Metadata file creation
     create_metadata_file(
       rel_plaintext_file,
@@ -296,6 +301,7 @@ const AbeboxCore = (log) => {
       sym_key,
       iv,
       tag,
+      digest,
       policy
     );
     return metadata_file;
