@@ -280,8 +280,22 @@ const Abebox = (config_name = "config", name = "") => {
       });
       store.set_files(files_list);
       log.debug(`LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
-      return files_list;
     } else {
+      // vedo se è lo stesso file
+      if (files_list[index].digest === digest) {
+        if (files_list[index].status != file_status.sync) {
+          log.debug(`SET FILE STATUS ${fid} ${filename}`);
+          files_list[index].status = file_status.sync;
+          store.set_files(files_list);
+          log.debug(
+            `LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+          );
+        }
+      } else {
+        //che facciamo???
+        log.debug(`ASSERT !!!!!!!!!!!! CHE FACCIO ${fid} ${filename}`);
+      }
+
       /*if (files_list[index].status == file_status.downloaded) {
         files_list[index].status = file_status.sync;
         store.set_files(files_list);
@@ -290,7 +304,6 @@ const Abebox = (config_name = "config", name = "") => {
         );
         return files_list;
       }*/
-      console.log();
     }
   };
 
@@ -347,10 +360,27 @@ const Abebox = (config_name = "config", name = "") => {
           status: file_status.sync, // ex downloaded
         });
       } else {
-        files_list[index].policy = attribute.policy_from_string(policy);
+        if (files_list[index].digest === digest) {
+          if (
+            files_list[index].policy !== attribute.policy_from_string(policy)
+          ) {
+            files_list[index].policy = attribute.policy_from_string(policy);
+          }
+        } else {
+          // file diverso
+          const { plaintext_file_folder, plaintext_file_name } = download_file(
+            file_name,
+            file_path,
+            sym_key,
+            iv,
+            tag
+          );
+          assert(plaintext_file_name);
+          files_list[index].policy = attribute.policy_from_string(policy);
+          files_list[index].digest = digest;
+        }
       }
       store.set_files(files_list);
-
       log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
     } catch (err) {
       log.debug(`File ${filename} decrypt failed`);

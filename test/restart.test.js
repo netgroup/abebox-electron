@@ -195,7 +195,7 @@ describe("Abebox Tests", () => {
     // try to decode the user SK (and the other data) written by the admin on the remote repo
     // wait for watchers
     await delay(15000);
-    
+
     const token_hash = file_utils.get_hash(user_conf.token);
 
     //////////////// NEW
@@ -313,7 +313,7 @@ describe("Abebox Tests", () => {
     };
     admin_abebox.set_policy(my_policy);
 
-    admin_abebox.share_files();
+    admin_abebox.share_file(my_file.file_id);
 
     await delay(8000); // wait 4s for watcher file detection
 

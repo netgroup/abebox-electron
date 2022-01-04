@@ -404,3 +404,378 @@
 [2022-01-04 12:21:58.844] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/5da39c67-e94b-42de-81cc-22df7ec16a97.abebox
 [2022-01-04 12:21:58.846] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
 [2022-01-04 12:21:58.846] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:34:56.293] [debug] BOOTING NO CONF
+[2022-01-04 12:34:56.307] [debug] Abebox Setup
+[2022-01-04 12:34:56.307] [debug] Abebox InitCore
+[2022-01-04 12:34:57.512] [debug] send_user_rsa_pk: writing /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7 for token b8bfaf23bff7edbf9d0ae929c37fb5df82bc66d0dec6d0c6ee4c5da4aad71be0
+[2022-01-04 12:34:57.519] [debug] Starting watchers
+[2022-01-04 12:34:57.525] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:34:57.526] [debug] HR ADD:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox repo/ []
+[2022-01-04 12:34:57.526] [debug] ABEBOX NOT CONFIGURED
+[2022-01-04 12:34:57.526] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7
+[2022-01-04 12:34:57.526] [debug] HR ADD:  a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7 pub_keys/ []
+[2022-01-04 12:34:57.526] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:34:57.527] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7.sk
+[2022-01-04 12:34:57.527] [debug] HR ADD:  a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7.sk keys/ []
+[2022-01-04 12:34:57.528] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:34:57.528] [debug] USER ABE PK RETRIEVED
+[2022-01-04 12:34:57.535] [debug] USER ABE SK RETIEVED"{\"_d\":{\"x\":{\"c0\":[7622517492994189056,13278211406745727660,10027127608255783617,3480170203472510303],\"c1\":[3739960757057014508,4001024556541009436,7840966437015032304,528862775111218308]},\"y\":{\"c0\":[17451939045267996023,4387428594460524006,16292761865579560932,3460978840923668048],\"c1\":[17735825576490926552,744329545645284741,11963342496861596664,316028212687256105]},\"z\":{\"c0\":[14603358839799715236,9352432583669624754,7078796441882839551,2681647519678216552],\"c1\":[9649722688932484594,9336523134364854852,10799927656614157141,1889688288413301031]}},\"_d_j\":[{\"_str\":\"UN:A:1\",\"_g1\":{\"x\":[2581203888237024916,18098678322484793524,5564726237559810330,458841834847261182],\"y\":[9549936979379296167,18413882638319367234,7469425345209444718,1214163654388376441],\"z\":[3935365218928195227,461893935754236269,8600878702023048914,764047150438817916]},\"_g2\":{\"x\":{\"c0\":[4578205506957123719,1009096766970391798,17725171748946844604,2840943947279761978],\"c1\":[10673966927767508844,15619663172092689828,8257549807301133447,750138578123335466]},\"y\":{\"c0\":[5971224407537490209,10996247884529783358,31299087690578183,552689474755758967],\"c1\":[15872212319000484722,1267072901889639432,13012191845988121884,2051528550246185369]},\"z\":{\"c0\":[6609028617051273457,5314110907225997982,16948378122688569127,928376994818447702],\"c1\":[15711052146109967783,3304522391076827319,13226470932529269549,3174562147101402784]}}},{\"_str\":\"UN:C:1\",\"_g1\":{\"x\":[17569619528410513098,14262179936755890109,8238910040699452340,2909587838995761228],\"y\":[17815623897020303111,6910804853405664511,5391103013879287973,504974948557322009],\"z\":[791452165453563793,15881785940787822868,3443612973014427585,1751388194272795781]},\"_g2\":{\"x\":{\"c0\":[8937050343839133613,6148814644769249571,5331694420836382181,3307987755485695291],\"c1\":[424742119597574260,17288715873348891258,5041375214752885434,1033702866559047953]},\"y\":{\"c0\":[11688603553245140407,15325830503010994609,6640996082392589843,1332096986001760176],\"c1\":[7155527449328841720,10171026382878269690,7765105591025053895,1613588340682668049]},\"z\":{\"c0\":[13971457737074985392,3366580091947109111,2440859252031873044,2414126984937448158],\"c1\":[9628860129823972082,7963711055735321407,3789008298611006577,3409170279923198739]}}}]}"
+[2022-01-04 12:34:59.600] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7.sk
+[2022-01-04 12:34:59.600] [debug] HR ADD:  a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7.sk keys/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"a6c4e32104dc7519a39edd8145988495","status":0}]
+[2022-01-04 12:34:59.601] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:34:59.702] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7
+[2022-01-04 12:34:59.703] [debug] HR ADD:  a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7 pub_keys/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"a6c4e32104dc7519a39edd8145988495","status":0}]
+[2022-01-04 12:34:59.703] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:34:59.704] [debug] GET PUB KEY OF user@uniroma2.it
+[2022-01-04 12:34:59.711] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7
+[2022-01-04 12:34:59.711] [debug] HR CH:  a6677379894c6ae4220e9a2217deb89adb01b224ae7c89149aeaf7b9c6b510f7 pub_keys/
+[2022-01-04 12:34:59.711] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:35:00.540] [debug] HR ADD:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.0 repo/ []
+[2022-01-04 12:35:00.540] [debug] HR ADD:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox repo/ []
+[2022-01-04 12:35:01.181] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:35:01.181] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:01.182] [debug] FF  mytestfolder/
+[2022-01-04 12:35:01.182] [debug] DN  hello_index.txt
+[2022-01-04 12:35:01.182] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:35:01.190] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"a6c4e32104dc7519a39edd8145988495","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:03.373] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:35:03.373] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:35:14.709] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:35:14.710] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:35:14.710] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:35:14.726] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:17.499] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:17.499] [debug] HR CH:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox repo/
+[2022-01-04 12:35:18.160] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:35:18.161] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:18.161] [debug] FF  mytestfolder/
+[2022-01-04 12:35:18.162] [debug] DN  hello_index.txt
+[2022-01-04 12:35:18.162] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:35:18.169] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"a6c4e32104dc7519a39edd8145988495","status":0}]
+[2022-01-04 12:35:18.170] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:18.170] [debug] HR CH:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox repo/
+[2022-01-04 12:35:18.841] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:35:18.842] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:18.842] [debug] FF  mytestfolder/
+[2022-01-04 12:35:18.842] [debug] DN  hello_index.txt
+[2022-01-04 12:35:18.842] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:35:18.851] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:21.024] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:35:21.025] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:35:21.026] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:35:21.040] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d54294b43b3f81968baf559c25d8964e","status":0}]
+[2022-01-04 12:35:21.041] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:35:21.041] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:35:21.047] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:23.887] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:23.887] [debug] HR CH:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox repo/
+[2022-01-04 12:35:24.518] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:35:24.519] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:24.519] [debug] FF  mytestfolder/
+[2022-01-04 12:35:24.519] [debug] DN  hello_index.txt
+[2022-01-04 12:35:24.519] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:35:24.529] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:24.529] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:24.529] [debug] HR CH:  f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox repo/
+[2022-01-04 12:35:25.161] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:35:25.161] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/f3a2f347-72fc-4695-96c1-61ecd6d8a537.abebox
+[2022-01-04 12:35:25.162] [debug] FF  mytestfolder/
+[2022-01-04 12:35:25.162] [debug] DN  hello_index.txt
+[2022-01-04 12:35:25.162] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:35:25.170] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d54294b43b3f81968baf559c25d8964e","status":0}]
+[2022-01-04 12:35:27.347] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:35:27.347] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:35:27.355] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d54294b43b3f81968baf559c25d8964e","status":0}]
+[2022-01-04 12:35:27.356] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:35:27.356] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:35:27.363] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:28.703] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:35:28.703] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:35:28.712] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"015ad116-39e3-49d8-972f-b1a3a68888a8","policy":[],"digest":"d2c8510a6b46950560946e7cd4d63300","status":1}]
+[2022-01-04 12:35:30.535] [debug] SET POLICY TO 015ad116-39e3-49d8-972f-b1a3a68888a8 DATA: ("UN:C:1")
+[2022-01-04 12:35:30.543] [debug] SHARE LOCAL FILE  mytestfolder/hello_index2.txt
+[2022-01-04 12:35:33.381] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/015ad116-39e3-49d8-972f-b1a3a68888a8.abebox
+[2022-01-04 12:35:33.381] [debug] HR ADD:  015ad116-39e3-49d8-972f-b1a3a68888a8.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d54294b43b3f81968baf559c25d8964e","status":0}]
+[2022-01-04 12:35:34.000] [debug] FN  mytestfolder/hello_index2.txt
+[2022-01-04 12:35:34.000] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/015ad116-39e3-49d8-972f-b1a3a68888a8.abebox
+[2022-01-04 12:35:34.001] [debug] FF  mytestfolder/
+[2022-01-04 12:35:34.001] [debug] DN  hello_index2.txt
+[2022-01-04 12:35:34.001] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:35:34.010] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d54294b43b3f81968baf559c25d8964e","status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"015ad116-39e3-49d8-972f-b1a3a68888a8","digest":"d2c8510a6b46950560946e7cd4d63300","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:34.010] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/015ad116-39e3-49d8-972f-b1a3a68888a8.abebox
+[2022-01-04 12:35:34.010] [debug] HR ADD:  015ad116-39e3-49d8-972f-b1a3a68888a8.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"015ad116-39e3-49d8-972f-b1a3a68888a8","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d2c8510a6b46950560946e7cd4d63300","status":0}]
+[2022-01-04 12:35:34.635] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"015ad116-39e3-49d8-972f-b1a3a68888a8","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d2c8510a6b46950560946e7cd4d63300","status":0}]
+[2022-01-04 12:35:36.711] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:35:36.711] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:35:38.666] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:35:38.666] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:35:38.674] [debug] LOCAL REM - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","digest":"d54294b43b3f81968baf559c25d8964e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:35:38.677] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/015ad116-39e3-49d8-972f-b1a3a68888a8.abebox
+[2022-01-04 12:35:38.684] [debug] REMOTE REM - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"f3a2f347-72fc-4695-96c1-61ecd6d8a537","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d54294b43b3f81968baf559c25d8964e","status":0}]
+[2022-01-04 12:35:38.684] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/015ad116-39e3-49d8-972f-b1a3a68888a8.abebox
+[2022-01-04 12:35:38.687] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:35:38.688] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:36:29.681] [debug] BOOTING NO CONF
+[2022-01-04 12:36:29.695] [debug] Abebox Setup
+[2022-01-04 12:36:29.695] [debug] Abebox InitCore
+[2022-01-04 12:36:31.240] [debug] send_user_rsa_pk: writing /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52 for token fb6556f1c0e7061657a99fed3cf0d5b5dc66ecb4f091ad158cdc255687843300
+[2022-01-04 12:36:31.248] [debug] Starting watchers
+[2022-01-04 12:36:31.253] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:31.253] [debug] HR ADD:  8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox repo/ []
+[2022-01-04 12:36:31.253] [debug] ABEBOX NOT CONFIGURED
+[2022-01-04 12:36:31.253] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52
+[2022-01-04 12:36:31.253] [debug] HR ADD:  b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52 pub_keys/ []
+[2022-01-04 12:36:31.254] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:36:31.254] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52.sk
+[2022-01-04 12:36:31.255] [debug] HR ADD:  b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52.sk keys/ []
+[2022-01-04 12:36:31.255] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:36:31.255] [debug] USER ABE PK RETRIEVED
+[2022-01-04 12:36:31.262] [debug] USER ABE SK RETIEVED"{\"_d\":{\"x\":{\"c0\":[7026263384728572439,9291820243084788330,2774060555221552087,427377321474851361],\"c1\":[5499340008783474645,3841129760497029150,3743053981136216899,1152269328466324255]},\"y\":{\"c0\":[3201041910109655103,248404115481488751,4222551090433551218,408348714696269608],\"c1\":[437386330678936708,9135814767872306469,1823314927334585006,1321386096927413654]},\"z\":{\"c0\":[9615534132223170615,6124733672062992989,8969382755904458751,1703990933507746664],\"c1\":[13407638594493926529,1434470513621879215,14269669878681888283,3262974131450623110]}},\"_d_j\":[{\"_str\":\"UN:A:1\",\"_g1\":{\"x\":[11303974228673264855,10259829913727396815,9877567084955503946,1964889832703483355],\"y\":[11110174629860361564,17505734946261612521,6103276547120087451,1588674517101373246],\"z\":[1306743508477080468,12923341333497481990,8665116654721031318,156420120545544673]},\"_g2\":{\"x\":{\"c0\":[7576640427070359878,18331159795066001623,10326001925100441638,3031967044438558925],\"c1\":[5800956884851944523,10383808448551761967,934340180820680877,1420284742317486148]},\"y\":{\"c0\":[3539872914179401721,4369722077820228899,11968017860679851740,3379288169963615785],\"c1\":[10134014959367664902,16526522698189523930,16478215865455057101,2744215281285107549]},\"z\":{\"c0\":[3826108486946524703,8074214173457691342,3802875342347374612,2460111861924498185],\"c1\":[4917715261655288776,8152950298897264605,8743984607800379669,769410103215929704]}}},{\"_str\":\"UN:C:1\",\"_g1\":{\"x\":[16389266775044171030,10020910196711986696,11217839232964877821,2504078687989610349],\"y\":[5964650986652010738,8445221255137213243,12107940105082886153,2036238410866598402],\"z\":[17745203526537742283,4091508754608449245,10151698078045448280,1749006202612732456]},\"_g2\":{\"x\":{\"c0\":[10399768712790687563,14515132414607258031,7500875979157852760,2247868521829818254],\"c1\":[10470431566997036408,12663169237317749343,13367563084411153101,2157295044196875342]},\"y\":{\"c0\":[18379558943794209504,188274233991422412,12077266113073156085,1466673163982995286],\"c1\":[8952316748014645681,17154835239932794504,17638561903540234883,2377189724865534376]},\"z\":{\"c0\":[7840057465607695390,9331426988638082063,16897505681019196303,1887848748523713571],\"c1\":[6074066612756313531,4615253742376279724,15036087319607299407,2246500715786779325]}}}]}"
+[2022-01-04 12:36:33.318] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52.sk
+[2022-01-04 12:36:33.319] [debug] HR ADD:  b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52.sk keys/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"2eddce8d3c21a7929e8259f30c1ee865","status":0}]
+[2022-01-04 12:36:33.319] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:36:33.423] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52
+[2022-01-04 12:36:33.424] [debug] HR CH:  b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52 pub_keys/
+[2022-01-04 12:36:33.424] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:36:33.424] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52
+[2022-01-04 12:36:33.425] [debug] HR ADD:  b96465388964bbccd6d365c0b63472be9fc8ba5d3f2c76b9a1ec4adac0a1cc52 pub_keys/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"2eddce8d3c21a7929e8259f30c1ee865","status":0}]
+[2022-01-04 12:36:33.425] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:36:33.425] [debug] GET PUB KEY OF user@uniroma2.it
+[2022-01-04 12:36:34.267] [debug] HR ADD:  8baea13c-be4d-45e0-bd7f-5681c3517fca.0 repo/ []
+[2022-01-04 12:36:34.267] [debug] HR ADD:  8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox repo/ []
+[2022-01-04 12:36:34.891] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:36:34.891] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:34.892] [debug] FF  mytestfolder/
+[2022-01-04 12:36:34.892] [debug] DN  hello_index.txt
+[2022-01-04 12:36:34.892] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:36:34.900] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"2eddce8d3c21a7929e8259f30c1ee865","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:36:37.079] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:36:37.079] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:36:48.439] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:36:48.439] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:36:48.439] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:36:48.454] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:36:51.205] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:51.205] [debug] HR CH:  8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox repo/
+[2022-01-04 12:36:51.837] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:36:51.837] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:51.837] [debug] FF  mytestfolder/
+[2022-01-04 12:36:51.837] [debug] DN  hello_index.txt
+[2022-01-04 12:36:51.838] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:36:51.845] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:36:51.845] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:51.845] [debug] HR CH:  8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox repo/
+[2022-01-04 12:36:52.480] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:36:52.480] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:52.481] [debug] FF  mytestfolder/
+[2022-01-04 12:36:52.481] [debug] DN  hello_index.txt
+[2022-01-04 12:36:52.481] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:36:52.488] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"2eddce8d3c21a7929e8259f30c1ee865","status":0}]
+[2022-01-04 12:36:54.570] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:36:54.570] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:36:54.579] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:36:54.708] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:36:54.708] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:36:54.709] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:36:54.724] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5e4ea70961a59cc20726e3a6e8a8a097","status":0}]
+[2022-01-04 12:36:57.630] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:57.631] [debug] HR CH:  8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox repo/
+[2022-01-04 12:36:58.340] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:36:58.341] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:58.341] [debug] FF  mytestfolder/
+[2022-01-04 12:36:58.341] [debug] DN  hello_index.txt
+[2022-01-04 12:36:58.341] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:36:58.349] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5e4ea70961a59cc20726e3a6e8a8a097","status":0}]
+[2022-01-04 12:36:58.349] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:58.349] [debug] HR CH:  8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox repo/
+[2022-01-04 12:36:59.023] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:36:59.023] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/8baea13c-be4d-45e0-bd7f-5681c3517fca.abebox
+[2022-01-04 12:36:59.024] [debug] FF  mytestfolder/
+[2022-01-04 12:36:59.024] [debug] DN  hello_index.txt
+[2022-01-04 12:36:59.024] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:36:59.031] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:37:01.204] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:37:01.205] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:37:01.213] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5e4ea70961a59cc20726e3a6e8a8a097","status":0}]
+[2022-01-04 12:37:01.213] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:37:01.213] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:37:01.220] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:37:02.460] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:37:02.460] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:37:02.472] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"c3c16bbb-45ea-41f5-860c-0e982494e70b","policy":[],"digest":"248d244165b12e82d55f9ebff73eafb0","status":1}]
+[2022-01-04 12:37:04.266] [debug] SET POLICY TO c3c16bbb-45ea-41f5-860c-0e982494e70b DATA: ("UN:C:1")
+[2022-01-04 12:37:04.274] [debug] SHARE LOCAL FILE  mytestfolder/hello_index2.txt
+[2022-01-04 12:37:07.120] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox
+[2022-01-04 12:37:07.121] [debug] HR ADD:  c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"c3c16bbb-45ea-41f5-860c-0e982494e70b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"248d244165b12e82d55f9ebff73eafb0","status":0}]
+[2022-01-04 12:37:07.759] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"c3c16bbb-45ea-41f5-860c-0e982494e70b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"248d244165b12e82d55f9ebff73eafb0","status":0}]
+[2022-01-04 12:37:07.759] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox
+[2022-01-04 12:37:07.759] [debug] HR ADD:  c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5e4ea70961a59cc20726e3a6e8a8a097","status":0}]
+[2022-01-04 12:37:08.393] [debug] FN  mytestfolder/hello_index2.txt
+[2022-01-04 12:37:08.394] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox
+[2022-01-04 12:37:08.394] [debug] FF  mytestfolder/
+[2022-01-04 12:37:08.394] [debug] DN  hello_index2.txt
+[2022-01-04 12:37:08.394] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:37:08.402] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5e4ea70961a59cc20726e3a6e8a8a097","status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"c3c16bbb-45ea-41f5-860c-0e982494e70b","digest":"248d244165b12e82d55f9ebff73eafb0","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:37:10.579] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:37:10.580] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:37:12.398] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:37:12.399] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:37:12.406] [debug] LOCAL REM - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","digest":"5e4ea70961a59cc20726e3a6e8a8a097","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:37:12.409] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox
+[2022-01-04 12:37:12.416] [debug] REMOTE REM - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"8baea13c-be4d-45e0-bd7f-5681c3517fca","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5e4ea70961a59cc20726e3a6e8a8a097","status":0}]
+[2022-01-04 12:37:12.417] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/c3c16bbb-45ea-41f5-860c-0e982494e70b.abebox
+[2022-01-04 12:37:12.421] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:37:12.421] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:57:27.360] [debug] BOOTING NO CONF
+[2022-01-04 12:57:27.373] [debug] Abebox Setup
+[2022-01-04 12:57:27.373] [debug] Abebox InitCore
+[2022-01-04 12:57:27.786] [debug] send_user_rsa_pk: writing /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e for token 5f37d32186ca5ebdf12f97f88025623563cac32fcba3686b4de04e656a6c05ec
+[2022-01-04 12:57:27.793] [debug] Starting watchers
+[2022-01-04 12:57:27.798] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:27.798] [debug] HR ADD:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox repo/ []
+[2022-01-04 12:57:27.798] [debug] ABEBOX NOT CONFIGURED
+[2022-01-04 12:57:27.798] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e
+[2022-01-04 12:57:27.799] [debug] HR ADD:  b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e pub_keys/ []
+[2022-01-04 12:57:27.799] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:57:27.799] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e.sk
+[2022-01-04 12:57:27.799] [debug] HR ADD:  b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e.sk keys/ []
+[2022-01-04 12:57:27.800] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:57:27.800] [debug] USER ABE PK RETRIEVED
+[2022-01-04 12:57:27.807] [debug] USER ABE SK RETIEVED"{\"_d\":{\"x\":{\"c0\":[8330030061689029635,2400496112846280429,3610635915174831536,1512993902659756366],\"c1\":[13772590885047254331,13233259111090386194,1621485384188478312,1515989828510243128]},\"y\":{\"c0\":[9720258672210771282,3728151280958556256,419634067808809290,3083817506050210500],\"c1\":[5772295239579942319,15228398520435284848,2686893542721150205,395882221842745218]},\"z\":{\"c0\":[583710413168167629,8557280205989850969,14092659056537804838,876632450316609493],\"c1\":[13505704211338419989,14020066446554561894,1648842027422446639,2150014870816031092]}},\"_d_j\":[{\"_str\":\"UN:A:1\",\"_g1\":{\"x\":[15295171799341868363,9552408700465801261,17033695950005090913,110120139551035707],\"y\":[14323389529554279392,15108152078197340534,17587172238670739663,848379607538942173],\"z\":[14990023961308228118,16504371778122565349,4786564134271352672,594167750635496795]},\"_g2\":{\"x\":{\"c0\":[1452577726417064381,5147324698117257632,14529227614592953033,2734938123692099035],\"c1\":[15797301825644073476,1671645173771415583,13093056327651802010,373108726700617455]},\"y\":{\"c0\":[5743542759377966757,17069764215946725912,14995068983770492688,3287550550050717580],\"c1\":[4230477173512477055,13116133376822978355,1454385158024294807,3367214582596205268]},\"z\":{\"c0\":[14663523080834858699,5511829078641365029,12042668195539437240,496041400373446941],\"c1\":[4266625909422802287,7231251730612886340,2967895224480739938,2683085954990172669]}}},{\"_str\":\"UN:C:1\",\"_g1\":{\"x\":[2207892922716664830,12413162948144154609,15745246640095514326,393365827841706143],\"y\":[8254126061884333237,15928969664029636409,9979856333133567650,1419920951383020955],\"z\":[12195804633671703441,16106291400282423243,9503700936447989021,1143049446958890175]},\"_g2\":{\"x\":{\"c0\":[15911920777145188034,7012062601389503060,4043960723642616411,863357966416985063],\"c1\":[4721410614672879546,6086866305242895172,4766386746991585240,1677360801248376223]},\"y\":{\"c0\":[12284173667868907558,12281143671175231146,15300879310715152926,535951419748064774],\"c1\":[11918970179739254252,10845632084016268673,3914830960942588736,264400036180953689]},\"z\":{\"c0\":[3778907785602581832,15322214702081719891,18121297988545505426,1082485494828651059],\"c1\":[13508204785197668905,17646459005918808814,9264560007638284691,1842432095610709988]}}}]}"
+[2022-01-04 12:57:29.867] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e
+[2022-01-04 12:57:29.867] [debug] HR ADD:  b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e pub_keys/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"def53ffee467a5a5d4f545ec73f84159","status":0}]
+[2022-01-04 12:57:29.867] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:57:29.868] [debug] GET PUB KEY OF user@uniroma2.it
+[2022-01-04 12:57:29.875] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e.sk
+[2022-01-04 12:57:29.875] [debug] HR ADD:  b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e.sk keys/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"def53ffee467a5a5d4f545ec73f84159","status":0}]
+[2022-01-04 12:57:29.875] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:57:29.876] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e
+[2022-01-04 12:57:29.876] [debug] HR CH:  b02663c5ff1777a557a53d4906827db9cbf85d1fcd2b3623ef410bf122ac431e pub_keys/
+[2022-01-04 12:57:29.876] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:57:30.811] [debug] HR ADD:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.0 repo/ []
+[2022-01-04 12:57:30.811] [debug] HR ADD:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox repo/ []
+[2022-01-04 12:57:31.439] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:57:31.439] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:31.440] [debug] FF  mytestfolder/
+[2022-01-04 12:57:31.440] [debug] DN  hello_index.txt
+[2022-01-04 12:57:31.440] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:57:31.448] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"def53ffee467a5a5d4f545ec73f84159","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:57:33.620] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:57:33.620] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:57:44.988] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:57:44.989] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:57:44.989] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:57:45.008] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:57:47.876] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:47.877] [debug] HR CH:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox repo/
+[2022-01-04 12:57:48.500] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:57:48.500] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:48.501] [debug] FF  mytestfolder/
+[2022-01-04 12:57:48.501] [debug] DN  hello_index.txt
+[2022-01-04 12:57:48.501] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:57:48.508] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"def53ffee467a5a5d4f545ec73f84159","status":0}]
+[2022-01-04 12:57:48.508] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:48.508] [debug] HR CH:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox repo/
+[2022-01-04 12:57:49.138] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:57:49.138] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:49.139] [debug] FF  mytestfolder/
+[2022-01-04 12:57:49.139] [debug] DN  hello_index.txt
+[2022-01-04 12:57:49.139] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:57:49.147] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:57:51.334] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:57:51.334] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:57:51.335] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:57:51.350] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d820304e141d93253b2c78cb09efe7c2","status":0}]
+[2022-01-04 12:57:51.350] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:57:51.350] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:57:51.357] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:57:54.075] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:54.075] [debug] HR CH:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox repo/
+[2022-01-04 12:57:54.696] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:57:54.696] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:54.697] [debug] FF  mytestfolder/
+[2022-01-04 12:57:54.697] [debug] DN  hello_index.txt
+[2022-01-04 12:57:54.697] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:57:54.704] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d820304e141d93253b2c78cb09efe7c2","status":0}]
+[2022-01-04 12:57:54.705] [debug] CHANGE REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:54.705] [debug] HR CH:  26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox repo/
+[2022-01-04 12:57:55.329] [debug] FN  mytestfolder/hello_index.txt
+[2022-01-04 12:57:55.330] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/26aeebb2-cdb5-4ed0-a897-629458f3f90b.abebox
+[2022-01-04 12:57:55.330] [debug] FF  mytestfolder/
+[2022-01-04 12:57:55.330] [debug] DN  hello_index.txt
+[2022-01-04 12:57:55.331] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 12:57:55.339] [debug] REMOTE CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:57:57.514] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index.txt
+[2022-01-04 12:57:57.514] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:57:57.522] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:57:57.522] [debug] CHANGE LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:57:57.522] [debug] HL CH:  hello_index.txt mytestfolder/
+[2022-01-04 12:57:57.529] [debug] LOCAL CHANGE - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d820304e141d93253b2c78cb09efe7c2","status":0}]
+[2022-01-04 12:57:58.990] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:57:58.990] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:57:58.998] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"b2fa7729-9c70-4f04-a15f-5fd7242b56fc","policy":[],"digest":"0e75c873547ce19ae3d4044a6f7f10b5","status":1}]
+[2022-01-04 12:58:00.808] [debug] SET POLICY TO b2fa7729-9c70-4f04-a15f-5fd7242b56fc DATA: ("UN:C:1")
+[2022-01-04 12:58:00.815] [debug] SHARE LOCAL FILE  mytestfolder/hello_index2.txt
+[2022-01-04 12:58:03.540] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox
+[2022-01-04 12:58:03.540] [debug] HR ADD:  b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d820304e141d93253b2c78cb09efe7c2","status":0}]
+[2022-01-04 12:58:04.162] [debug] FN  mytestfolder/hello_index2.txt
+[2022-01-04 12:58:04.162] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox
+[2022-01-04 12:58:04.163] [debug] FF  mytestfolder/
+[2022-01-04 12:58:04.163] [debug] DN  hello_index2.txt
+[2022-01-04 12:58:04.163] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/
+[2022-01-04 12:58:04.171] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d820304e141d93253b2c78cb09efe7c2","status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"b2fa7729-9c70-4f04-a15f-5fd7242b56fc","digest":"0e75c873547ce19ae3d4044a6f7f10b5","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:58:04.171] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox
+[2022-01-04 12:58:04.172] [debug] HR ADD:  b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"b2fa7729-9c70-4f04-a15f-5fd7242b56fc","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"0e75c873547ce19ae3d4044a6f7f10b5","status":0}]
+[2022-01-04 12:58:04.795] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"b2fa7729-9c70-4f04-a15f-5fd7242b56fc","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"0e75c873547ce19ae3d4044a6f7f10b5","status":0}]
+[2022-01-04 12:58:06.978] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:58:06.979] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:58:08.939] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:58:08.940] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:58:08.948] [debug] LOCAL REM - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","digest":"d820304e141d93253b2c78cb09efe7c2","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 12:58:08.950] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox
+[2022-01-04 12:58:08.957] [debug] REMOTE REM - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"26aeebb2-cdb5-4ed0-a897-629458f3f90b","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"d820304e141d93253b2c78cb09efe7c2","status":0}]
+[2022-01-04 12:58:08.957] [debug] REM REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/b2fa7729-9c70-4f04-a15f-5fd7242b56fc.abebox
+[2022-01-04 12:58:08.961] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:58:08.961] [debug] HL REM:  hello_index2.txt mytestfolder/
+[2022-01-04 12:59:02.114] [debug] BOOT WITH CONF: {"configured":true,"isAdmin":false,"local":"/Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local","name":"user@uniroma2.it","remote":"/Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared","token":"958319ced3f7c4578b59d1f4a0eacb28eca618d919a599666869a15887b55e26"}
+[2022-01-04 12:59:02.115] [debug] Starting watchers
+[2022-01-04 12:59:02.119] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/231b45fbd921fc14d8e29a6647a8f2a6104565a925178194b998c7453175c5a8
+[2022-01-04 12:59:02.119] [debug] HR ADD:  231b45fbd921fc14d8e29a6647a8f2a6104565a925178194b998c7453175c5a8 pub_keys/ []
+[2022-01-04 12:59:02.119] [debug] DETECTED PUB KEY FILE
+[2022-01-04 12:59:02.119] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/231b45fbd921fc14d8e29a6647a8f2a6104565a925178194b998c7453175c5a8.sk
+[2022-01-04 12:59:02.119] [debug] HR ADD:  231b45fbd921fc14d8e29a6647a8f2a6104565a925178194b998c7453175c5a8.sk keys/ []
+[2022-01-04 12:59:02.120] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 12:59:02.120] [debug] USER ABE PK RETRIEVED
+[2022-01-04 12:59:02.128] [debug] USER ABE SK RETIEVED"{\"_d\":{\"x\":{\"c0\":[5637917926549459118,4042993622674528689,17885297063257553136,694836690076823847],\"c1\":[14239702737225657824,10573084988195130027,12830715679731394281,1571146376966461357]},\"y\":{\"c0\":[5335952532258688706,2556031381692990631,7384993765064780918,3135594258172319723],\"c1\":[5674769298204742711,17689454031255822869,65944359101350378,1695428707535220654]},\"z\":{\"c0\":[16018795742822988719,9971882115348646287,1851559543022752242,57696572972497266],\"c1\":[252440370770411682,12309479895640484954,10997098513302445410,3306062527863496406]}},\"_d_j\":[{\"_str\":\"UN:A:1\",\"_g1\":{\"x\":[18149101313163955525,12745151653944781459,7296757266660974854,794553383437099815],\"y\":[16157003238081361647,18193101100469311235,493666492639531255,771378650214563024],\"z\":[15962162382723646966,18426485404645143905,13420332647711569667,549679951276358924]},\"_g2\":{\"x\":{\"c0\":[11893942839698329554,6153984745280418916,7555025887477669435,2189003503463234029],\"c1\":[16245987181771638639,11366919777001491275,9974271757055928193,230830297907908218]},\"y\":{\"c0\":[18096498084177402548,12440990205660794493,4487564154740795648,544353625812949920],\"c1\":[9981660874896306664,5744212110058692631,787119774042518182,742353980239763059]},\"z\":{\"c0\":[12842331834301250378,12815213357478116155,12761783075790011802,345796935692301998],\"c1\":[14240109020335344394,6769545442224342537,14736697707008358605,1117485694760637891]}}},{\"_str\":\"UN:C:1\",\"_g1\":{\"x\":[5882010435027955516,718800300191738782,18135816129527539481,2706038119880959800],\"y\":[15789044351265418368,2856304702863401912,13883964706809603468,1561085130986486657],\"z\":[6319299405638623289,6507240080817486070,17340907217056671470,2457983560918540043]},\"_g2\":{\"x\":{\"c0\":[9446839611797601457,17778989780619080216,13468551559000036111,960702915136916472],\"c1\":[2017651132051513735,7222679136883515534,8441856650273853036,599471524189157724]},\"y\":{\"c0\":[11861198385688220293,14251743357021379231,7829460552273875079,1593531227233608213],\"c1\":[18156464121447916868,14703154684889238180,14080194541583166070,3043232050443771528]},\"z\":{\"c0\":[1697763064889323231,11038329042237770448,16297867658680628492,2923366442177757573],\"c1\":[8796891040575588592,10708374193464970173,3228848039052261204,3396794593841269175]}}}]}"
+[2022-01-04 12:59:04.790] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 12:59:04.790] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 12:59:04.799] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"0444ffe4-5f8b-4669-9ae6-aeb31231d170","policy":[],"digest":"2c6ed16da135562e780004a8becf34c1","status":1},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"f6c7b145-733f-407d-ad48-accdd5bb73f6","policy":[],"digest":"818c4886b3a20aa649b4808b6f53dc9b","status":1}]
+[2022-01-04 12:59:06.122] [debug] SET POLICY TO f6c7b145-733f-407d-ad48-accdd5bb73f6 DATA: ("UN:C:1")
+[2022-01-04 13:00:14.644] [debug] BOOT WITH CONF: {"configured":true,"isAdmin":false,"local":"/Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local","name":"user@uniroma2.it","remote":"/Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared","token":"1333befa5e33d7299ab092c1270a906994b5218c4881f97a1773ef4416207566"}
+[2022-01-04 13:00:14.645] [debug] Starting watchers
+[2022-01-04 13:00:14.648] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/pub_keys/26ea62019172cb16f91ca4035a1b0df6c5cf81ead45fed82f691622cc9064df3
+[2022-01-04 13:00:14.649] [debug] HR ADD:  26ea62019172cb16f91ca4035a1b0df6c5cf81ead45fed82f691622cc9064df3 pub_keys/ []
+[2022-01-04 13:00:14.649] [debug] DETECTED PUB KEY FILE
+[2022-01-04 13:00:14.649] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/keys/26ea62019172cb16f91ca4035a1b0df6c5cf81ead45fed82f691622cc9064df3.sk
+[2022-01-04 13:00:14.649] [debug] HR ADD:  26ea62019172cb16f91ca4035a1b0df6c5cf81ead45fed82f691622cc9064df3.sk keys/ []
+[2022-01-04 13:00:14.649] [debug] DETECTED ABE USER KEY FILE
+[2022-01-04 13:00:14.650] [debug] USER ABE PK RETRIEVED
+[2022-01-04 13:00:14.701] [debug] USER ABE SK RETIEVED"{\"_d\":{\"x\":{\"c0\":[13580545630886949215,4902156225336217122,15010229920522233900,1670337613885260817],\"c1\":[10156391695996348643,14806826623294259852,10869408984822629511,3051887127486457713]},\"y\":{\"c0\":[7620989513246736613,9242675342389192585,251467398098917506,2599642542208151401],\"c1\":[12201600492938985637,738171160743608536,10577677507397537052,1308681709825661731]},\"z\":{\"c0\":[14925449145845355769,16226962173806162025,13489445526915721894,615377593855862148],\"c1\":[4074983946870955897,12613481605423970007,10745745052754374280,1953187001778447278]}},\"_d_j\":[{\"_str\":\"UN:A:1\",\"_g1\":{\"x\":[4528767250940873530,13399326671455251040,1910736772221864774,3440998367792322478],\"y\":[12976668047804020237,5738722629356858663,10063495059682543416,794385619041606082],\"z\":[3662265397275206349,6086781251122935810,1948884566309842142,134197437673462216]},\"_g2\":{\"x\":{\"c0\":[3041031660832929805,5338217551830873858,18121621842619814516,1708446938195251929],\"c1\":[11407441693350071478,16852951543783373368,887552661879347800,3141601856885934109]},\"y\":{\"c0\":[16303903358098623593,7496551062385229324,11053423854593925655,3351405548066662099],\"c1\":[1676016150679136467,6928203014564306803,6854406467254298904,3172131077932035658]},\"z\":{\"c0\":[160153015084283182,9662252956988631343,1303821983220223146,831150490655937297],\"c1\":[3055106520735995049,17933969441176365965,10047944934590004092,569602551420169063]}}},{\"_str\":\"UN:C:1\",\"_g1\":{\"x\":[13266494985300033647,4988635525980730273,1426177387604632489,2402717559764698085],\"y\":[3631793630301141853,9518836751635054241,9276101022423479436,2891704117706531462],\"z\":[16116184016355094520,4323856381278375928,8706613698262925107,2875348201615060379]},\"_g2\":{\"x\":{\"c0\":[3641889375610007672,8713088297061613808,14207504473366903393,3289474604762008576],\"c1\":[4084596075974233472,18028794283688018430,3634800931801572266,179698966596786340]},\"y\":{\"c0\":[1397652302819965228,18240087818579172988,9449604694473765707,915743952297253503],\"c1\":[7755093461477693616,14343593078722370164,11478522013966539146,509116395236783499]},\"z\":{\"c0\":[11788342249975887039,13350447360238730677,10603913479165667354,1857798224220772892],\"c1\":[15084993172957772169,7454766330323823163,8931151559105505244,1996848370103262123]}}}]}"
+[2022-01-04 13:00:16.911] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
+[2022-01-04 13:00:16.911] [debug] HL ADD:  hello_index2.txt mytestfolder/
+[2022-01-04 13:00:16.995] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"386c9ce5-de49-46cc-8e5b-33541533cba9","policy":[],"digest":"94fa906f8013b55dddd717232e55c283","status":1},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"a1c67411-dab3-483e-bc8e-746a806336c5","policy":[],"digest":"5aae51a8bfec2d49917b77ba7931ea98","status":1}]
+[2022-01-04 13:00:18.654] [debug] SET POLICY TO a1c67411-dab3-483e-bc8e-746a806336c5 DATA: ("UN:C:1")
+[2022-01-04 13:00:18.663] [debug] SHARE LOCAL FILE  mytestfolder/hello_index2.txt
+[2022-01-04 13:00:21.599] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/a1c67411-dab3-483e-bc8e-746a806336c5.abebox
+[2022-01-04 13:00:21.600] [debug] HR ADD:  a1c67411-dab3-483e-bc8e-746a806336c5.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"386c9ce5-de49-46cc-8e5b-33541533cba9","policy":[],"digest":"94fa906f8013b55dddd717232e55c283","status":1},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"a1c67411-dab3-483e-bc8e-746a806336c5","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5aae51a8bfec2d49917b77ba7931ea98","status":0}]
+[2022-01-04 13:00:22.312] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"386c9ce5-de49-46cc-8e5b-33541533cba9","policy":[],"digest":"94fa906f8013b55dddd717232e55c283","status":1},{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"a1c67411-dab3-483e-bc8e-746a806336c5","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"5aae51a8bfec2d49917b77ba7931ea98","status":0}]
+[2022-01-04 13:00:22.312] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/a1c67411-dab3-483e-bc8e-746a806336c5.abebox
+[2022-01-04 13:00:22.313] [debug] HR ADD:  a1c67411-dab3-483e-bc8e-746a806336c5.abebox repo/ []
+[2022-01-04 13:00:22.973] [debug] FN  mytestfolder/hello_index2.txt
+[2022-01-04 13:00:22.973] [debug] FP  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/a1c67411-dab3-483e-bc8e-746a806336c5.abebox
+[2022-01-04 13:00:22.973] [debug] FF  mytestfolder/
+[2022-01-04 13:00:22.973] [debug] DN  hello_index2.txt
+[2022-01-04 13:00:22.973] [debug] ADN  /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/
+[2022-01-04 13:00:22.981] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index2.txt","file_id":"a1c67411-dab3-483e-bc8e-746a806336c5","digest":"5aae51a8bfec2d49917b77ba7931ea98","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"status":0}]
+[2022-01-04 13:00:25.097] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-user-local/mytestfolder/hello_index2.txt
+[2022-01-04 13:00:25.098] [debug] HL ADD:  hello_index2.txt mytestfolder/

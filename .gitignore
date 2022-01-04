@@ -48,3 +48,5 @@ test-pp/repo-local/
 test-pp/repo-shared/
 
 test/tmp/
+
+src/abebox/log/
