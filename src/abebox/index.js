@@ -1,5 +1,5 @@
 "use strict";
-// levare stato downloaded
+// levare stato downloaded - ok
 // usare MD5: local_add diventi local_change/remote_change
 
 const fs = require("fs");
@@ -48,7 +48,7 @@ const Abebox = (config_name = "config", name = "") => {
   log.debug("\n*********************************** Abebox Starting");
   if (name != "") {
     log = electronLog.create(`log_${name}`);
-    log.transports.console.level = true;
+    log.transports.console.level = false;
     log.transports.file.resolvePath = () =>
       path.join(__dirname, "log", `${name}.log`);
   }
@@ -282,18 +282,19 @@ const Abebox = (config_name = "config", name = "") => {
       log.debug(`LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
       return files_list;
     } else {
-      if (files_list[index].status == file_status.downloaded) {
+      /*if (files_list[index].status == file_status.downloaded) {
         files_list[index].status = file_status.sync;
         store.set_files(files_list);
         log.debug(
           `LOCAL ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`
         );
         return files_list;
-      }
+      }*/
+      console.log();
     }
   };
 
-  const handle_remote_add = async function(file_path) {
+  const handle_remote_add = function(file_path) {
     const { filename, rel_dir } = file_utils.split_file_path(
       file_path,
       _conf.remote
@@ -328,23 +329,28 @@ const Abebox = (config_name = "config", name = "") => {
       const index = files_list.findIndex((el) => el.file_id === file_id);
       if (index < 0) {
         // not in the file list!!!
-        const {
-          plaintext_file_folder,
-          plaintext_file_name,
-        } = await download_file(file_name, file_path, sym_key, iv, tag);
+        const { plaintext_file_folder, plaintext_file_name } = download_file(
+          file_name,
+          file_path,
+          sym_key,
+          iv,
+          tag
+        );
         assert(plaintext_file_name);
+
         files_list.push({
           file_dir: plaintext_file_folder,
           file_name: plaintext_file_name,
           file_id: file_id,
           digest: digest,
           policy: attribute.policy_from_string(policy),
-          status: file_status.downloaded,
+          status: file_status.sync, // ex downloaded
         });
       } else {
         files_list[index].policy = attribute.policy_from_string(policy);
       }
       store.set_files(files_list);
+
       log.debug(`REMOTE ADD - UPDATED FILE LIST ${JSON.stringify(files_list)}`);
     } catch (err) {
       log.debug(`File ${filename} decrypt failed`);
@@ -367,15 +373,15 @@ const Abebox = (config_name = "config", name = "") => {
     );
 
     if (index >= 0) {
-      if (files_list[index].status == file_status.downloaded) {
+      /*if (files_list[index].status == file_status.downloaded) {
         files_list[index].status = file_status.sync;
-      } else {
-        if (files_list[index].digest !== digest) {
-          files_list[index].digest = digest;
-          files_list[index].status = file_status.local_change;
-          share_file(files_list[index].file_id);
-        }
+      } else {*/
+      if (files_list[index].digest !== digest) {
+        files_list[index].digest = digest;
+        files_list[index].status = file_status.local_change;
+        share_file(files_list[index].file_id);
       }
+      //}
       store.set_files(files_list);
       log.debug(
         `LOCAL CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
@@ -424,8 +430,8 @@ const Abebox = (config_name = "config", name = "") => {
         files_list[index].status == file_status.local_change // TODO errore
       ) {
         // REMOTE EVENT
-        download_file(file_name, file_path, sym_key, iv, tag); // it's an async function
-        files_list[index].status = file_status.downloaded;
+        download_file(file_name, file_path, sym_key, iv, tag);
+        files_list[index].status = file_status.sync; // edx downloaded
       } else {
         log.error("Handle remote change bad file status " + file_name);
         throw Error("Handle remote change bad file status: " + file_name);
@@ -505,7 +511,7 @@ const Abebox = (config_name = "config", name = "") => {
     return false;
   };
 
-  const download_file = async function(file_name, file_path, sym_key, iv, tag) {
+  const download_file = function(file_name, file_path, sym_key, iv, tag) {
     // separate folder and name of the encrypted file
     log.debug("FN ", file_name);
     log.debug("FP ", file_path);
@@ -529,7 +535,7 @@ const Abebox = (config_name = "config", name = "") => {
     const encrypted_content_file = core.get_encrypted_content_file_name(
       file_path
     );
-    await core.retrieve_decrypted_file(
+    core.retrieve_decrypted_file(
       encrypted_content_file,
       path.join(_conf.local, file_name),
       sym_key,

@@ -25,3 +25,63 @@
 [2021-12-11 14:47:30.846] [debug] REM LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index2.txt
 [2021-12-12 09:51:32.822] [debug] BOOTING NO CONF
 [2021-12-12 09:51:32.838] [debug] Abebox Setup
+[2022-01-04 12:07:13.556] [debug] BOOTING NO CONF
+[2022-01-04 12:07:13.571] [debug] Abebox Setup
+[2022-01-04 12:07:13.572] [debug] Abebox InitCore
+[2022-01-04 12:07:14.510] [debug] Starting watchers
+[2022-01-04 12:07:20.255] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:07:20.256] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:07:20.265] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"5671ad34-5894-4701-aa60-9371007026f8","policy":[],"digest":"85d007d385c0139cdf1d4aa4d2d99887","status":1}]
+[2022-01-04 12:07:22.685] [debug] SET POLICY TO 5671ad34-5894-4701-aa60-9371007026f8 DATA: ("UN:C:1")
+[2022-01-04 12:07:22.694] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:07:25.607] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/5671ad34-5894-4701-aa60-9371007026f8.abebox
+[2022-01-04 12:07:25.608] [debug] HR ADD:  5671ad34-5894-4701-aa60-9371007026f8.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"5671ad34-5894-4701-aa60-9371007026f8","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"85d007d385c0139cdf1d4aa4d2d99887","status":0}]
+[2022-01-04 12:07:26.323] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"5671ad34-5894-4701-aa60-9371007026f8","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"85d007d385c0139cdf1d4aa4d2d99887","status":0}]
+[2022-01-04 12:07:27.265] [debug] ABE SK SENT WITH TOKEN  fbdfbcae55c734406ab9c5197ead996b590d043dbaf79f089c7f38eb9ce40cac
+[2022-01-04 12:07:27.266] [debug] 
+*********************************** Abebox Starting
+[2022-01-04 12:13:07.577] [debug] BOOTING NO CONF
+[2022-01-04 12:13:07.592] [debug] Abebox Setup
+[2022-01-04 12:13:07.594] [debug] Abebox InitCore
+[2022-01-04 12:13:08.970] [debug] Starting watchers
+[2022-01-04 12:13:15.081] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:13:15.082] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:13:15.090] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"91892828-e0e7-40ab-a6fb-9e059e1be18f","policy":[],"digest":"f813acfabfc363fa409c262a31788b81","status":1}]
+[2022-01-04 12:13:17.415] [debug] SET POLICY TO 91892828-e0e7-40ab-a6fb-9e059e1be18f DATA: ("UN:C:1")
+[2022-01-04 12:13:17.429] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:13:20.297] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/91892828-e0e7-40ab-a6fb-9e059e1be18f.abebox
+[2022-01-04 12:13:20.298] [debug] HR ADD:  91892828-e0e7-40ab-a6fb-9e059e1be18f.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"91892828-e0e7-40ab-a6fb-9e059e1be18f","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"f813acfabfc363fa409c262a31788b81","status":0}]
+[2022-01-04 12:13:20.943] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"91892828-e0e7-40ab-a6fb-9e059e1be18f","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"f813acfabfc363fa409c262a31788b81","status":0}]
+[2022-01-04 12:13:21.969] [debug] ABE SK SENT WITH TOKEN  8908b59677a6fabbbf4c24cbae36cd9edf1b7259966c9ea1406eb695a282d8e4
+[2022-01-04 12:13:21.970] [debug] 
+*********************************** Abebox Starting
+[2022-01-04 12:14:46.328] [debug] BOOTING NO CONF
+[2022-01-04 12:14:46.344] [debug] Abebox Setup
+[2022-01-04 12:14:46.345] [debug] Abebox InitCore
+[2022-01-04 12:14:47.239] [debug] Starting watchers
+[2022-01-04 12:14:53.230] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:14:53.232] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:14:53.240] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"d9e3a7ff-8192-42c6-aad7-1d03fa23144e","policy":[],"digest":"2c7ba0fdb7d7d66b7783c40483e96d4c","status":1}]
+[2022-01-04 12:14:55.580] [debug] SET POLICY TO d9e3a7ff-8192-42c6-aad7-1d03fa23144e DATA: ("UN:C:1")
+[2022-01-04 12:14:55.589] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:14:58.358] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/d9e3a7ff-8192-42c6-aad7-1d03fa23144e.abebox
+[2022-01-04 12:14:58.359] [debug] HR ADD:  d9e3a7ff-8192-42c6-aad7-1d03fa23144e.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"d9e3a7ff-8192-42c6-aad7-1d03fa23144e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"2c7ba0fdb7d7d66b7783c40483e96d4c","status":0}]
+[2022-01-04 12:14:59.066] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"d9e3a7ff-8192-42c6-aad7-1d03fa23144e","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"2c7ba0fdb7d7d66b7783c40483e96d4c","status":0}]
+[2022-01-04 12:15:00.147] [debug] ABE SK SENT WITH TOKEN  066e97b322a8f7e1b0099a40d59f95c9325d3768657263f1a848ac2b2c489b02
+[2022-01-04 12:15:00.148] [debug] 
+*********************************** Abebox Starting
+[2022-01-04 12:21:03.463] [debug] BOOTING NO CONF
+[2022-01-04 12:21:03.477] [debug] Abebox Setup
+[2022-01-04 12:21:03.478] [debug] Abebox InitCore
+[2022-01-04 12:21:04.840] [debug] Starting watchers
+[2022-01-04 12:21:10.530] [debug] ADD LOCAL /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-local/mytestfolder/hello_index.txt
+[2022-01-04 12:21:10.531] [debug] HL ADD:  hello_index.txt mytestfolder/
+[2022-01-04 12:21:10.539] [debug] LOCAL ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"e116ddcf-8b44-4bc7-a5b4-8a7406e2335a","policy":[],"digest":"0649433296f672fd90d951e7380ad87f","status":1}]
+[2022-01-04 12:21:12.875] [debug] SET POLICY TO e116ddcf-8b44-4bc7-a5b4-8a7406e2335a DATA: ("UN:C:1")
+[2022-01-04 12:21:12.882] [debug] SHARE LOCAL FILE  mytestfolder/hello_index.txt
+[2022-01-04 12:21:15.622] [debug] ADD REMOTE /Users/loreti/tmp/Abebox/abebox-electron/test/tmp/repo-shared/repo/e116ddcf-8b44-4bc7-a5b4-8a7406e2335a.abebox
+[2022-01-04 12:21:15.622] [debug] HR ADD:  e116ddcf-8b44-4bc7-a5b4-8a7406e2335a.abebox repo/ [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"e116ddcf-8b44-4bc7-a5b4-8a7406e2335a","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"0649433296f672fd90d951e7380ad87f","status":0}]
+[2022-01-04 12:21:16.248] [debug] REMOTE ADD - UPDATED FILE LIST [{"file_dir":"mytestfolder/","file_name":"hello_index.txt","file_id":"e116ddcf-8b44-4bc7-a5b4-8a7406e2335a","policy":[[{"univ":"UN","attr":"C","vers":"1"}]],"digest":"0649433296f672fd90d951e7380ad87f","status":0}]
+[2022-01-04 12:21:17.406] [debug] ABE SK SENT WITH TOKEN  db69d0543ab87013f2f71dff847a75dda8c87731fbb130ea3cdf7185f16989b5
+[2022-01-04 12:21:17.407] [debug] 
+*********************************** Abebox Starting
