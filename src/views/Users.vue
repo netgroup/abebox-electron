@@ -27,11 +27,15 @@
                     <span class="text-h5">User Token</span>
                   </v-card-title>
                   <v-card-text>
-                    <p>{{userToken}}</p>
+                    <p>{{ userToken }}</p>
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="blue darken-1" text @click="dialogToken=false">
+                    <v-btn
+                      color="blue darken-1"
+                      text
+                      @click="dialogToken = false"
+                    >
                       Cancel
                     </v-btn>
                   </v-card-actions>
@@ -61,16 +65,17 @@
                         </v-col>
                       </v-row>
                       <v-row class="m-0" v-else>
-                        <v-col cols="12" sm="12" md="12">
+                        <v-col cols="8">
                           <v-text-field
                             v-model="editedItem.name"
                             label="Name"
                             :rules="checkRule"
+                            required
                           ></v-text-field>
                         </v-col>
                       </v-row>
                       <v-row class="m-0">
-                        <v-col cols="12" sm="12" md="12">
+                        <v-col cols="8">
                           <v-select
                             :items="items"
                             label="Attributes"
@@ -78,6 +83,9 @@
                             multiple
                             chips
                             persistent-hint
+                            :rules="checkRule"
+                            required
+                            :menu-props="{ bottom: true, offsetY: true }"
                           ></v-select>
                         </v-col>
                       </v-row>
@@ -145,10 +153,9 @@ export default {
     dialog: false,
     dialogDelete: false,
     search: "",
-    userToken:"",
+    userToken: "",
     dialogToken: false,
     checkRule: [(v) => !!v || "Please fill this field"],
-
     headers: [
       {
         text: "Name",
@@ -219,8 +226,8 @@ export default {
       const user_name = item.name;
       console.log(user_name);
       const ret = await ipcRenderer.invoke("invite-user", { name: user_name });
-      this.dialogToken=true
-      this.userToken = ret
+      this.dialogToken = true;
+      this.userToken = ret;
       console.log(ret);
     },
 
