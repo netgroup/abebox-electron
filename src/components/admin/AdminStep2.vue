@@ -181,11 +181,16 @@ export default {
   computed: {
     folder_shared_name: function() {
       if (this.folder_shared)
-        return this.folder_shared.match(/([^\/]*)\/*$/)[1];
+        if(this.folder_shared.includes("\\"))
+          return this.folder_shared.match(/.*\\([^\\]+)\\*$/)[1]
+        else return this.folder_shared.match(/([^\/]*)\/*$/)[1];
       else return "";
     },
     folder_local_name: function() {
-      if (this.folder_local) return this.folder_local.match(/([^\/]*)\/*$/)[1];
+      if (this.folder_local) 
+        if(this.folder_local.includes("\\"))
+          return this.folder_local.match(/.*\\([^\\]+)\\*$/)[1]
+        else return this.folder_local.match(/([^\/]*)\/*$/)[1];
       else return "";
     },
   },
