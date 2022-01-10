@@ -439,38 +439,43 @@ const Abebox = (config_name = "config", name = "") => {
     // fragments.
     if (file_ext != "abebox") return files_list;
 
-    const {
-      file_name,
-      sym_key,
-      iv,
-      tag,
-      digest,
-      policy,
-    } = core.retrieve_metadata(file_path);
+    try {
+      const {
+        file_name,
+        sym_key,
+        iv,
+        tag,
+        digest,
+        policy,
+      } = core.retrieve_metadata(file_path);
 
-    if (file_name === null) {
-      // if metadata.file_path is null, decoding was not possible
-      throw Error("Metadata file name is empty");
-    }
-    // search if file has been already added in the file list
-    const index = files_list.findIndex((el) => el.file_id === file_id);
-    if (index >= 0) {
-      if (
-        files_list[index].status == file_status.sync ||
-        files_list[index].status == file_status.local_change // TODO errore
-      ) {
-        // REMOTE EVENT
-        download_file(file_name, file_path, sym_key, iv, tag);
-        files_list[index].status = file_status.sync; // edx downloaded
-      } else {
-        log.error("Handle remote change bad file status " + file_name);
-        throw Error("Handle remote change bad file status: " + file_name);
+      if (file_name === null) {
+        // if metadata.file_path is null, decoding was not possible
+        throw Error("Metadata file name is empty");
       }
+      // search if file has been already added in the file list
+      const index = files_list.findIndex((el) => el.file_id === file_id);
+      if (index >= 0) {
+        if (
+          files_list[index].status == file_status.sync ||
+          files_list[index].status == file_status.local_change // TODO errore
+        ) {
+          // REMOTE EVENT
+          download_file(file_name, file_path, sym_key, iv, tag);
+          files_list[index].status = file_status.sync; // edx downloaded
+        } else {
+          log.error("Handle remote change bad file status " + file_name);
+          throw Error("Handle remote change bad file status: " + file_name);
+        }
+      }
+      store.set_files(files_list);
+      log.debug(
+        `REMOTE CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
+      );
+    } catch (err) {
+      log.debug(`File ${filename} decrypt failed`);
+      return;
     }
-    store.set_files(files_list);
-    log.debug(
-      `REMOTE CHANGE - UPDATED FILE LIST ${JSON.stringify(files_list)}`
-    );
     return files_list;
   };
 
