@@ -136,7 +136,7 @@ export default {
     defaultItem: {
       univ: "",
       attr: "",
-      vers: "",
+      vers: "1",
     },
   }),
   computed: {
@@ -226,6 +226,7 @@ export default {
       this.attributeList = new_attrs_list;
     },
     async newAttr(attr) {
+      if (attr.vers == "") attr.vers = 1;
       console.log("newAttr", attr);
       const new_attrs_list = await ipcRenderer.invoke("new-attr", attr);
       this.attributeList = new_attrs_list;
