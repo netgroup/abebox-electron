@@ -43,22 +43,16 @@
                   <v-card-text>
                     <v-container>
                       <v-row>
-                        <v-col cols="12" sm="6" md="4">
+                        <v-col cols="12">
                           <v-text-field
                             v-model="editedItem.univ"
                             label="Universe"
                           ></v-text-field>
                         </v-col>
-                        <v-col cols="12" sm="6" md="4">
+                        <v-col cols="12">
                           <v-text-field
                             v-model="editedItem.attr"
                             label="Attribute"
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field
-                            v-model="editedItem.vers"
-                            label="Version"
                           ></v-text-field>
                         </v-col>
                       </v-row>

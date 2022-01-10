@@ -35,6 +35,13 @@ const isEmptyFolder = async function(path) {
   );
   if (filert_data.length == 0) {
     return true;
+  } else if (filert_data.length == 1) {
+    if (filert_data[0].includes("Icon")) {
+      // file Icon Mac
+      return true;
+    } else {
+      return false;
+    }
   } else {
     return false;
   }
@@ -162,7 +169,7 @@ export default {
 
     ipcMain.handle("reset-abebox", async (event, data) => {
       await abebox.reset_config(); // return file list
-      win.close();
+      if (window) window.close();
       return {};
     });
 

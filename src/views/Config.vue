@@ -25,23 +25,23 @@
       <v-col cols="12">
         <h1>Abebox Configuration</h1>
       </v-col>
-      <v-col class="mt-5" offset="1" cols="5">
-        <p class="body-1 font-weight-regular" style="opacity: 0.5">
-          {{ name }}
+      <v-col cols="11">
+        <p class="body-1 font-weight-regular">
+          <strong>USERNAME:</strong> {{ name }}
         </p>
       </v-col>
-      <v-col class="mt-5" offset="1" cols="5">
-        <p class="body-1 font-weight-regular" style="opacity: 0.5">
-          {{ local }}
+      <v-col cols="11">
+        <p class="body-1 font-weight-regular">
+          <strong>Repository Local:</strong> {{ local }}
         </p>
       </v-col>
-      <v-col class="mt-5" offset="1" cols="5">
-        <p class="body-1 font-weight-regular" style="opacity: 0.5">
-          {{ remote }}
+      <v-col cols="11">
+        <p class="body-1 font-weight-regular">
+          <strong>Repository Shared:</strong> {{ remote }}
         </p>
       </v-col>
-      <v-col class="mt-5" offset="1" cols="5">
-        <p class="body-1 font-weight-regular" style="opacity: 0.5">
+      <v-col class="mt-5" cols="5">
+        <p class="body-1 font-weight-regular">
           <v-btn @click="errorDialog = true">Reset Configuration</v-btn>
         </p>
       </v-col>
@@ -65,6 +65,11 @@ export default {
       this.name = this.$store.state.conf.name;
       this.local = this.$store.state.conf.local;
     },
+  },
+  created: function() {
+    this.remote = this.$store.state.conf.remote;
+    this.name = this.$store.state.conf.name;
+    this.local = this.$store.state.conf.local;
   },
   methods: {
     async resetAbebox() {

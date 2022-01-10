@@ -67,14 +67,16 @@ export default {
           isAdmin: true, // admin path
           configured: true,
         };
-
-        const attr = {
-          univ: data.univ,
-          attr: data.attr,
-          vers: 1,
-        };
         conf = await this.saveConf(admin_conf);
-        await this.createAttr(attr);
+
+        if (data.univ != "" && data.attr != "") {
+          const attr = {
+            univ: data.univ,
+            attr: data.attr,
+            vers: 1,
+          };
+          await this.createAttr(attr);
+        }
       } else {
         const user_conf = {
           name: data.email,

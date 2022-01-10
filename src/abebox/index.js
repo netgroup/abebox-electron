@@ -913,6 +913,12 @@ const Abebox = (config_name = "config", name = "") => {
   const new_attr = function(new_obj) {
     if (!_conf.configured) throw Error("ABEBox not configured");
     if (!_conf.isAdmin) throw Error("To Add an Attribute need to be admin");
+
+    if (!new_obj.univ || new_obj.univ == "")
+      throw Error("can not add empty universe");
+    if (!new_obj.attr || new_obj.attr == "")
+      throw Error("can not add empty attr");
+
     const attrs = attribute.add(new_obj);
     // Update admin ABE sk
     const attrs_comp = attribute.compress_list(attrs);
